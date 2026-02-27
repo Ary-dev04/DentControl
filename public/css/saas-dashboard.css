@@ -1,0 +1,83 @@
+/* ================= SAAS DASHBOARD ================= */
+
+/* Evitar que el content choque con el sidebar */
+.content {
+  max-width: 100%;
+}
+
+/* ================= CARDS ================= */
+.saas-cards {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 25px;
+  margin-bottom: 35px;
+}
+
+/* Cards */
+.card {
+  background: white;
+  padding: 25px;
+  border-radius: 14px;
+  box-shadow: 0 8px 20px rgba(0,0,0,0.08);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.card:hover {
+  transform: translateY(-6px);
+  box-shadow: 0 14px 30px rgba(0,0,0,0.15);
+}
+
+.card h3 {
+  margin: 0;
+  font-size: 15px;
+  color: #555;
+}
+
+.number {
+  font-size: 38px;
+  font-weight: bold;
+  margin-top: 12px;
+}
+
+/* ================= COLORES ================= */
+.card-blue .number { color: #0d6efd; }
+.card-green .number { color: #20c997; }
+.card-orange .number { color: #fd7e14; }
+.card-red .number { color: #dc3545; }
+
+/* ================= ALERTAS ================= */
+.alerts-section {
+  width: 100%;
+}
+
+.card-alerts {
+  background: white;
+  padding: 25px;
+  border-radius: 14px;
+  box-shadow: 0 8px 20px rgba(0,0,0,0.08);
+  border-left: 6px solid #dc3545;
+}
+
+.card-alerts h3 {
+  margin-top: 0;
+  color: #dc3545;
+}
+
+.alert-placeholder {
+  margin-top: 15px;
+  color: #6c757d;
+  font-style: italic;
+}
+
+/* ================= RESPONSIVE ================= */
+@media (max-width: 1200px) {
+  .saas-cards {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 600px) {
+  .saas-cards {
+    grid-template-columns: 1fr;
+  }
+}
