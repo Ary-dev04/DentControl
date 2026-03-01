@@ -59,13 +59,21 @@ class UsuarioController extends Controller
     return redirect()->route('usuarios.index')->with('success', 'Usuario creado con éxito.');
     }
 
-    // Eliminar usuario
-    public function destroy($id)
+    // desactivar usuario
+    public function toggleStatus($id)
     {
-        $usuario = Usuario::findOrFail($id);
-        $usuario->delete();
+    $usuario = Usuario::findOrFail($id);
+    
+    // Lógica inversa: si es activo -> inactivo, si es inactivo -> activo
+    $nuevoEstado = ($usuario->estatus == 'activo') ? 'baja' : 'activo';
+    
+    $usuario->update(['estatus' => $nuevoEstado]);
 
-        return redirect()->route('usuarios.index')->with('success', 'Usuario eliminado.');
+    $mensaje = ($nuevoEstado == 'activo') 
+        ? "El usuario {$usuario->nom_usuario} ha sido reactivado." 
+        : "El acceso de {$usuario->nom_usuario} ha sido suspendido.";
+    
+    return redirect()->back()->with('success', $mensaje);
     }
 
     //Editar usuario

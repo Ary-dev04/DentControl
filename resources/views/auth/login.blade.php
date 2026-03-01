@@ -40,6 +40,14 @@
                 <label>Password</label>
                 <input type="password" name="password" placeholder="Ingrese su contraseña" required>
 
+                <div class="remember-forgot">
+                <label class="remember-me">
+                <input type="checkbox" name="remember" id="remember">
+                <span class="checkmark"></span>
+                Recordarme en este equipo
+                </label>    
+                </div>
+
                 <button type="submit">Iniciar sesión</button>
 
             </form>

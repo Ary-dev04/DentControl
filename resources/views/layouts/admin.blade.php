@@ -19,11 +19,11 @@
     </div>
 
     <nav class="menu">
-      <a href="{{ route('dashboard') }}" class="{{ request()->routeIs('dashboard') ? 'active' : '' }}">
+      <a href="{{ route('admin.dashboard') }}" class="{{ request()->routeIs('dashboard') ? 'active' : '' }}">
         <i class="fa-solid fa-house"></i> Dashboard
       </a>
 
-      <a href="{{ route('clinicas.create') }}">
+      <a href="{{ route('clinicas.index') }}">
         <i class="fa-solid fa-hospital"></i> Registrar clínica
       </a>
 

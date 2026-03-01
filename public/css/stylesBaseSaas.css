@@ -280,3 +280,102 @@ input:focus, select:focus {
 .card-green  { border-top: 5px solid #20c997; }
 .card-orange { border-top: 5px solid #fd7e14; }
 .card-red    { border-top: 5px solid #dc3545; }
+
+/* ===== BOTONES ACCIONES (IGUAL A USUARIOS) ===== */
+.actions {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 12px;
+}
+
+.icon-btn {
+  width: 42px;
+  height: 42px;
+  border-radius: 10px;
+  border: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: 0.2s;
+  font-size: 15px;
+}
+
+/* EDITAR */
+.icon-btn.edit {
+  background: #4f46e5;
+  color: white;
+}
+
+.icon-btn.edit:hover {
+  background: #4338ca;
+}
+
+/* ELIMINAR */
+.icon-btn.delete {
+  background: #ef4444;
+  color: white;
+}
+
+.icon-btn.delete:hover {
+  background: #dc2626;
+}
+
+/* ===== MODAL OVERLAY ===== */
+.modal {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.45);
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+/* ===== CONTENIDO MODAL ===== */
+.modal-content {
+  background: white;
+  padding: 30px;
+  border-radius: 14px;
+  width: 750px;
+  max-width: 95%;
+  max-height: 85vh;
+  overflow-y: auto;
+  position: relative;
+  animation: fadeIn 0.2s ease;
+}
+
+/* GRID COMO USUARIOS */
+.modal-content .form-row {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 20px;
+}
+
+.modal-content .form-row:nth-child(3),
+.modal-content .form-row:nth-child(4) {
+  grid-template-columns: repeat(3, 1fr);
+}
+
+/* BOTON CERRAR */
+.close-btn {
+  position: absolute;
+  right: 18px;
+  top: 15px;
+  background: none;
+  border: none;
+  font-size: 22px;
+  cursor: pointer;
+  color: #6b7280;
+}
+
+.close-btn:hover {
+  color: #111;
+}
+
+/* ANIMACION */
+@keyframes fadeIn {
+  from { opacity: 0; transform: scale(.95); }
+  to { opacity: 1; transform: scale(1); }
+}

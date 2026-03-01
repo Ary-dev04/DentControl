@@ -105,12 +105,24 @@
             <button class="btn btn-edit" onclick="editUser('{{ $user->id_usuario }}')">
               <i class="fa-solid fa-pen"></i>
             </button>
-            <form action="{{ route('usuarios.destroy', $user->id_usuario) }}" method="POST" style="display:inline;">
-                @csrf @method('DELETE')
-                <button type="submit" class="btn btn-cancel" onclick="return confirm('¿Eliminar usuario?')">
-                  <i class="fa-solid fa-trash"></i>
+            <form action="{{ route('usuarios.toggle', $user->id_usuario) }}" method="POST" style="display:inline;">
+                @csrf
+                @method('PATCH')
+        
+                @if($user->estatus == 'activo')
+                {{-- BOTÓN PARA DESACTIVAR --}}
+                <button type="submit" class="btn btn-cancel" style="background-color: #64748b;" 
+                    title="Desactivar Usuario" onclick="return confirm('¿Suspender el acceso a este usuario?')">
+                    <i class="fa-solid fa-user-slash"></i>
                 </button>
-            </form>
+                @else
+                {{-- BOTÓN PARA REACTIVAR --}}
+                <button type="submit" class="btn btn-primary" style="background-color: #10b981;" 
+                    title="Reactivar Usuario" onclick="return confirm('¿Reestablecer acceso para este usuario?')">
+                    <i class="fa-solid fa-user-check"></i>
+                </button>
+                @endif
+                </form>
           </td>
         </tr>
         @endforeach
