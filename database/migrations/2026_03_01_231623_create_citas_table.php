@@ -18,6 +18,7 @@ return new class extends Migration
             $table->unsignedBigInteger('id_usuario');
             $table->unsignedBigInteger('id_cat_servicio');
             $table->unsignedBigInteger('id_tratamiento')->nullable();
+            $table->unsignedBigInteger('id_clinica');
             
             $table->date('fecha');
             $table->time('hora');
@@ -45,6 +46,10 @@ return new class extends Migration
                 ->on('catalogo_servicios')
                 ->onDelete('cascade');
             
+            $table->foreign('id_clinica')
+                ->references('id_clinica')->on('clinica')
+                ->onDelete('cascade');
+                    
             $table->unique(['id_usuario', 'fecha', 'hora']);    
         });
     }

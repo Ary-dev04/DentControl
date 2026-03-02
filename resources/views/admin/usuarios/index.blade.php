@@ -105,24 +105,29 @@
             <button class="btn btn-edit" onclick="editUser('{{ $user->id_usuario }}')">
               <i class="fa-solid fa-pen"></i>
             </button>
+            @if($user->rol !== 'superadmin')
             <form action="{{ route('usuarios.toggle', $user->id_usuario) }}" method="POST" style="display:inline;">
-                @csrf
-                @method('PATCH')
-        
-                @if($user->estatus == 'activo')
-                {{-- BOTÓN PARA DESACTIVAR --}}
+            @csrf
+            @method('PATCH')
+            
+            @if($user->estatus == 'activo')
                 <button type="submit" class="btn btn-cancel" style="background-color: #64748b;" 
                     title="Desactivar Usuario" onclick="return confirm('¿Suspender el acceso a este usuario?')">
                     <i class="fa-solid fa-user-slash"></i>
                 </button>
                 @else
-                {{-- BOTÓN PARA REACTIVAR --}}
                 <button type="submit" class="btn btn-primary" style="background-color: #10b981;" 
                     title="Reactivar Usuario" onclick="return confirm('¿Reestablecer acceso para este usuario?')">
                     <i class="fa-solid fa-user-check"></i>
                 </button>
                 @endif
                 </form>
+                @else
+                {{-- Si es admin, mostramos un ícono de escudo o candado deshabilitado --}}
+                <button class="btn" style="background-color: #e2e8f0; cursor: not-allowed;" title="Usuario del Sistema" disabled>
+                    <i class="fa-solid fa-shield-halved"></i>
+                </button>
+                 @endif
           </td>
         </tr>
         @endforeach
@@ -182,7 +187,7 @@
                 <label>Rol</label>
                 <select name="rol" id="rol" onchange="toggleCedula()" required>
                     <option value="">Seleccionar</option>
-                    <option value="superadmin">Administrador</option>
+                    
                     <option value="dentista">Dentista / Dueño</option>
                     <option value="asistente">Asistente</option>
                 </select>
@@ -232,9 +237,22 @@
                 form.apellido_paterno.value = data.apellido_paterno;
                 form.apellido_materno.value = data.apellido_materno || ''; // Carga el materno
                 form.nom_usuario.value = data.nom_usuario;
-                if (data.rol) {
-                form.rol.value = data.rol; 
-                }
+                const rolSelect = document.getElementById('rol');
+            if (data.rol === 'superadmin') {
+                // Añadimos temporalmente la opción admin para que se visualice
+                rolSelect.innerHTML += `<option value="superadmin">Superadmin</option>`;
+                rolSelect.value = 'superadmin';
+                rolSelect.disabled = true; // No se puede cambiar el rol al admin
+            } else {
+                rolSelect.disabled = false;
+                // Limpiamos y dejamos solo las opciones normales
+                rolSelect.innerHTML = `
+                    <option value="">Seleccionar</option>
+                    <option value="dentista">Dentista / Dueño</option>
+                    <option value="asistente">Asistente</option>
+                `;
+                rolSelect.value = data.rol;
+            }
                 form.cedula_profesional.value = data.cedula_profesional || '';
                 
                 const passInput = document.getElementById('password_input');
@@ -255,6 +273,13 @@
         modal.style.display = 'none';
         const form = document.getElementById('userForm');
         form.reset();
+        const rolSelect = document.getElementById('rol');
+    rolSelect.disabled = false;
+    rolSelect.innerHTML = `
+        <option value="">Seleccionar</option>
+        <option value="dentista">Dentista / Dueño</option>
+        <option value="asistente">Asistente</option>
+    `;
         form.action = "{{ route('usuarios.store') }}";
         const methodInput = document.querySelector('input[name="_method"]');
         if(methodInput) methodInput.remove();

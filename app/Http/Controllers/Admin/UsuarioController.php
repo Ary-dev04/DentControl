@@ -63,6 +63,11 @@ class UsuarioController extends Controller
     public function toggleStatus($id)
     {
     $usuario = Usuario::findOrFail($id);
+
+    //Si el usuario es admin, no se puede tocar
+    if ($usuario->rol === 'admin') {
+        return redirect()->back()->with('error', 'El Superadministrador no puede ser suspendido.');
+    }
     
     // Lógica inversa: si es activo -> inactivo, si es inactivo -> activo
     $nuevoEstado = ($usuario->estatus == 'activo') ? 'baja' : 'activo';
@@ -86,13 +91,24 @@ class UsuarioController extends Controller
 public function update(Request $request, $id)
 {
     $usuario = Usuario::findOrFail($id);
+
+    // REGLA: Si el usuario es admin, solo él puede editar sus datos 
+    // y NUNCA puede cambiarse el rol a sí mismo a algo inferior.
+    if ($usuario->rol === 'admin') {
+        $request->merge(['rol' => 'admin']); // Forzamos que el rol siga siendo admin
+        
+        // Opcional: Impedir que otros editen al admin
+        //if (auth()->user()->id_usuario !== $usuario->id_usuario) {
+        //     return redirect()->route('usuarios.index')->with('error', 'No puedes editar al Superadministrador.');
+        //}
+    }
     
     $rules = [
         'id_clinica' => 'required',
         'nombre' => 'required|string',
         'apellido_paterno' => 'required|string',
         'nom_usuario' => 'required|unique:usuario,nom_usuario,' . $id . ',id_usuario',
-        'rol' => 'required',
+        'rol' => 'required|in:superadmin,dentista,asistente',
     ];
 
     // Solo validamos password si el usuario escribió algo nuevo
