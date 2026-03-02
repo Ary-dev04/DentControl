@@ -30,7 +30,7 @@ class Clinica extends Model
     ];
 
     protected $casts = [
-    'rfc' => 'encrypted', 
+    //'rfc' => 'encrypted', 
     ];
 
     // Relaciones

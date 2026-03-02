@@ -57,7 +57,7 @@
                         @csrf
                         @method('PATCH') {{-- Usamos PATCH porque solo actualizamos un campo --}}
     
-                        @if($clinica->estatus == 'activa')
+                        @if($clinica->estatus == 'activo')
                         {{-- BOTÓN PARA DAR DE BAJA --}}
                         <button type="submit" class="icon-btn delete" style="background-color: #f59e0b;" title="Dar de baja"
                             onclick="return confirm('¿Dar de baja esta clínica?')">
@@ -109,11 +109,11 @@
                     </div>
                     <div class="form-group">
                         <label>Núm. Ext</label>
-                        <input type="text" name="numero_exterior" id="numero_exterior">
+                        <input type="text" name="numero_ext" id="numero_ext">
                     </div>
                     <div class="form-group">
                         <label>Núm. Int</label>
-                        <input type="text" name="numero_interior" id="numero_interior">
+                        <input type="text" name="numero_int" id="numero_int">
                     </div>
                 </div>
 
@@ -146,10 +146,14 @@
                 </div>
 
                 <div style="margin-top:20px;">
+                    <div id="logoPreviewContainer" style="display:none; margin-bottom:15px; text-align:center;">
+                    <p style="font-size: 0.8rem; color: #666; margin-bottom: 5px;">Logo actual:</p>
+                    <img id="logoPreviewImg" src="" alt="Logo Clínica" style="max-width: 120px; height: auto; border: 1px solid #ddd; padding: 5px; border-radius: 8px;">
+                    </div>
                     <label class="btn btn-secondary" style="cursor:pointer; display:inline-block;">
-                        <i class="fa-solid fa-image"></i> Agregar logo
-                        <input type="file" name="logo_ruta" style="display:none;" accept="image/*">
-                    </label>
+    <i class="fa-solid fa-image"></i> 
+    <span id="logoButtonText">Agregar logo</span> <input type="file" name="logo_ruta" style="display:none;" accept="image/*">
+</label>
                     <small id="logoName" style="margin-left:10px; color:#666;"></small>
                 </div>
 
@@ -185,12 +189,21 @@
         document.getElementById('logoName').innerText = "";
         // Limpiamos el select de colonias al cerrar
         document.getElementById('colonia_select').innerHTML = '<option value="">Ingresa el CP primero...</option>';
+        document.getElementById('logoPreviewContainer').style.display = "none";
+    document.getElementById('logoPreviewImg').src = "";
+    document.getElementById('logoButtonText').innerText = "Agregar logo";
     }
 
     function editClinic(id) {
         document.getElementById('modalTitle').innerText = "Editar Clínica";
         clinicForm.action = `/clinicas/${id}`;
         methodField.innerHTML = `@method('PUT')`;
+
+        // Definimos las variables del logo que usaremos abajo
+    const previewContainer = document.getElementById('logoPreviewContainer');
+    const previewImg = document.getElementById('logoPreviewImg');
+    // id="logoButtonText", vamos a obtenerlo por su contenedor
+    const logoButton = document.querySelector('.btn-secondary');
 
         fetch(`/clinicas/${id}/edit`)
             .then(res => {
@@ -207,8 +220,8 @@
                 setVal('nombre', data.nombre);
                 setVal('rfc', data.rfc);
                 setVal('calle', data.calle);
-                setVal('numero_exterior', data.numero_exterior);
-                setVal('numero_interior', data.numero_interior);
+                setVal('numero_ext', data.numero_ext);
+                setVal('numero_int', data.numero_int);
                 setVal('codigo_postal', data.codigo_postal);
                 setVal('ciudad', data.ciudad);
                 setVal('estado', data.estado);
@@ -219,6 +232,14 @@
                 if (coloniaSelect) {
                     coloniaSelect.innerHTML = `<option value="${data.colonia}" selected>${data.colonia}</option>`;
                 }
+
+                if (data.logo_ruta) {
+                previewImg.src = window.location.origin + '/' + data.logo_ruta;
+                previewContainer.style.display = "block";
+            } else {
+                previewContainer.style.display = "none";
+                previewImg.src = "";
+            }
 
                 // IMPORTANTE: Llamar a abrir el modal al final
                 openClinicModal();

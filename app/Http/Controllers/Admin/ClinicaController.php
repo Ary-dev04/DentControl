@@ -68,7 +68,9 @@ class ClinicaController extends Controller
             'estado'          => 'nullable|string',
             'telefono'        => 'required|digits:10',
             'logo_ruta'       => 'nullable|image|mimes:jpeg,png,jpg|max:2048',
-        ]);
+        ], [
+        'rfc.unique' => 'Este RFC ya pertenece a otra clínica registrada.',
+    ]);
 
         if ($request->hasFile('logo_ruta')) {
             // Borrar logo anterior si existe
@@ -93,11 +95,11 @@ class ClinicaController extends Controller
     $clinica = Clinica::findOrFail($id);
     
     // Si está activa la pasamos a baja, si está en baja la pasamos a activa
-    $nuevoEstado = ($clinica->estatus == 'activa') ? 'baja' : 'activa';
+    $nuevoEstado = ($clinica->estatus == 'activo') ? 'baja' : 'activo';
     
     $clinica->update(['estatus' => $nuevoEstado]);
 
-    $mensaje = ($nuevoEstado == 'activa') ? 'Clínica reactivada con éxito.' : 'Clínica dada de baja.';
+    $mensaje = ($nuevoEstado == 'activo') ? 'Clínica reactivada con éxito.' : 'Clínica dada de baja.';
     
     return redirect()->back()->with('success', $mensaje);
 }
