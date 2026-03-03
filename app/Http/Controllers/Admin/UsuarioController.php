@@ -94,8 +94,8 @@ public function update(Request $request, $id)
 
     // REGLA: Si el usuario es admin, solo él puede editar sus datos 
     // y NUNCA puede cambiarse el rol a sí mismo a algo inferior.
-    if ($usuario->rol === 'admin') {
-        $request->merge(['rol' => 'admin']); // Forzamos que el rol siga siendo admin
+    if ($usuario->rol === 'superadmin') {
+        $request->merge(['rol' => 'superadmin']); // Forzamos que el rol siga siendo admin
         
         // Opcional: Impedir que otros editen al admin
         //if (auth()->user()->id_usuario !== $usuario->id_usuario) {
@@ -107,6 +107,7 @@ public function update(Request $request, $id)
         'id_clinica' => 'required',
         'nombre' => 'required|string',
         'apellido_paterno' => 'required|string',
+        'apellido_materno' => 'required|string',
         'nom_usuario' => 'required|unique:usuario,nom_usuario,' . $id . ',id_usuario',
         'rol' => 'required|in:superadmin,dentista,asistente',
     ];

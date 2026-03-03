@@ -135,7 +135,7 @@
         <button onclick="closeUserModal()" style="background:none; border:none; font-size:1.5rem; cursor:pointer;">&times;</button>
     </div>
 
-    <form action="{{ route('usuarios.store') }}" method="POST" id="userForm">
+    <form action="{{ route('usuarios.store') }}" method="POST" id="userForm" autocomplete="off">
         @csrf
         
         <div class="form-grid">
@@ -189,6 +189,8 @@
             <option value="dentista" {{ old('rol') == 'dentista' ? 'selected' : '' }}>Dentista / Dueño</option>
             <option value="asistente" {{ old('rol') == 'asistente' ? 'selected' : '' }}>Asistente</option>
         </select>
+        {{-- Campo oculto para cuando el select esté disabled --}}
+    <input type="hidden" name="rol_hidden" id="rol_hidden">
         @error('rol') <span style="color:red; font-size:0.8rem;">{{ $message }}</span> @enderror
             </div>
         </div>
@@ -220,13 +222,14 @@
         const form = document.getElementById('userForm');
         form.action = `/usuarios/${id}`;
         
-        if (!document.querySelector('input[name="_method"]')) {
-            const methodInput = document.createElement('input');
-            methodInput.type = 'hidden';
-            methodInput.name = '_method';
-            methodInput.value = 'PUT';
-            form.appendChild(methodInput);
-        }
+        let methodInput = form.querySelector('input[name="_method"]');
+        if (!methodInput) {
+        methodInput = document.createElement('input');
+        methodInput.type = 'hidden';
+        methodInput.name = '_method';
+        form.appendChild(methodInput);
+    }
+    methodInput.value = 'PUT'; // Forzamos que sea PUT para editar
 
         fetch(`/usuarios/${id}/edit`)
             .then(response => response.json())
@@ -242,8 +245,13 @@
                 rolSelect.innerHTML += `<option value="superadmin">Superadmin</option>`;
                 rolSelect.value = 'superadmin';
                 rolSelect.disabled = true; // No se puede cambiar el rol al admin
+
+                // ASIGNA EL VALOR AL CAMPO OCULTO
+                document.getElementById('rol_hidden').value = 'superadmin';
+                document.getElementById('rol_hidden').disabled = false; // Activamos el oculto
             } else {
                 rolSelect.disabled = false;
+                document.getElementById('rol_hidden').disabled = true; // Desactivamos el oculto
                 // Limpiamos y dejamos solo las opciones normales
                 rolSelect.innerHTML = `
                     <option value="">Seleccionar</option>
@@ -291,6 +299,8 @@
         passInput.required = true;
         passInput.placeholder = "";
         document.getElementById('cedulaGroup').style.display = 'none';
+        document.getElementById('rol_hidden').disabled = true;
+document.getElementById('rol_hidden').value = '';
     }
 
     function toggleCedula() {
