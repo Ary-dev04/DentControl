@@ -230,7 +230,8 @@
     function editUser(id) {
         document.getElementById('modalTitle').innerText = 'Editar usuario';
         const form = document.getElementById('userForm');
-        form.action = `/usuarios/${id}`;
+        //form.action = `/usuarios/${id}`;
+        form.action = `{{ url('admin/usuarios') }}/${id}`;
         
         let methodInput = form.querySelector('input[name="_method"]');
         if (!methodInput) {
@@ -241,7 +242,7 @@
     }
     methodInput.value = 'PUT'; // Forzamos que sea PUT para editar
 
-        fetch(`/usuarios/${id}/edit`)
+       fetch(`{{ url('admin/usuarios') }}/${id}/edit`)
             .then(response => response.json())
             .then(data => {
                 form.id_clinica.value = data.id_clinica;
