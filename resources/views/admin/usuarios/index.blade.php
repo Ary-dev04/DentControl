@@ -180,7 +180,17 @@
         <div class="form-grid">
             <div class="form-group-custom">
                 <label>Contraseña</label>
-                <input type="password" name="password" id="password_input" required>
+    <input type="password" 
+           name="password" 
+           id="password_input" 
+           class="@error('password') is-invalid @enderror"
+           placeholder="Mínimo 8 caracteres, letras y números">
+    
+    @error('password')
+        <span style="color: #ef4444; font-size: 0.8rem; margin-top: 5px; display: block;">
+            <i class="fa-solid fa-triangle-exclamation"></i> {{ $message }}
+        </span>
+    @enderror
             </div>
             <div class="form-group-custom">
                 <label>Rol</label>

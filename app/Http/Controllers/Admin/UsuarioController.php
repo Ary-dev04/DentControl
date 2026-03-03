@@ -27,9 +27,27 @@ class UsuarioController extends Controller
         // 1. Validar y guardar en una variable
         $validated = $request->validate([
             'id_clinica' => 'required|exists:clinica,id_clinica',
-            'nombre' => 'required|string|min:3',
-            'apellido_materno' => 'required|string|min:3',
-            'apellido_paterno' => 'required|string|min:3', 
+            'nombre' => [
+        'required', 
+        'string', 
+        'min:3', 
+        'max:255', 
+        'regex:/^[a-zA-Z\sñÑáéíóúÁÉÍÓÚ]+$/u'
+    ],
+    'apellido_paterno' => [
+        'required', 
+        'string', 
+        'min:3', 
+        'max:255', 
+        'regex:/^[a-zA-Z\sñÑáéíóúÁÉÍÓÚ]+$/u'
+    ],
+    'apellido_materno' => [
+        'nullable', 
+        'string', 
+        'min:3', 
+        'max:255', 
+        'regex:/^[a-zA-Z\sñÑáéíóúÁÉÍÓÚ]+$/u'
+    ],
             'nom_usuario' => 'required|alpha_num|min:4|max:20|unique:usuario,nom_usuario',
             'password'   => [
                 'required',
@@ -40,6 +58,15 @@ class UsuarioController extends Controller
             ],
             'rol' => 'required|in:dentista,asistente',
             'cedula_profesional' => 'required_if:rol,dentista|nullable|digits_between:7,10',
+        ],[ 
+            // <--- AQUÍ EMPIEZAN LOS MENSAJES (Justo después de la coma)
+            'nombre.regex' => 'El nombre solo puede contener letras y espacios.',
+            'apellido_paterno.regex' => 'El apellido paterno solo puede contener letras y espacios.',
+            'nombre.min' => 'El nombre debe tener al menos 3 letras.',
+            'password.min' => 'La contraseña debe tener al menos 8 caracteres.',
+            'password.letters' => 'La contraseña debe incluir al menos una letra.',
+            'password.mixed_case' => 'La contraseña debe tener mayúsculas y minúsculas.',
+            'password.numbers' => 'La contraseña debe incluir al menos un número.',
         ]);
 
         // 2. Crear un solo registro. 
@@ -105,9 +132,27 @@ public function update(Request $request, $id)
     
     $rules = [
         'id_clinica' => 'required',
-        'nombre' => 'required|string|min:3',
-        'apellido_paterno' => 'required|string|min:3',
-        'apellido_materno' => 'required|string|min:3',
+        'nombre' => [
+        'required', 
+        'string', 
+        'min:3', 
+        'max:255', 
+        'regex:/^[a-zA-Z\sñÑáéíóúÁÉÍÓÚ]+$/u'
+    ],
+    'apellido_paterno' => [
+        'required', 
+        'string', 
+        'min:3', 
+        'max:255', 
+        'regex:/^[a-zA-Z\sñÑáéíóúÁÉÍÓÚ]+$/u'
+    ],
+    'apellido_materno' => [
+        'nullable', 
+        'string', 
+        'min:3', 
+        'max:255', 
+        'regex:/^[a-zA-Z\sñÑáéíóúÁÉÍÓÚ]+$/u'
+    ],
         'nom_usuario' => 'required|unique:usuario,nom_usuario,' . $id . ',id_usuario',
         'rol' => 'required|in:superadmin,dentista,asistente',
     ];
@@ -118,8 +163,17 @@ public function update(Request $request, $id)
         'required',    
         \Illuminate\Validation\Rules\Password::min(8)->letters()->mixedCase()->numbers()];
     }
+    $messages = [
+    'nombre.regex' => 'El nombre solo puede contener letras y espacios.',
+    'apellido_paterno.regex' => 'El apellido paterno solo puede contener letras y espacios.',
+    'nombre.min' => 'El nombre debe tener al menos 3 letras.',
+    'password.min' => 'La contraseña es demasiado corta (mínimo 8 caracteres).',
+    'password.letters' => 'La contraseña debe incluir al menos una letra.',
+    'password.mixed_case' => 'La contraseña debe tener mayúsculas y minúsculas.',
+    'password.numbers' => 'La contraseña debe incluir al menos un número.',
+];
 
-    $validated = $request->validate($rules);
+    $validated = $request->validate($rules, $messages);
     
     if (!$request->filled('password')) {
         unset($validated['password']); // No actualizamos password si está vacío
