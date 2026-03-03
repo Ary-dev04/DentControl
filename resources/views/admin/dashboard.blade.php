@@ -15,7 +15,8 @@
 
       <div class="card card-green">
         <h3>Usuarios activos</h3>
-        <div class="number">{{ $totalUsuarios ?? 0 }}</div>
+        <div class="number">{{ $totalUsuariosActivos ?? 0 }}</div>
+        <!--<div class="number">{{ $totalUsuario?? 0 }}</div>-->
       </div>
 
       <div class="card card-orange">
