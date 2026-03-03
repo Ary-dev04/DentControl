@@ -27,9 +27,9 @@ class UsuarioController extends Controller
         // 1. Validar y guardar en una variable
         $validated = $request->validate([
             'id_clinica' => 'required|exists:clinica,id_clinica',
-            'nombre' => 'required|string',
-            'apellido_materno' => 'required|string',
-            'apellido_paterno' => 'required|string', 
+            'nombre' => 'required|string|min:3',
+            'apellido_materno' => 'required|string|min:3',
+            'apellido_paterno' => 'required|string|min:3', 
             'nom_usuario' => 'required|alpha_num|min:4|max:20|unique:usuario,nom_usuario',
             'password'   => [
                 'required',
@@ -105,16 +105,18 @@ public function update(Request $request, $id)
     
     $rules = [
         'id_clinica' => 'required',
-        'nombre' => 'required|string',
-        'apellido_paterno' => 'required|string',
-        'apellido_materno' => 'required|string',
+        'nombre' => 'required|string|min:3',
+        'apellido_paterno' => 'required|string|min:3',
+        'apellido_materno' => 'required|string|min:3',
         'nom_usuario' => 'required|unique:usuario,nom_usuario,' . $id . ',id_usuario',
         'rol' => 'required|in:superadmin,dentista,asistente',
     ];
 
     // Solo validamos password si el usuario escribió algo nuevo
     if ($request->filled('password')) {
-        $rules['password'] = [\Illuminate\Validation\Rules\Password::min(8)->letters()->mixedCase()->numbers()];
+        $rules['password'] = [
+        'required',    
+        \Illuminate\Validation\Rules\Password::min(8)->letters()->mixedCase()->numbers()];
     }
 
     $validated = $request->validate($rules);
