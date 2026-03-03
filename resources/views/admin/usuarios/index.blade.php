@@ -54,21 +54,15 @@
             padding-bottom: 10px;
         }
         .modal-header-custom h3 { margin: 0; color: #111827; }
+
+        .is-invalid {
+    border: 1px solid #ef4444 !important;
+    background-color: #fef2f2;
+}
     </style>
 
     <h1>Registrar usuarios</h1>
     <p class="subtitle">Gestión de accesos al sistema por clínica</p>
-
-    @if ($errors->any())
-        <div style="background: #fee2e2; border: 1px solid #ef4444; color: #b91c1c; padding: 1rem; border-radius: 0.5rem; margin-bottom: 1.5rem;">
-            <strong>¡Ups! Revisa los siguientes errores:</strong>
-            <ul style="margin-top: 0.5rem; list-style: disc; margin-left: 1.5rem;">
-                @foreach ($errors->all() as $error)
-                    <li>{{ $error }}</li>
-                @endforeach
-            </ul>
-        </div>
-    @endif
 
     <button class="btn-primary" onclick="openUserModal()">
       <i class="fa-solid fa-user-plus"></i> Agregar usuario
@@ -145,54 +139,47 @@
         @csrf
         
         <div class="form-grid">
-            <div class="form-group-full">
-                <label>Clínica</label>
-                <select name="id_clinica" id="clinica" required>
-                    <option value="">Seleccionar clínica</option>
-                    @foreach($clinicas as $clinica)
-                        <option value="{{ $clinica->id_clinica }}">{{ $clinica->nombre }}</option>
-                    @endforeach
-                </select>
-            </div>
-        </div>
+    <div class="form-group-full">
+        <label>Clínica</label>
+        <select name="id_clinica" id="clinica" required class="@error('id_clinica') is-invalid @enderror">
+            <option value="">Seleccionar clínica</option>
+            @foreach($clinicas as $clinica)
+                <option value="{{ $clinica->id_clinica }}" {{ old('id_clinica') == $clinica->id_clinica ? 'selected' : '' }}>{{ $clinica->nombre }}</option>
+            @endforeach
+        </select>
+        @error('id_clinica') <span style="color:red; font-size:0.8rem;">{{ $message }}</span> @enderror
+    </div>
+</div>
 
-        <div class="form-grid">
-            <div class="form-group-custom">
-                <label>Nombre(s)</label>
-                <input type="text" name="nombre" required value="{{ old('nombre') }}">
-            </div>
-            <div class="form-group-custom">
-                <label>Apellido Paterno</label>
-                <input type="text" name="apellido_paterno" required value="{{ old('apellido_paterno') }}">
-            </div>
-        </div>
+<div class="form-grid">
+    <div class="form-group-custom">
+        <label>Nombre(s)</label>
+        <input type="text" name="nombre" value="{{ old('nombre') }}" class="@error('nombre') is-invalid @enderror">
+        @error('nombre') <span style="color:red; font-size:0.8rem;">{{ $message }}</span> @enderror
+    </div>
+    <div class="form-group-custom">
+        <label>Apellido Paterno</label>
+        <input type="text" name="apellido_paterno" value="{{ old('apellido_paterno') }}" class="@error('apellido_paterno') is-invalid @enderror">
+        @error('apellido_paterno') <span style="color:red; font-size:0.8rem;">{{ $message }}</span> @enderror
+    </div>
+</div>
 
-        <div class="form-grid">
-            <div class="form-group-custom">
-                <label>Apellido Materno</label>
-                <input type="text" name="apellido_materno" value="{{ old('apellido_materno') }}">
-            </div>
-            <div class="form-group-custom">
-                <label>Usuario (Login)</label>
-                <input type="text" name="nom_usuario" required value="{{ old('nom_usuario') }}">
-            </div>
-        </div>
-
-        <div class="form-grid">
-            <div class="form-group-custom">
-                <label>Contraseña</label>
-                <input type="password" name="password" id="password_input" required>
-            </div>
-            <div class="form-group-custom">
-                <label>Rol</label>
-                <select name="rol" id="rol" onchange="toggleCedula()" required>
-                    <option value="">Seleccionar</option>
-                    
-                    <option value="dentista">Dentista / Dueño</option>
-                    <option value="asistente">Asistente</option>
-                </select>
-            </div>
-        </div>
+<div class="form-grid">
+    <div class="form-group-custom">
+        <label>Usuario (Login)</label>
+        <input type="text" name="nom_usuario" value="{{ old('nom_usuario') }}" class="@error('nom_usuario') is-invalid @enderror">
+        @error('nom_usuario') <span style="color:red; font-size:0.8rem;">{{ $message }}</span> @enderror
+    </div>
+    <div class="form-group-custom">
+        <label>Rol</label>
+        <select name="rol" id="rol" onchange="toggleCedula()" class="@error('rol') is-invalid @enderror">
+            <option value="">Seleccionar</option>
+            <option value="dentista" {{ old('rol') == 'dentista' ? 'selected' : '' }}>Dentista / Dueño</option>
+            <option value="asistente" {{ old('rol') == 'asistente' ? 'selected' : '' }}>Asistente</option>
+        </select>
+        @error('rol') <span style="color:red; font-size:0.8rem;">{{ $message }}</span> @enderror
+    </div>
+</div>
 
         <div class="form-grid" id="cedulaGroup" style="display:none;">
             <div class="form-group-full">
@@ -273,6 +260,10 @@
         modal.style.display = 'none';
         const form = document.getElementById('userForm');
         form.reset();
+
+        // NUEVO: Limpiar mensajes de error y clases rojas
+    form.querySelectorAll('.is-invalid').forEach(el => el.classList.remove('is-invalid'));
+    form.querySelectorAll('span[style*="color:red"]').forEach(el => el.remove());
         const rolSelect = document.getElementById('rol');
     rolSelect.disabled = false;
     rolSelect.innerHTML = `

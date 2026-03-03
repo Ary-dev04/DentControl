@@ -11,17 +11,10 @@
         <i class="fa-solid fa-plus"></i> Agregar clínica
     </button>
 
-    {{-- Alertas de éxito o error --}}
+    {{-- Alertas de éxito--}}
     @if(session('success'))
         <div class="alert alert-success">{{ session('success') }}</div>
     @endif
-
-    @if ($errors->any())
-        <div class="alert alert-danger">
-            <ul>@foreach ($errors->all() as $error) <li>{{ $error }}</li> @endforeach</ul>
-        </div>
-    @endif
-
     <div class="table-card">
         <table class="dashboard-table">
             <thead>
@@ -94,56 +87,66 @@
                 <div class="form-row">
                     <div class="form-group">
                         <label>Nombre de la clínica</label>
-                        <input type="text" name="nombre" id="nombre" required>
+                        <input type="text" name="nombre" id="nombre" value="{{ old('nombre') }}" class="@error('nombre') is-invalid @enderror">
+                        @error('nombre') <span class="text-danger" style="font-size: 0.8rem;">{{ $message }}</span> @enderror
                     </div>
                     <div class="form-group">
                         <label>RFC</label>
-                        <input type="text" name="rfc" id="rfc" required>
+                        <input type="text" name="rfc" id="rfc" value="{{ old('rfc') }}" class="@error('rfc') is-invalid @enderror">
+                        @error('rfc') <span class="text-danger" style="font-size: 0.8rem;">{{ $message }}</span> @enderror
                     </div>
                 </div>
 
                 <div class="form-row">
                     <div class="form-group">
                         <label>Calle</label>
-                        <input type="text" name="calle" id="calle">
+                        <input type="text" name="calle" id="calle" value="{{ old('calle') }}">
                     </div>
                     <div class="form-group">
                         <label>Núm. Ext</label>
-                        <input type="text" name="numero_ext" id="numero_ext">
+                        <input type="text" name="numero_ext" id="numero_ext" value="{{ old('numero_ext') }}">
                     </div>
                     <div class="form-group">
                         <label>Núm. Int</label>
-                        <input type="text" name="numero_int" id="numero_int">
+                        <input type="text" name="numero_int" id="numero_int" value="{{ old('numero_int') }}">
                     </div>
                 </div>
 
                 <div class="form-row">
-                <div class="form-group">
-                <label>Código Postal</label>
-                <input type="text" name="codigo_postal" id="codigo_postal" maxlength="5" placeholder="Ej. 06700">
-                </div>
-                <div class="form-group">
-                <label>Estado</label>
-                <input type="text" name="estado" id="estado" readonly class="form-control-disabled">
-                </div>
+                    <div class="form-group">
+                        <label>Código Postal</label>
+                        <input type="text" name="codigo_postal" id="codigo_postal" maxlength="5" value="{{ old('codigo_postal') }}" 
+                        class="@error('codigo_postal') is-invalid @enderror">
+                        @error('codigo_postal') <span class="text-danger">{{ $message }}</span> @enderror
+                    </div>
+                    <div class="form-group">
+                        <label>Estado</label>
+                        <input type="text" name="estado" id="estado" readonly value="{{ old('estado') }}" class="form-control-disabled">
+                    </div>
                 </div>
 
                 <div class="form-row">
                     <div class="form-group">
-                    <label>Ciudad / Municipio</label>
-                        <input type="text" name="ciudad" id="ciudad" readonly class="form-control-disabled">
+                        <label>Ciudad / Municipio</label>
+                        <input type="text" name="ciudad" id="ciudad" readonly value="{{ old('ciudad') }}" class="form-control-disabled">
                     </div>
                     <div class="form-group">
                         <label>Colonia</label>
-                        <select name="colonia" id="colonia_select" class="form-control" required>
-                        <option value="">Ingresa el CP primero...</option>
+                        <select name="colonia" id="colonia_select" class="form-control">
+                            @if(old('colonia'))
+                                <option value="{{ old('colonia') }}" selected>{{ old('colonia') }}</option>
+                            @else
+                                <option value="">Ingresa el CP primero...</option>
+                            @endif
                         </select>
-                    </div>
-                    <div class="form-group">
-                        <label>Teléfono</label>
-                        <input type="tel" name="telefono" id="telefono">
-                    </div>
+                        @error('colonia') <span class="text-danger">{{ $message }}</span> @enderror
                 </div>
+                <div class="form-group">
+                    <label>Teléfono</label>
+                    <input type="tel" name="telefono" id="telefono" value="{{ old('telefono') }}">
+                    @error('telefono') <span class="text-danger">{{ $message }}</span> @enderror
+                </div>
+            </div>
 
                 <div style="margin-top:20px;">
                     <div id="logoPreviewContainer" style="display:none; margin-bottom:15px; text-align:center;">
@@ -187,12 +190,29 @@
         methodField.innerHTML = "";
         document.getElementById('modalTitle').innerText = "Registrar Clínica";
         document.getElementById('logoName').innerText = "";
+
+        // Limpiar mensajes de error rojos
+        document.querySelectorAll('.text-danger').forEach(el => el.innerText = '');
+        document.querySelectorAll('.is-invalid').forEach(el => el.classList.remove('is-invalid'));
         // Limpiamos el select de colonias al cerrar
         document.getElementById('colonia_select').innerHTML = '<option value="">Ingresa el CP primero...</option>';
         document.getElementById('logoPreviewContainer').style.display = "none";
-    document.getElementById('logoPreviewImg').src = "";
-    document.getElementById('logoButtonText').innerText = "Agregar logo";
+        document.getElementById('logoPreviewImg').src = "";
+        document.getElementById('logoButtonText').innerText = "Agregar logo";
     }
+
+    // Detectar si hay errores de validación de Laravel y reabrir el modal
+    @if ($errors->any())
+        document.addEventListener('DOMContentLoaded', function() {
+        openClinicModal();
+        
+        // Si hay una colonia previa, nos aseguramos que el select no se limpie
+        @if(old('colonia'))
+            const coloniaSelect = document.getElementById('colonia_select');
+            coloniaSelect.innerHTML = `<option value="{{ old('colonia') }}" selected>{{ old('colonia') }}</option>`;
+        @endif
+    });
+    @endif
 
     function editClinic(id) {
         document.getElementById('modalTitle').innerText = "Editar Clínica";
