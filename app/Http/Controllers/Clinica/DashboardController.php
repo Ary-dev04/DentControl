@@ -10,31 +10,24 @@ use App\Models\Cita;
 class DashboardController extends Controller
 {
     public function index()
-    {
-        $user = auth()->user();
+{
+    $user = auth()->user();
     $id_clinica = $user->id_clinica;
 
-    // Datos comunes
     $citasHoy = Cita::where('id_clinica', $id_clinica)->whereDate('fecha', now())->count();
+    $totalPacientes = Paciente::where('id_clinica', $id_clinica)->count();
+    $tratamientosActivos = Tratamiento::where('id_clinica', $id_clinica)->count();
+    $alertas = collect();
 
-    if ($user->rol === 'dentista') {
-        return view('dentista.dashboard', [
-            'totalPacientes' => Paciente::where('id_clinica', $id_clinica)->count(),
-            'tratamientosActivos' => Tratamiento::where('id_clinica', $id_clinica)->count(),
-            'citasHoy' => $citasHoy,
-            'alertas' => collect()
-        ]);
-    }
+    // AQUÍ ESTÁ EL CAMBIO:
+    // Si el rol es 'dentista', busca en la carpeta dentista, si no, en asistente
+    $vista = ($user->rol === 'dentista') ? 'dentista.dashboard' : 'asistente.dashboard';
 
-    if ($user->rol === 'asistente') {
-        return view('asistente.dashboard', [
-            'citasHoy' => $citasHoy,
-            'alertas' => collect()
-            
-            // Otros datos específicos para el asistente
-        ]);
-    }
-
-    return redirect()->route('login');
-    }
+    return view($vista, compact(
+        'totalPacientes', 
+        'tratamientosActivos', 
+        'citasHoy', 
+        'alertas'
+    ));
+}
 }
