@@ -151,7 +151,7 @@
     </div>
 </div>
 
-<div class="form-grid">
+        <div class="form-grid">
     <div class="form-group-custom">
         <label>Nombre(s)</label>
         <input type="text" name="nombre" value="{{ old('nombre') }}" class="@error('nombre') is-invalid @enderror">
@@ -164,22 +164,34 @@
     </div>
 </div>
 
-<div class="form-grid">
-    <div class="form-group-custom">
-        <label>Usuario (Login)</label>
-        <input type="text" name="nom_usuario" value="{{ old('nom_usuario') }}" class="@error('nom_usuario') is-invalid @enderror">
-        @error('nom_usuario') <span style="color:red; font-size:0.8rem;">{{ $message }}</span> @enderror
-    </div>
-    <div class="form-group-custom">
-        <label>Rol</label>
+        <div class="form-grid">
+            <div class="form-group-custom">
+                <label>Apellido Materno</label>
+                <input type="text" name="apellido_materno" value="{{ old('apellido_materno') }}" class="@error('apellido_materno') is-invalid @enderror">
+                @error('apellido_materno') <span style="color:red; font-size:0.8rem;">{{ $message }}</span> @enderror
+            </div>
+            <div class="form-group-custom">
+                <label>Usuario (Login)</label>
+                <input type="text" name="nom_usuario" value="{{ old('nom_usuario') }}" class="@error('nom_usuario') is-invalid @enderror">
+                @error('nom_usuario') <span style="color:red; font-size:0.8rem;">{{ $message }}</span> @enderror
+            </div>
+        </div>
+
+        <div class="form-grid">
+            <div class="form-group-custom">
+                <label>Contraseña</label>
+                <input type="password" name="password" id="password_input" required>
+            </div>
+            <div class="form-group-custom">
+                <label>Rol</label>
         <select name="rol" id="rol" onchange="toggleCedula()" class="@error('rol') is-invalid @enderror">
             <option value="">Seleccionar</option>
             <option value="dentista" {{ old('rol') == 'dentista' ? 'selected' : '' }}>Dentista / Dueño</option>
             <option value="asistente" {{ old('rol') == 'asistente' ? 'selected' : '' }}>Asistente</option>
         </select>
         @error('rol') <span style="color:red; font-size:0.8rem;">{{ $message }}</span> @enderror
-    </div>
-</div>
+            </div>
+        </div>
 
         <div class="form-grid" id="cedulaGroup" style="display:none;">
             <div class="form-group-full">
@@ -261,7 +273,7 @@
         const form = document.getElementById('userForm');
         form.reset();
 
-        // NUEVO: Limpiar mensajes de error y clases rojas
+        // NUEVO: Limpiar clases de error y mensajes de texto rojos
     form.querySelectorAll('.is-invalid').forEach(el => el.classList.remove('is-invalid'));
     form.querySelectorAll('span[style*="color:red"]').forEach(el => el.remove());
         const rolSelect = document.getElementById('rol');
