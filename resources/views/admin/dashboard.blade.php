@@ -9,8 +9,9 @@
     <section class="saas-cards">
 
       <div class="card card-blue">
-        <h3>Clínicas registradas</h3>
-        <div class="number">{{ $totalClinicas ?? 0 }}</div>
+        <h3>Clínicas activas</h3>
+        <!--<div class="number">{{ $totalClinicas ?? 0 }}</div>-->
+        <div class="number">{{ $totalClinicasActivas ?? 0 }}</div>
       </div>
 
       <div class="card card-green">
