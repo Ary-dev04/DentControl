@@ -18,7 +18,7 @@ class ClinicaController extends Controller
     public function store(Request $request)
     {
         $validated = $request->validate([
-            'nombre'          => 'required|string|max:255',
+            'nombre'          => 'required|string|max:255|max:255|regex:/^[a-zA-ZñÑáéíóúÁÉÍÓÚ\s]+$/u',
             'rfc'             => 'required|string|uppercase|regex:/^[A-Z&Ñ]{3,4}[0-9]{6}[A-Z0-9]{3}$/|min:12|max:13|unique:clinica,rfc',
             'calle'           => 'nullable|string|max:255',
             'numero_ext' => 'nullable|string|max:10',
@@ -29,6 +29,8 @@ class ClinicaController extends Controller
             'estado'          => 'required|string',
             'telefono'        => 'required|numeric|digits:10|unique:clinica,telefono',
             'logo_ruta'       => 'nullable|image|mimes:jpeg,png,jpg|max:2048',
+        ],[
+            'nombre.regex' => 'El nombre de la clínica solo puede contener letras y espacios.',
         ]);
 
         if ($request->hasFile('logo_ruta')) {
@@ -57,7 +59,7 @@ class ClinicaController extends Controller
         $clinica = Clinica::findOrFail($id);
 
         $validated = $request->validate([
-            'nombre'          => 'required|string|max:255',
+            'nombre'          => 'required|string|max:255|regex:/^[a-zA-ZñÑáéíóúÁÉÍÓÚ\s]+$/u',
             'rfc'             => 'required|string|min:12|max:13|uppercase|regex:/^[A-Z&Ñ]{3,4}[0-9]{6}[A-Z0-9]{3}$/|unique:clinica,rfc,' . $id . ',id_clinica',
             'calle'           => 'nullable|string|max:255',
             'numero_ext' => 'nullable|string|max:10',
@@ -69,10 +71,11 @@ class ClinicaController extends Controller
             'telefono'        => 'required|numeric|digits:10|unique:clinica,telefono,' . $id . ',id_clinica',
             'logo_ruta'       => 'nullable|image|mimes:jpeg,png,jpg|max:2048',
         ], [
-        'rfc.unique' => 'Este RFC ya pertenece a otra clínica registrada.',
-        'telefono.unique' => 'Este número telefónico ya está asociado a otra clínica.',
+            'rfc.unique' => 'Este RFC ya pertenece a otra clínica registrada.',
+            'telefono.unique' => 'Este número telefónico ya está asociado a otra clínica.',
             'rfc.regex'       => 'El formato del RFC no es válido (use solo letras y números).',
-    ]);
+            'nombre.regex' => 'El nombre de la clínica solo puede contener letras y espacios.',
+        ]);
 
         if ($request->hasFile('logo_ruta')) {
             // Borrar logo anterior si existe

@@ -87,7 +87,11 @@
                 <div class="form-row">
                     <div class="form-group">
                         <label>Nombre de la clínica</label>
-                        <input type="text" name="nombre" id="nombre" value="{{ old('nombre') }}" class="@error('nombre') is-invalid @enderror">
+                        <input type="text" name="nombre" id="nombre" 
+                        value="{{ old('nombre') }}" 
+                        class="@error('nombre') is-invalid @enderror"
+                        pattern="[a-zA-ZñÑáéíóúÁÉÍÓÚ\s]+" 
+                        title="Solo se permiten letras y espacios">
                         @error('nombre') <span class="text-danger" style="font-size: 0.8rem;">{{ $message }}</span> @enderror
                     </div>
                     <div class="form-group">
@@ -180,7 +184,11 @@
     const methodField = document.getElementById("methodField");
 
     function openClinicModal() {
+        clinicForm.reset();
         clinicModal.style.display = "flex";
+        clinicForm.action = "{{ route('clinicas.store') }}";
+        methodField.innerHTML = "";
+        document.getElementById('modalTitle').innerText = "Registrar Clínica";
     }
 
     function closeClinicModal() {
