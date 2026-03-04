@@ -165,9 +165,9 @@
                 </div>
 
                 <div style="display:flex; justify-content:flex-end; gap:15px; margin-top:30px;">
-                    <button type="submit" class="btn btn-primary">
-                        <i class="fa-solid fa-floppy-disk"></i> Guardar clínica
-                    </button>
+                    <button class="btn btn-primary" style="margin:20px 0;" onclick="prepareCreate()">
+    <i class="fa-solid fa-plus"></i> Guardar clínica
+</button>
                     <button type="button" class="btn btn-cancel" onclick="closeClinicModal()">
                         Cancelar
                     </button>
@@ -186,9 +186,23 @@
     function openClinicModal() {
         //clinicForm.reset();
         clinicModal.style.display = "flex";
-        clinicForm.action = "{{ route('clinicas.store') }}";
-        methodField.innerHTML = "";
+       // clinicForm.action = "{{ route('clinicas.store') }}";
+        //methodField.innerHTML = "";
         
+    }
+
+    function prepareCreate() {
+        clinicForm.reset(); // Limpia los inputs
+        document.getElementById('modalTitle').innerText = "Registrar Clínica";
+        clinicForm.action = "{{ route('clinicas.store') }}"; // Ruta de guardado
+        methodField.innerHTML = ""; // No necesitamos PUT para crear
+        
+        // Limpiar previsualizaciones de logo y errores
+        document.getElementById('logoPreviewContainer').style.display = "none";
+        document.getElementById('logoName').innerText = "";
+        document.querySelectorAll('.text-danger').forEach(el => el.innerText = '');
+        
+        openClinicModal();
     }
 
     function closeClinicModal() {
