@@ -184,11 +184,11 @@
     const methodField = document.getElementById("methodField");
 
     function openClinicModal() {
-        clinicForm.reset();
+        //clinicForm.reset();
         clinicModal.style.display = "flex";
         clinicForm.action = "{{ route('clinicas.store') }}";
         methodField.innerHTML = "";
-        document.getElementById('modalTitle').innerText = "Registrar Clínica";
+        
     }
 
     function closeClinicModal() {
