@@ -16,7 +16,8 @@ class UsuarioController extends Controller
     public function index()
     {
         $usuarios = Usuario::with('clinica')->get(); // Carga usuarios con su clínica
-        $clinicas = Clinica::all(); // Para llenar el select del modal
+        //$clinicas = Clinica::all(); // Para llenar el select del modal
+        $clinicas = Clinica::where('estatus', 'activo')->get();
         
         return view('admin.usuarios.index', compact('usuarios', 'clinicas'));
     }
