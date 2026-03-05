@@ -6,31 +6,39 @@ use App\Http\Controllers\Controller;
 use App\Models\Clinica;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\File; // Importante para manejar archivos
+use Illuminate\Support\Facades\Validator;
 
 class ClinicaController extends Controller
 {
     public function index()
     {
-        $clinicas = Clinica::all(); 
+        //$clinicas = Clinica::all();
+        // Obs 4: Mostrar las más recientes al inicio
+        $clinicas = Clinica::orderBy('created_at', 'desc')->get();
         return view('admin.clinicas.index', compact('clinicas'));
     }
 
     public function store(Request $request)
     {
         $validated = $request->validate([
-            'nombre'          => 'required|string|max:255|max:255|regex:/^[a-zA-ZñÑáéíóúÁÉÍÓÚ\s]+$/u',
-            'rfc'             => 'required|string|uppercase|regex:/^[A-Z&Ñ]{3,4}[0-9]{6}[A-Z0-9]{3}$/|min:12|max:13|unique:clinica,rfc',
-            'calle'           => 'nullable|string|max:255',
-            'numero_ext' => 'nullable|string|max:10',
-            'numero_int' => 'nullable|string|max:10',
-            'colonia'         => 'nullable|string|max:255',
-            'codigo_postal'   => 'required|digits:5',
-            'ciudad'          => 'required|string',
-            'estado'          => 'required|string',
-            'telefono'        => 'required|numeric|digits:10|unique:clinica,telefono',
-            'logo_ruta'       => 'nullable|image|mimes:jpeg,png,jpg|max:2048',
+            'nombre'        => 'required|string|max:50|regex:/^[a-zA-Z0-9ñÑáéíóúÁÉÍÓÚ\s]+$/u',
+            'rfc'           => 'required|string|uppercase|min:12|max:13|unique:clinica,rfc',
+            'calle'         => 'nullable|string|max:255',
+            'numero_ext'    => 'nullable|string|max:10',
+            'numero_int'    => 'nullable|string|max:10',
+            'colonia'       => 'nullable|string|max:255',
+            'codigo_postal' => 'required|digits:5',
+            'ciudad'        => 'required|string',
+            'estado'        => 'required|string',
+            'telefono'      => 'required|numeric|digits:10|unique:clinica,telefono',
+            'logo_ruta'     => 'nullable|image|mimes:jpeg,png,jpg|max:2048',
         ],[
-            'nombre.regex' => 'El nombre de la clínica solo puede contener letras y espacios.',
+            'nombre.max' => 'El nombre no debe exceder los 50 caracteres.',
+            'nombre.regex' => 'El nombre solo permite letras, números y espacios.',
+            'rfc.unique' => 'Este RFC ya está registrado.',
+            'rfc.min' => 'El RFC debe tener al menos 12 caracteres.',
+            'telefono.digits' => 'El teléfono debe ser de 10 dígitos.',
+            'codigo_postal.digits' => 'El código postal debe ser de 5 dígitos.',
         ]);
 
         if ($request->hasFile('logo_ruta')) {
@@ -59,23 +67,32 @@ class ClinicaController extends Controller
         $clinica = Clinica::findOrFail($id);
 
         $validated = $request->validate([
-            'nombre'          => 'required|string|max:255|regex:/^[a-zA-ZñÑáéíóúÁÉÍÓÚ\s]+$/u',
-            'rfc'             => 'required|string|min:12|max:13|uppercase|regex:/^[A-Z&Ñ]{3,4}[0-9]{6}[A-Z0-9]{3}$/|unique:clinica,rfc,' . $id . ',id_clinica',
-            'calle'           => 'nullable|string|max:255',
-            'numero_ext' => 'nullable|string|max:10',
-            'numero_int' => 'nullable|string|max:10',
-            'colonia'         => 'nullable|string',
-            'codigo_postal'   => 'required|digits:5',
-            'ciudad'          => 'required|string',
-            'estado'          => 'nullable|string',
-            'telefono'        => 'required|numeric|digits:10|unique:clinica,telefono,' . $id . ',id_clinica',
-            'logo_ruta'       => 'nullable|image|mimes:jpeg,png,jpg|max:2048',
+            'nombre'        => 'required|string|max:50|regex:/^[a-zA-Z0-9ñÑáéíóúÁÉÍÓÚ\s]+$/u',
+            'rfc'           => 'required|string|min:12|max:13|uppercase|unique:clinica,rfc,' . $id . ',id_clinica',
+            'calle'         => 'nullable|string|max:255',
+            'numero_ext'    => 'nullable|string|max:10',
+            'numero_int'    => 'nullable|string|max:10',
+            'colonia'       => 'nullable|string',
+            'codigo_postal' => 'required|digits:5',
+            'ciudad'        => 'required|string',
+            'estado'        => 'nullable|string',
+            'telefono'      => 'required|numeric|digits:10|unique:clinica,telefono,' . $id . ',id_clinica',
+            'logo_ruta'     => 'nullable|image|mimes:jpeg,png,jpg|max:2048',
         ], [
             'rfc.unique' => 'Este RFC ya pertenece a otra clínica registrada.',
             'telefono.unique' => 'Este número telefónico ya está asociado a otra clínica.',
-            'rfc.regex'       => 'El formato del RFC no es válido (use solo letras y números).',
-            'nombre.regex' => 'El nombre de la clínica solo puede contener letras y espacios.',
+            'nombre.max' => 'El nombre no debe exceder los 50 caracteres.',
+            'nombre.regex' => 'El nombre solo permite letras, números y espacios.',
         ]);
+
+        if ($validator->fails()) {
+            // Guardamos el ID en la sesión flash para que el JS sepa que el modal debe reabrirse en modo EDICIÓN
+            session()->flash('editing_clinic_id', $id);
+            return redirect()->back()->withErrors($validator)->withInput();
+        }
+
+        $clinica = Clinica::findOrFail($id);
+        $data = $validator->validated();
 
         if ($request->hasFile('logo_ruta')) {
             // Borrar logo anterior si existe

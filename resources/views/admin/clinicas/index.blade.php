@@ -10,6 +10,9 @@
     <button class="btn btn-primary" style="margin:20px 0;" onclick="openClinicModal()">
         <i class="fa-solid fa-plus"></i> Agregar clínica
     </button>
+    <div class="search-container" style="margin-bottom: 15px;">
+    <input type="text" id="clinicSearch" class="form-control" placeholder="🔍 Buscar por nombre o RFC..." onkeyup="filterClinics()">
+    </div>
 
     {{-- Alertas de éxito--}}
     @if(session('success'))
@@ -87,16 +90,29 @@
                 <div class="form-row">
                     <div class="form-group">
                         <label>Nombre de la clínica</label>
-                        <input type="text" name="nombre" id="nombre" 
+                        <input type="text" 
+                        name="nombre" 
+                        id="nombre" 
+                        maxlength="50"
+                        {{-- Permitimos letras, números, espacios, ñ y acentos --}}
+                        oninput="this.value = this.value.replace(/[^a-zA-Z0-9ñÑáéíóúÁÉÍÓÚ\s&'-]/g, '')"
                         value="{{ old('nombre') }}" 
                         class="@error('nombre') is-invalid @enderror"
-                        pattern="[a-zA-ZñÑáéíóúÁÉÍÓÚ\s]+" 
-                        title="Solo se permiten letras y espacios">
+                        title="Solo se permiten letras, números y espacios">
                         @error('nombre') <span class="text-danger" style="font-size: 0.8rem;">{{ $message }}</span> @enderror
                     </div>
                     <div class="form-group">
                         <label>RFC</label>
-                        <input type="text" name="rfc" id="rfc" value="{{ old('rfc') }}" class="@error('rfc') is-invalid @enderror">
+                        <input type="text" 
+                        name="rfc" 
+                        id="rfc" 
+                        maxlength="13" 
+                        minlength="12"
+                        style="text-transform: uppercase;" {{-- Visualmente en mayúsculas --}}
+                        oninput="this.value = this.value.toUpperCase().replace(/[^A-Z0-9]/g, '')" {{-- Solo letras y números --}}
+                        value="{{ old('rfc') }}" 
+                        class="@error('rfc') is-invalid @enderror"
+                        placeholder="ABC123456789">
                         @error('rfc') <span class="text-danger" style="font-size: 0.8rem;">{{ $message }}</span> @enderror
                     </div>
                 </div>
@@ -119,8 +135,10 @@
                 <div class="form-row">
                     <div class="form-group">
                         <label>Código Postal</label>
-                        <input type="text" name="codigo_postal" id="codigo_postal" maxlength="5" value="{{ old('codigo_postal') }}" 
-                        class="@error('codigo_postal') is-invalid @enderror">
+                        <input type="text" name="codigo_postal" id="codigo_postal" 
+                        maxlength="5" 
+                        oninput="this.value = this.value.replace(/[^0-9]/g, '')"
+                        value="{{ old('codigo_postal') }}">
                         @error('codigo_postal') <span class="text-danger">{{ $message }}</span> @enderror
                     </div>
                     <div class="form-group">
@@ -147,30 +165,36 @@
                 </div>
                 <div class="form-group">
                     <label>Teléfono</label>
-                    <input type="tel" name="telefono" id="telefono" value="{{ old('telefono') }}">
+                    <input type="text" name="telefono" id="telefono" 
+                    maxlength="10" 
+                    oninput="this.value = this.value.replace(/[^0-9]/g, '')"
+                    value="{{ old('telefono') }}">
                     @error('telefono') <span class="text-danger">{{ $message }}</span> @enderror
                 </div>
             </div>
 
                 <div style="margin-top:20px;">
                     <div id="logoPreviewContainer" style="display:none; margin-bottom:15px; text-align:center;">
-                    <p style="font-size: 0.8rem; color: #666; margin-bottom: 5px;">Logo actual:</p>
+                    <p style="font-size: 0.8rem; color: #666; margin-bottom: 5px;">Logo:</p>
                     <img id="logoPreviewImg" src="" alt="Logo Clínica" style="max-width: 120px; height: auto; border: 1px solid #ddd; padding: 5px; border-radius: 8px;">
                     </div>
                     <label class="btn btn-secondary" style="cursor:pointer; display:inline-block;">
-    <i class="fa-solid fa-image"></i> 
-    <span id="logoButtonText">Agregar logo</span> <input type="file" name="logo_ruta" style="display:none;" accept="image/*">
-</label>
+                <i class="fa-solid fa-image"></i> 
+                <span id="logoButtonText">Agregar logo</span> 
+                <input type="file" name="logo_ruta" id="logo_input" 
+                style="display:none;" 
+                accept="image/*">
+                </label>
                     <small id="logoName" style="margin-left:10px; color:#666;"></small>
                 </div>
 
-                <div style="display:flex; justify-content:flex-end; gap:15px; margin-top:30px;">
-                    <button type="submit" class="btn btn-primary">
+                <div style="display:flex; justify-content:flex-end; gap:15px; margin-top:30px;" onclick="closeClinicModal(); openClinicModal();">
+                    <button type="submit" class="btn btn-primary" >
                         <i class="fa-solid fa-floppy-disk"></i> Guardar clínica
                     </button>
-                    <button type="button" class="btn btn-cancel" onclick="closeClinicModal()">
+                    <!--<button type="button" class="btn btn-cancel" onclick="closeClinicModal()">
                         Cancelar
-                    </button>
+                    </button>-->
                 </div>
             </form>
         </div>
@@ -192,36 +216,56 @@
     }
 
     function closeClinicModal() {
-        clinicModal.style.display = "none";
-        clinicForm.reset();
-        clinicForm.action = "{{ route('clinicas.store') }}";
-        methodField.innerHTML = "";
-        document.getElementById('modalTitle').innerText = "Registrar Clínica";
-        document.getElementById('logoName').innerText = "";
+    clinicModal.style.display = "none";
+    clinicForm.reset(); 
+    
+    // 1. Resetear ruta y método (Volver a modo creación)
+    clinicForm.action = "{{ route('clinicas.store') }}";
+    methodField.innerHTML = "";
+    document.getElementById('modalTitle').innerText = "Registrar Clínica";
 
-        // Limpiar mensajes de error rojos
-        document.querySelectorAll('.text-danger').forEach(el => el.innerText = '');
-        document.querySelectorAll('.is-invalid').forEach(el => el.classList.remove('is-invalid'));
-        // Limpiamos el select de colonias al cerrar
-        document.getElementById('colonia_select').innerHTML = '<option value="">Ingresa el CP primero...</option>';
-        document.getElementById('logoPreviewContainer').style.display = "none";
-        document.getElementById('logoPreviewImg').src = "";
-        document.getElementById('logoButtonText').innerText = "Agregar logo";
+    // 2. Limpiar visualización del LOGO (Crucial para el requerimiento)
+    document.getElementById('logoPreviewContainer').style.display = "none";
+    document.getElementById('logoPreviewImg').src = "";
+    document.getElementById('logoButtonText').innerText = "Agregar logo";
+    document.getElementById('logoName').innerText = "";
+    
+    // 3. Limpiar mensajes de error de Laravel
+    document.querySelectorAll('.text-danger').forEach(el => el.innerText = '');
+    document.querySelectorAll('.is-invalid').forEach(el => el.classList.remove('is-invalid'));
+    
+    // 4. Limpiar datos geográficos
+    document.getElementById('colonia_select').innerHTML = '<option value="">Ingresa el CP primero...</option>';
     }
 
-    // Detectar si hay errores de validación de Laravel y reabrir el modal
-    @if ($errors->any())
-        document.addEventListener('DOMContentLoaded', function() {
-        openClinicModal();
-        
-        // Si hay una colonia previa, nos aseguramos que el select no se limpie
-        @if(old('colonia'))
-            const coloniaSelect = document.getElementById('colonia_select');
-            coloniaSelect.innerHTML = `<option value="{{ old('colonia') }}" selected>{{ old('colonia') }}</option>`;
-        @endif
-    });
-    @endif
+    // Detectar si hay errores de validación de Laravel y reabrir el modal correctamente
+@if ($errors->any())
+    document.addEventListener('DOMContentLoaded', function() {
+        // 1. Intentamos obtener el ID de la clínica que se estaba editando
+        const editingId = "{{ session('editing_clinic_id') }}";
+        const form = document.getElementById('clinicForm');
+        const methodField = document.getElementById('methodField');
 
+        if (editingId) {
+            // MODO EDICIÓN: Forzamos la ruta de update y el método PUT
+            document.getElementById('modalTitle').innerText = "Editar Clínica";
+            form.action = `/clinicas/${editingId}`; 
+            methodField.innerHTML = `@method('PUT')`;
+
+            // Si falló la validación, mantenemos la colonia que el usuario seleccionó
+            @if(old('colonia'))
+                const coloniaSelect = document.getElementById('colonia_select');
+                coloniaSelect.innerHTML = `<option value="{{ old('colonia') }}" selected>{{ old('colonia') }}</option>`;
+            @endif
+        } else {
+            // MODO REGISTRO: Aseguramos que el título sea el correcto
+            document.getElementById('modalTitle').innerText = "Registrar Clínica";
+        }
+
+        // Abrimos el modal para mostrar los errores (usamos tu función existente)
+        openClinicModal(); 
+    });
+@endif
     function editClinic(id) {
         document.getElementById('modalTitle').innerText = "Editar Clínica";
         clinicForm.action = `/clinicas/${id}`;
@@ -317,11 +361,41 @@
         }
     });
 
-    // Mostrar nombre del archivo seleccionado
-    document.querySelector('input[name="logo_ruta"]').onchange = function() {
-        if(this.files.length > 0) {
-            document.getElementById('logoName').innerText = this.files[0].name;
+    // NUEVA LÓGICA DE VISTA PREVIA LOGO 
+document.getElementById('logo_input').addEventListener('change', function(e) {
+    const reader = new FileReader();
+    const previewImg = document.getElementById('logoPreviewImg');
+    const previewContainer = document.getElementById('logoPreviewContainer');
+    const logoName = document.getElementById('logoName');
+
+    if (this.files && this.files[0]) {
+        // Validar que sea imagen (Requerimiento de seguridad)
+        if (!this.files[0].type.startsWith('image/')) {
+            alert('Por favor, selecciona solo archivos de imagen.');
+            this.value = '';
+            return;
         }
-    };
+
+        reader.onload = function(e) {
+            previewImg.src = e.target.result;
+            previewContainer.style.display = "block";
+            document.getElementById('logoButtonText').innerText = "Cambiar logo";
+        }
+        reader.readAsDataURL(this.files[0]);
+        logoName.innerText = this.files[0].name;
+    }
+});
+
+function filterClinics() {
+    const input = document.getElementById('clinicSearch');
+    const filter = input.value.toLowerCase();
+    const rows = document.querySelectorAll('.dashboard-table tbody tr');
+
+    rows.forEach(row => {
+        const nombre = row.cells[0].textContent.toLowerCase();
+        const rfc = row.cells[1].textContent.toLowerCase();
+        row.style.display = (nombre.includes(filter) || rfc.includes(filter)) ? "" : "none";
+    });
+}
 </script>
 @endpush
