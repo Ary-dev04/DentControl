@@ -22,7 +22,7 @@ class ClinicaController extends Controller
     {
         $validated = $request->validate([
             'nombre' => 'required|string|max:50|regex:/^[a-zA-Z0-9ñÑáéíóúÁÉÍÓÚ\s&\'\-]+$/u',
-            'rfc'           => 'required|string|uppercase|min:12|max:13|unique:clinica,rfc',
+            'rfc'           => 'required|string|uppercase|regex:/^[A-Z&Ñ]{3,4}[0-9]{6}[A-Z0-9]{3}$/|min:12|max:13|unique:clinica,rfc',
             'calle'         => 'nullable|string|max:255',
             'numero_ext'    => 'nullable|string|max:10',
             'numero_int'    => 'nullable|string|max:10',
@@ -39,6 +39,7 @@ class ClinicaController extends Controller
             'rfc.min' => 'El RFC debe tener al menos 12 caracteres.',
             'telefono.digits' => 'El teléfono debe ser de 10 dígitos.',
             'codigo_postal.digits' => 'El código postal debe ser de 5 dígitos.',
+            'rfc.regex' => 'El formato del RFC es inválido (Ej: ABCD123456EF7).',
         ]);
 
         if ($request->hasFile('logo_ruta')) {
@@ -69,7 +70,7 @@ class ClinicaController extends Controller
     // 1. Creamos la instancia del validador manualmente para controlar el fallo
     $validator = Validator::make($request->all(), [
         'nombre'        => 'required|string|max:50|regex:/^[a-zA-Z0-9ñÑáéíóúÁÉÍÓÚ\s&\'\-]+$/u',
-        'rfc'           => 'required|string|min:12|max:13|uppercase|unique:clinica,rfc,' . $id . ',id_clinica',
+        'rfc'           => 'required|string|min:12|max:13|uppercase|regex:/^[A-Z&Ñ]{3,4}[0-9]{6}[A-Z0-9]{3}$/|unique:clinica,rfc,' . $id . ',id_clinica',
         'calle'         => 'nullable|string|max:255',
         'numero_ext'    => 'nullable|string|max:10',
         'numero_int'    => 'nullable|string|max:10',
@@ -81,6 +82,7 @@ class ClinicaController extends Controller
         'logo_ruta'     => 'nullable|image|mimes:jpeg,png,jpg|max:2048',
     ], [
         'rfc.unique'      => 'Este RFC ya pertenece a otra clínica registrada.',
+        'rfc.regex'       => 'Formato de RFC inválido.',
         'telefono.unique' => 'Este número telefónico ya está asociado a otra clínica.',
         'nombre.max'      => 'El nombre no debe exceder los 50 caracteres.',
         'nombre.regex'    => 'El nombre solo permite letras, números y espacios.',

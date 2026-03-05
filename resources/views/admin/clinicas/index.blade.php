@@ -44,7 +44,7 @@
                     <td>{{ $clinica->ciudad }}</td>
                     <td>{{ $clinica->telefono }}</td>
                     <td>
-                    <span class="badge {{ $clinica->estatus == 'activa' ? 'bg-success' : 'bg-danger' }}">
+                    <span class="badge {{ $clinica->estatus == 'activo' ? 'bg-success' : 'bg-danger' }}">
                     {{ ucfirst($clinica->estatus) }}
                     </span>
                     </td>
@@ -54,7 +54,7 @@
                         <i class="fa-solid fa-pen"></i>
                         </button>-->
                         <button class="icon-btn edit" 
-        onclick="editClinic('{{ $clinica->id_clinica }}')" 
+        onclick="editClinic('{{ $clinica->id_clinica }}', '{{ $clinica->estatus }}')" 
         {{ $clinica->estatus != 'activo' ? 'disabled' : '' }}
         title="{{ $clinica->estatus != 'activo' ? 'No se puede editar una clínica dada de baja' : 'Editar clínica' }}"
         style="{{ $clinica->estatus != 'activo' ? 'opacity: 0.5; cursor: not-allowed;' : '' }}">
@@ -117,15 +117,15 @@
                     <div class="form-group">
                         <label>RFC</label>
                         <input type="text" 
-                        name="rfc" 
-                        id="rfc" 
-                        maxlength="13" 
-                        minlength="12"
-                        style="text-transform: uppercase;" {{-- Visualmente en mayúsculas --}}
-                        oninput="this.value = this.value.toUpperCase().replace(/[^A-Z0-9]/g, '')" {{-- Solo letras y números --}}
-                        value="{{ old('rfc') }}" 
-                        class="@error('rfc') is-invalid @enderror"
-                        placeholder="ABC123456789">
+       name="rfc" 
+       id="rfc" 
+       maxlength="13" 
+       minlength="12"
+       style="text-transform: uppercase;" 
+       oninput="this.value = this.value.toUpperCase().replace(/[^A-Z0-9]/g, '')" 
+       value="{{ old('rfc') }}" 
+       class="@error('rfc') is-invalid @enderror"
+       placeholder="ABCD123456EF7">
                         @error('rfc') <span class="text-danger" style="font-size: 0.8rem;">{{ $message }}</span> @enderror
                     </div>
                 </div>
@@ -303,7 +303,7 @@
         openClinicModal(); 
     });
 @endif
-    function editClinic(id) {
+    function editClinic(id, estatus) {
 
         // Si el estatus no es activo, detenemos la función
     if (estatus !== 'activo') {
