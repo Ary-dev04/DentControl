@@ -21,7 +21,7 @@ class ClinicaController extends Controller
     public function store(Request $request)
     {
         $validated = $request->validate([
-            'nombre'        => 'required|string|max:50|regex:/^[a-zA-Z0-9ñÑáéíóúÁÉÍÓÚ\s]+$/u',
+            'nombre' => 'required|string|max:50|regex:/^[a-zA-Z0-9ñÑáéíóúÁÉÍÓÚ\s&\'\-]+$/u',
             'rfc'           => 'required|string|uppercase|min:12|max:13|unique:clinica,rfc',
             'calle'         => 'nullable|string|max:255',
             'numero_ext'    => 'nullable|string|max:10',
@@ -67,7 +67,7 @@ class ClinicaController extends Controller
         $clinica = Clinica::findOrFail($id);
 
         $validated = $request->validate([
-            'nombre'        => 'required|string|max:50|regex:/^[a-zA-Z0-9ñÑáéíóúÁÉÍÓÚ\s]+$/u',
+            'nombre' => 'required|string|max:50|regex:/^[a-zA-Z0-9ñÑáéíóúÁÉÍÓÚ\s&\'\-]+$/u',
             'rfc'           => 'required|string|min:12|max:13|uppercase|unique:clinica,rfc,' . $id . ',id_clinica',
             'calle'         => 'nullable|string|max:255',
             'numero_ext'    => 'nullable|string|max:10',
