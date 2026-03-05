@@ -138,7 +138,7 @@
                         name="calle" 
                         id="calle" 
                         class="@error('calle') is-invalid @enderror"
-                        maxlength="255"
+                        maxlength="50"
                         {{-- Filtro de caracteres prohibidos --}}
                         oninput="this.value = this.value.replace(/[^a-zA-Z0-9ñÑáéíóúÁÉÍÓÚ\s\.\,\-]/g, '')"
                         {{-- Limpieza de espacios dobles --}}

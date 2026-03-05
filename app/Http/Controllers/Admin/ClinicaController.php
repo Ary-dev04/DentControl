@@ -23,10 +23,10 @@ class ClinicaController extends Controller
         $validated = $request->validate([
             'nombre' => 'required|string|max:50|regex:/^[a-zA-Z0-9ñÑáéíóúÁÉÍÓÚ\s&\'\-]+$/u',
             'rfc'           => 'required|string|uppercase|regex:/^[A-Z&Ñ]{3,4}[0-9]{6}[A-Z0-9]{3}$/|min:12|max:13|unique:clinica,rfc',
-            'calle'         => 'nullable|string|max:255|regex:/^[a-zA-Z0-9ñÑáéíóúÁÉÍÓÚ\s\.\,\-]+$/u',
+            'calle'         => 'required|string|max:255|regex:/^[a-zA-Z0-9ñÑáéíóúÁÉÍÓÚ\s\.\,\-]+$/u',
             'numero_ext'    => 'required_without:numero_int|nullable|string|max:10|regex:/^[a-zA-Z0-9\s\-]+$/',
             'numero_int'    => 'required_without:numero_ext|nullable|string|max:10|regex:/^[a-zA-Z0-9\s\-]+$/',
-            'colonia'       => 'nullable|string|max:255',
+            'colonia'       => 'required|string|max:255',
             'codigo_postal' => 'required|digits:5',
             'ciudad'        => 'required|string',
             'estado'        => 'required|string',
@@ -80,13 +80,13 @@ class ClinicaController extends Controller
     $validator = Validator::make($request->all(), [
         'nombre'        => 'required|string|max:50|regex:/^[a-zA-Z0-9ñÑáéíóúÁÉÍÓÚ\s&\'\-]+$/u',
         'rfc'           => 'required|string|min:12|max:13|uppercase|regex:/^[A-Z&Ñ]{3,4}[0-9]{6}[A-Z0-9]{3}$/|unique:clinica,rfc,' . $id . ',id_clinica',
-        'calle'         => 'nullable|string|max:255|regex:/^[a-zA-Z0-9ñÑáéíóúÁÉÍÓÚ\s\.\,\-]+$/u',
-        'numero_ext'    => 'nullable|string|max:10',
-        'numero_int'    => 'nullable|string|max:10',
-        'colonia'       => 'nullable|string',
+        'calle'         => 'required|string|max:255|regex:/^[a-zA-Z0-9ñÑáéíóúÁÉÍÓÚ\s\.\,\-]+$/u',
+        'numero_ext'    => 'required_without:numero_int|nullable|string|max:10|regex:/^[a-zA-Z0-9\s\-]+$/',
+        'numero_int'    => 'required_without:numero_ext|nullable|string|max:10|regex:/^[a-zA-Z0-9\s\-]+$/',
+        'colonia'       => 'required|string',
         'codigo_postal' => 'required|digits:5',
         'ciudad'        => 'required|string',
-        'estado'        => 'nullable|string',
+        'estado'        => 'required|string',
         'telefono'      => 'required|numeric|digits:10|unique:clinica,telefono,' . $id . ',id_clinica',
         'logo_ruta'     => 'nullable|image|mimes:jpeg,png,jpg|max:2048',
     ], [
@@ -98,6 +98,8 @@ class ClinicaController extends Controller
         'numero_ext.required_without' => 'Debes ingresar al menos un número (Exterior o Interior).',
         'numero_int.required_without' => 'Debes ingresar al menos un número (Exterior o Interior).',
         'calle.regex' => 'La calle solo permite letras, números. espacios y signos de puntuación básicos (punto, coma, guión).',
+        'calle.required' => ' El nombre de la calle es obligatorio.',
+        'calle.max'      => ' La calle no puede exceder los 50 caracteres.',
     ]);
 
     // 2. Limpiar el nombre (Tu línea mágica)
