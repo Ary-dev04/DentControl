@@ -138,11 +138,21 @@
                     </div>
                     <div class="form-group">
                         <label>Núm. Ext</label>
-                        <input type="text" name="numero_ext" id="numero_ext" value="{{ old('numero_ext') }}">
+                        <input type="text" name="numero_ext" id="numero_ext" 
+                        class="@error('numero_ext') is-invalid @enderror"
+                        value="{{ old('numero_ext') }}" maxlength="10">
+                        @error('numero_ext') 
+                        <span class="text-danger" style="font-size: 0.7rem;">{{ $message }}</span> 
+                        @enderror
                     </div>
                     <div class="form-group">
                         <label>Núm. Int</label>
-                        <input type="text" name="numero_int" id="numero_int" value="{{ old('numero_int') }}">
+                        <input type="text" name="numero_int" id="numero_int" 
+                        class="@error('numero_int') is-invalid @enderror"
+                        value="{{ old('numero_int') }}" maxlength="10">
+                        @error('numero_int') 
+                        <span class="text-danger" style="font-size: 0.7rem;">{{ $message }}</span> 
+                        @enderror
                     </div>
                 </div>
 

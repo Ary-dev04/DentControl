@@ -24,8 +24,8 @@ class ClinicaController extends Controller
             'nombre' => 'required|string|max:50|regex:/^[a-zA-Z0-9ñÑáéíóúÁÉÍÓÚ\s&\'\-]+$/u',
             'rfc'           => 'required|string|uppercase|regex:/^[A-Z&Ñ]{3,4}[0-9]{6}[A-Z0-9]{3}$/|min:12|max:13|unique:clinica,rfc',
             'calle'         => 'nullable|string|max:255',
-            'numero_ext'    => 'nullable|string|max:10',
-            'numero_int'    => 'nullable|string|max:10',
+            'numero_ext'    => 'required_without:numero_int|nullable|string|max:10|regex:/^[a-zA-Z0-9\s\-]+$/',
+            'numero_int'    => 'required_without:numero_ext|nullable|string|max:10|regex:/^[a-zA-Z0-9\s\-]+$/',
             'colonia'       => 'nullable|string|max:255',
             'codigo_postal' => 'required|digits:5',
             'ciudad'        => 'required|string',
@@ -40,6 +40,8 @@ class ClinicaController extends Controller
             'telefono.digits' => 'El teléfono debe ser de 10 dígitos.',
             'codigo_postal.digits' => 'El código postal debe ser de 5 dígitos.',
             'rfc.regex' => 'El formato del RFC es inválido (Ej: ABCD123456EF7).',
+            'numero_ext.required_without' => 'Debes ingresar al menos un número (Exterior o Interior).',
+            'numero_int.required_without' => 'Debes ingresar al menos un número (Exterior o Interior).',
         ]);
 
         // 2. Limpiar el nombre (Tu línea mágica)
@@ -89,6 +91,8 @@ class ClinicaController extends Controller
         'telefono.unique' => 'Este número telefónico ya está asociado a otra clínica.',
         'nombre.max'      => 'El nombre no debe exceder los 50 caracteres.',
         'nombre.regex'    => 'El nombre solo permite letras, números y espacios.',
+        'numero_ext.required_without' => 'Debes ingresar al menos un número (Exterior o Interior).',
+        'numero_int.required_without' => 'Debes ingresar al menos un número (Exterior o Interior).',
     ]);
 
     // 2. Limpiar el nombre (Tu línea mágica)
