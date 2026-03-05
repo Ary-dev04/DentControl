@@ -10,8 +10,14 @@
     <button class="btn btn-primary" style="margin:20px 0;" onclick="openClinicModal()">
         <i class="fa-solid fa-plus"></i> Agregar clínica
     </button>
-    <div class="search-container" style="margin-bottom: 15px;">
-    <input type="text" id="clinicSearch" class="form-control" placeholder="🔍 Buscar por nombre o RFC..." onkeyup="filterClinics()">
+
+    <div class="search-wrapper">
+    <i class="fa-solid fa-magnifying-glass search-icon"></i>
+    <input type="text" 
+           id="clinicSearch" 
+           class="search-input" 
+           placeholder="Buscar por nombre o RFC..." 
+           onkeyup="filterClinics()">
     </div>
 
     {{-- Alertas de éxito--}}
@@ -44,9 +50,16 @@
                     </td>
                     <td class="actions">
                         {{-- Botón Editar --}}
-                        <button class="icon-btn edit" onclick="editClinic('{{ $clinica->id_clinica }}')">
+                        <!--<button class="icon-btn edit" onclick="editClinic('{{ $clinica->id_clinica }}')">
                         <i class="fa-solid fa-pen"></i>
-                        </button>
+                        </button>-->
+                        <button class="icon-btn edit" 
+        onclick="editClinic('{{ $clinica->id_clinica }}')" 
+        {{ $clinica->estatus != 'activo' ? 'disabled' : '' }}
+        title="{{ $clinica->estatus != 'activo' ? 'No se puede editar una clínica dada de baja' : 'Editar clínica' }}"
+        style="{{ $clinica->estatus != 'activo' ? 'opacity: 0.5; cursor: not-allowed;' : '' }}">
+    <i class="fa-solid fa-pen"></i>
+</button>
 
                         {{-- Botón Eliminar --}}
                         <form action="{{ route('clinicas.toggle', $clinica->id_clinica) }}" method="POST" style="display:inline;">
@@ -188,7 +201,7 @@
                     <small id="logoName" style="margin-left:10px; color:#666;"></small>
                 </div>
 
-                <div style="display:flex; justify-content:flex-end; gap:15px; margin-top:30px;" onclick="closeClinicModal(); openClinicModal();">
+                <div style="display:flex; justify-content:flex-end; gap:15px; margin-top:30px;">
                     <button type="submit" class="btn btn-primary" >
                         <i class="fa-solid fa-floppy-disk"></i> Guardar clínica
                     </button>
@@ -218,6 +231,17 @@
     function closeClinicModal() {
     clinicModal.style.display = "none";
     clinicForm.reset(); 
+
+    const inputs = clinicForm.querySelectorAll('input, select, textarea');
+    inputs.forEach(input => {
+        input.value = ""; // Forzamos vaciar el valor que dejó el old()
+        input.classList.remove('is-invalid'); // Quitamos el borde rojo de error
+    });
+
+    const errorMessages = clinicForm.querySelectorAll('.text-danger');
+    errorMessages.forEach(msg => {
+        msg.innerText = "";
+    });
     
     // 1. Resetear ruta y método (Volver a modo creación)
     clinicForm.action = "{{ route('clinicas.store') }}";
@@ -252,6 +276,19 @@
             form.action = `/clinicas/${editingId}`; 
             methodField.innerHTML = `@method('PUT')`;
 
+            // --- NUEVA LÓGICA PARA RECUPERAR EL LOGO TRAS ERROR ---
+            fetch(`/clinicas/${editingId}/edit`)
+                .then(res => res.json())
+                .then(data => {
+                    if (data.logo_ruta) {
+                        const previewImg = document.getElementById('logoPreviewImg');
+                        const previewContainer = document.getElementById('logoPreviewContainer');
+                        previewImg.src = window.location.origin + '/' + data.logo_ruta;
+                        previewContainer.style.display = "block";
+                        document.getElementById('logoButtonText').innerText = "Cambiar logo";
+                    }
+                });
+
             // Si falló la validación, mantenemos la colonia que el usuario seleccionó
             @if(old('colonia'))
                 const coloniaSelect = document.getElementById('colonia_select');
@@ -267,6 +304,12 @@
     });
 @endif
     function editClinic(id) {
+
+        // Si el estatus no es activo, detenemos la función
+    if (estatus !== 'activo') {
+        alert("Esta clínica está dada de baja y no se puede editar.");
+        return;
+    }
         document.getElementById('modalTitle').innerText = "Editar Clínica";
         clinicForm.action = `/clinicas/${id}`;
         methodField.innerHTML = `@method('PUT')`;
@@ -325,7 +368,7 @@
     // Lógica de Copomex
     document.getElementById('codigo_postal').addEventListener('blur', function() {
         const cp = this.value;
-        const token = "e3c2fe1d-ae86-40a5-86ef-9dac0715d9df";
+        const token = "d1730311-71cf-4809-99d5-e6b2bdb2b08c";
 
         if (cp.length === 5) {
             const estadoInput = document.getElementById('estado');

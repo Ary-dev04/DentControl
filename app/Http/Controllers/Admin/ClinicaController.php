@@ -63,53 +63,56 @@ class ClinicaController extends Controller
 
     // NUEVO: Para procesar la actualización de la clínica
     public function update(Request $request, $id)
-    {
-        $clinica = Clinica::findOrFail($id);
+{
+    $clinica = Clinica::findOrFail($id);
 
-        $validated = $request->validate([
-            'nombre' => 'required|string|max:50|regex:/^[a-zA-Z0-9ñÑáéíóúÁÉÍÓÚ\s&\'\-]+$/u',
-            'rfc'           => 'required|string|min:12|max:13|uppercase|unique:clinica,rfc,' . $id . ',id_clinica',
-            'calle'         => 'nullable|string|max:255',
-            'numero_ext'    => 'nullable|string|max:10',
-            'numero_int'    => 'nullable|string|max:10',
-            'colonia'       => 'nullable|string',
-            'codigo_postal' => 'required|digits:5',
-            'ciudad'        => 'required|string',
-            'estado'        => 'nullable|string',
-            'telefono'      => 'required|numeric|digits:10|unique:clinica,telefono,' . $id . ',id_clinica',
-            'logo_ruta'     => 'nullable|image|mimes:jpeg,png,jpg|max:2048',
-        ], [
-            'rfc.unique' => 'Este RFC ya pertenece a otra clínica registrada.',
-            'telefono.unique' => 'Este número telefónico ya está asociado a otra clínica.',
-            'nombre.max' => 'El nombre no debe exceder los 50 caracteres.',
-            'nombre.regex' => 'El nombre solo permite letras, números y espacios.',
-        ]);
+    // 1. Creamos la instancia del validador manualmente para controlar el fallo
+    $validator = Validator::make($request->all(), [
+        'nombre'        => 'required|string|max:50|regex:/^[a-zA-Z0-9ñÑáéíóúÁÉÍÓÚ\s&\'\-]+$/u',
+        'rfc'           => 'required|string|min:12|max:13|uppercase|unique:clinica,rfc,' . $id . ',id_clinica',
+        'calle'         => 'nullable|string|max:255',
+        'numero_ext'    => 'nullable|string|max:10',
+        'numero_int'    => 'nullable|string|max:10',
+        'colonia'       => 'nullable|string',
+        'codigo_postal' => 'required|digits:5',
+        'ciudad'        => 'required|string',
+        'estado'        => 'nullable|string',
+        'telefono'      => 'required|numeric|digits:10|unique:clinica,telefono,' . $id . ',id_clinica',
+        'logo_ruta'     => 'nullable|image|mimes:jpeg,png,jpg|max:2048',
+    ], [
+        'rfc.unique'      => 'Este RFC ya pertenece a otra clínica registrada.',
+        'telefono.unique' => 'Este número telefónico ya está asociado a otra clínica.',
+        'nombre.max'      => 'El nombre no debe exceder los 50 caracteres.',
+        'nombre.regex'    => 'El nombre solo permite letras, números y espacios.',
+    ]);
 
-        if ($validator->fails()) {
-            // Guardamos el ID en la sesión flash para que el JS sepa que el modal debe reabrirse en modo EDICIÓN
-            session()->flash('editing_clinic_id', $id);
-            return redirect()->back()->withErrors($validator)->withInput();
-        }
-
-        $clinica = Clinica::findOrFail($id);
-        $data = $validator->validated();
-
-        if ($request->hasFile('logo_ruta')) {
-            // Borrar logo anterior si existe
-            if ($clinica->logo_ruta && File::exists(public_path($clinica->logo_ruta))) {
-                File::delete(public_path($clinica->logo_ruta));
-            }
-
-            $image = $request->file('logo_ruta');
-            $name = 'logo_' . time() . '.' . $image->getClientOriginalExtension();
-            $image->move(public_path('images/logos'), $name);
-            $validated['logo_ruta'] = 'images/logos/' . $name;
-        }
-
-        $clinica->update($validated);
-
-        return redirect()->route('clinicas.index')->with('success', 'Clínica actualizada correctamente.');
+    // 2. Si falla, mandamos el editing_clinic_id a la sesión
+    if ($validator->fails()) {
+        return redirect()->back()
+            ->withErrors($validator)
+            ->withInput()
+            ->with('editing_clinic_id', $id); // Esto le dirá al JS que abra el modal en modo edición
     }
+
+    $validated = $validator->validated();
+
+    // 3. Manejo del Logo
+    if ($request->hasFile('logo_ruta')) {
+        // Borrar logo anterior si existe
+        if ($clinica->logo_ruta && File::exists(public_path($clinica->logo_ruta))) {
+            File::delete(public_path($clinica->logo_ruta));
+        }
+
+        $image = $request->file('logo_ruta');
+        $name = 'logo_' . time() . '.' . $image->getClientOriginalExtension();
+        $image->move(public_path('images/logos'), $name);
+        $validated['logo_ruta'] = 'images/logos/' . $name;
+    }
+
+    $clinica->update($validated);
+
+    return redirect()->route('clinicas.index')->with('success', 'Clínica actualizada correctamente.');
+}
 
     // NUEVO: Para desactivar clínicas
     public function toggleStatus($id)

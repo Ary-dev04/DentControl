@@ -8,6 +8,7 @@ body {
   font-family: 'Segoe UI', Arial, sans-serif;
   background: #f4f6f8;
   color: #333;
+  
 }
 
 /* ================= LAYOUT GENERAL ================= */
@@ -23,6 +24,12 @@ body {
   color: white;
   display: flex;
   flex-direction: column;
+  /* --- CAMBIOS AQUÍ --- */
+  position: fixed;    /* Lo fija a la pantalla */
+  height: 100vh;      /* Ocupa todo el alto */
+  left: 0;
+  top: 0;
+  z-index: 1000;      /* Se asegura de estar sobre el contenido */
 }
 
 /* LOGO */
@@ -39,6 +46,8 @@ body {
 /* ================= MENÚ ================= */
 .menu {
   padding-top: 10px;
+  flex: 1;            /* Toma todo el espacio sobrante */
+  overflow-y: auto;   /* Permite scroll interno si hay muchos links */
 }
 
 .menu a {
@@ -69,7 +78,7 @@ body {
 
 /* ================= LOGOUT ================= */
 .logout {
-  margin-top: auto;
+  margin-top: auto; /* Esto lo mantiene siempre al fondo */
   padding: 15px 20px;
   display: flex;
   align-items: center;
@@ -77,23 +86,31 @@ body {
   cursor: pointer;
   background: rgba(0, 0, 0, 0.2);
   transition: background 0.3s ease;
+  border-top: 1px solid rgba(255,255,255,0.1); /* Separación visual */
 }
 
-.logout i {
-  width: 20px;
-  text-align: center;
-}
-
+/* Asegura que el contenedor se pinte de rojo */
 .logout:hover {
-  background: #dc3545;
+  background: #dc3545 !important;
+  color: white !important;
+}
+
+/* IMPORTANTE: Haz que el enlace interno ocupe todo el div */
+.logout a {
+  display: flex; /* Para que alinee el icono y el texto */
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  height: 100%;
+  color: white; /* Hereda el blanco de la sidebar */
+}
+
+/* Evita que el enlace cambie de color al pasar el mouse si tienes reglas globales de <a> */
+.logout:hover a {
+  color: white !important;
 }
 
 /* ================= CONTENT ================= */
-.content {
-  flex: 1;
-  padding: 30px;
-  overflow-y: auto;
-}
 
 .content h1 {
   color: #0d6efd;
@@ -103,6 +120,14 @@ body {
 .subtitle {
   color: #6c757d;
   margin-bottom: 25px;
+}
+
+/* ================= CONTENT ================= */
+.content {
+  flex: 1;
+  padding: 30px;
+  margin-left: 240px; /* IMPORTANTE: Debe ser igual al width de la sidebar */
+  overflow-y: auto;
 }
 
 /* ================= BOTONES GENERALES ================= */
@@ -397,4 +422,56 @@ input:focus, select:focus {
     border-radius: 8px;
     border-left: 5px solid #10b981;
     margin-bottom: 20px;
+}
+
+.search-wrapper {
+    position: relative;
+    max-width: 400px; /* Tamaño ideal para que no abarque toda la pantalla */
+    margin-bottom: 20px;
+}
+
+.search-icon {
+    position: absolute;
+    left: 15px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #94a3b8; /* Gris azulado suave */
+    pointer-events: none;
+    transition: color 0.3s ease;
+}
+
+.search-input {
+    width: 100%;
+    padding: 12px 15px 12px 45px; /* Espacio extra a la izquierda para el icono */
+    font-size: 0.95rem;
+    border: 1px solid #e2e8f0;
+    border-radius: 10px; /* Bordes redondeados modernos */
+    background-color: #ffffff;
+    color: #1e293b;
+    transition: all 0.3s ease;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+}
+
+.search-input:focus {
+    outline: none;
+    border-color: #3b82f6; /* Color azul principal */
+    box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.1); /* Efecto de resplandor sutil */
+    background-color: #fff;
+}
+
+/* Cambia el color del icono cuando el input tiene foco */
+.search-wrapper:focus-within .search-icon {
+    color: #3b82f6;
+}
+
+/* Estilo para el placeholder */
+.search-input::placeholder {
+    color: #94a3b8;
+    font-weight: 400;
+}
+
+.icon-btn.edit:disabled {
+    background-color: #94a3b8 !important; /* Gris suave */
+    cursor: not-allowed;
+    opacity: 0.6;
 }
