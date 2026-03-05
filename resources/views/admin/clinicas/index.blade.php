@@ -140,6 +140,7 @@
                         <label>Núm. Ext</label>
                         <input type="text" name="numero_ext" id="numero_ext" 
                         class="@error('numero_ext') is-invalid @enderror"
+                        oninput="this.value = this.value.replace(/[^a-zA-Z0-9\s\-]/g, '')"
                         value="{{ old('numero_ext') }}" maxlength="10">
                         @error('numero_ext') 
                         <span class="text-danger" style="font-size: 0.7rem;">{{ $message }}</span> 
@@ -149,6 +150,7 @@
                         <label>Núm. Int</label>
                         <input type="text" name="numero_int" id="numero_int" 
                         class="@error('numero_int') is-invalid @enderror"
+                        oninput="this.value = this.value.replace(/[^a-zA-Z0-9\s\-]/g, '')"
                         value="{{ old('numero_int') }}" maxlength="10">
                         @error('numero_int') 
                         <span class="text-danger" style="font-size: 0.7rem;">{{ $message }}</span> 
