@@ -134,13 +134,26 @@
                 <div class="form-row">
                     <div class="form-group">
                         <label>Calle</label>
-                        <input type="text" name="calle" id="calle" value="{{ old('calle') }}">
+                        <input type="text" 
+                        name="calle" 
+                        id="calle" 
+                        class="@error('calle') is-invalid @enderror"
+                        maxlength="255"
+                        {{-- Filtro de caracteres prohibidos --}}
+                        oninput="this.value = this.value.replace(/[^a-zA-Z0-9ñÑáéíóúÁÉÍÓÚ\s\.\,\-]/g, '')"
+                        {{-- Limpieza de espacios dobles --}}
+                        onblur="this.value = this.value.trim().replace(/\s+/g, ' ')"
+                        value="{{ old('calle') }}">
+                        @error('calle') 
+                        <span class="text-danger" style="font-size: 0.8rem;">{{ $message }}</span> 
+                        @enderror
                     </div>
                     <div class="form-group">
                         <label>Núm. Ext</label>
                         <input type="text" name="numero_ext" id="numero_ext" 
                         class="@error('numero_ext') is-invalid @enderror"
                         oninput="this.value = this.value.replace(/[^a-zA-Z0-9\s\-]/g, '')"
+                        onblur="this.value = this.value.trim().replace(/\s+/g, ' ')"
                         value="{{ old('numero_ext') }}" maxlength="10">
                         @error('numero_ext') 
                         <span class="text-danger" style="font-size: 0.7rem;">{{ $message }}</span> 
@@ -151,6 +164,7 @@
                         <input type="text" name="numero_int" id="numero_int" 
                         class="@error('numero_int') is-invalid @enderror"
                         oninput="this.value = this.value.replace(/[^a-zA-Z0-9\s\-]/g, '')"
+                        onblur="this.value = this.value.trim().replace(/\s+/g, ' ')"
                         value="{{ old('numero_int') }}" maxlength="10">
                         @error('numero_int') 
                         <span class="text-danger" style="font-size: 0.7rem;">{{ $message }}</span> 

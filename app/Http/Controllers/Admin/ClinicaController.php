@@ -23,7 +23,7 @@ class ClinicaController extends Controller
         $validated = $request->validate([
             'nombre' => 'required|string|max:50|regex:/^[a-zA-Z0-9ñÑáéíóúÁÉÍÓÚ\s&\'\-]+$/u',
             'rfc'           => 'required|string|uppercase|regex:/^[A-Z&Ñ]{3,4}[0-9]{6}[A-Z0-9]{3}$/|min:12|max:13|unique:clinica,rfc',
-            'calle'         => 'nullable|string|max:255',
+            'calle'         => 'nullable|string|max:255|regex:/^[a-zA-Z0-9ñÑáéíóúÁÉÍÓÚ\s\.\,\-]+$/u',
             'numero_ext'    => 'required_without:numero_int|nullable|string|max:10|regex:/^[a-zA-Z0-9\s\-]+$/',
             'numero_int'    => 'required_without:numero_ext|nullable|string|max:10|regex:/^[a-zA-Z0-9\s\-]+$/',
             'colonia'       => 'nullable|string|max:255',
@@ -34,7 +34,7 @@ class ClinicaController extends Controller
             'logo_ruta'     => 'nullable|image|mimes:jpeg,png,jpg|max:2048',
         ],[
             'nombre.max' => 'El nombre no debe exceder los 50 caracteres.',
-            'nombre.regex' => 'El nombre solo permite letras, números y espacios.',
+            'nombre.regex' => 'El nombre solo permite letras, números, ampersand, comillas simples, guion y espacios.',
             'rfc.unique' => 'Este RFC ya está registrado.',
             'rfc.min' => 'El RFC debe tener al menos 12 caracteres.',
             'telefono.digits' => 'El teléfono debe ser de 10 dígitos.',
@@ -42,10 +42,14 @@ class ClinicaController extends Controller
             'rfc.regex' => 'El formato del RFC es inválido (Ej: ABCD123456EF7).',
             'numero_ext.required_without' => 'Debes ingresar al menos un número (Exterior o Interior).',
             'numero_int.required_without' => 'Debes ingresar al menos un número (Exterior o Interior).',
+            'calle.regex' => 'La calle solo permite letras, números. espacios y signos de puntuación básicos (punto, coma, guión).',
         ]);
 
         // 2. Limpiar el nombre (Tu línea mágica)
     $validated['nombre'] = preg_replace('/\s+/', ' ', trim($request->nombre));
+    $validated['numero_ext'] = preg_replace('/\s+/', ' ', trim($request->numero_ext));
+    $validated['numero_int'] = preg_replace('/\s+/', ' ', trim($request->numero_int));
+    $validated['calle'] = preg_replace('/\s+/', ' ', trim($request->calle));
 
         if ($request->hasFile('logo_ruta')) {
             $image = $request->file('logo_ruta');
@@ -76,7 +80,7 @@ class ClinicaController extends Controller
     $validator = Validator::make($request->all(), [
         'nombre'        => 'required|string|max:50|regex:/^[a-zA-Z0-9ñÑáéíóúÁÉÍÓÚ\s&\'\-]+$/u',
         'rfc'           => 'required|string|min:12|max:13|uppercase|regex:/^[A-Z&Ñ]{3,4}[0-9]{6}[A-Z0-9]{3}$/|unique:clinica,rfc,' . $id . ',id_clinica',
-        'calle'         => 'nullable|string|max:255',
+        'calle'         => 'nullable|string|max:255|regex:/^[a-zA-Z0-9ñÑáéíóúÁÉÍÓÚ\s\.\,\-]+$/u',
         'numero_ext'    => 'nullable|string|max:10',
         'numero_int'    => 'nullable|string|max:10',
         'colonia'       => 'nullable|string',
@@ -90,13 +94,17 @@ class ClinicaController extends Controller
         'rfc.regex'       => 'Formato de RFC inválido.',
         'telefono.unique' => 'Este número telefónico ya está asociado a otra clínica.',
         'nombre.max'      => 'El nombre no debe exceder los 50 caracteres.',
-        'nombre.regex'    => 'El nombre solo permite letras, números y espacios.',
+        'nombre.regex' => 'El nombre solo permite letras, números, ampersand, comillas simples, guion y espacios.',
         'numero_ext.required_without' => 'Debes ingresar al menos un número (Exterior o Interior).',
         'numero_int.required_without' => 'Debes ingresar al menos un número (Exterior o Interior).',
+        'calle.regex' => 'La calle solo permite letras, números. espacios y signos de puntuación básicos (punto, coma, guión).',
     ]);
 
     // 2. Limpiar el nombre (Tu línea mágica)
     $validated['nombre'] = preg_replace('/\s+/', ' ', trim($request->nombre));
+    $validated['numero_ext'] = preg_replace('/\s+/', ' ', trim($request->numero_ext));
+    $validated['numero_int'] = preg_replace('/\s+/', ' ', trim($request->numero_int));
+    $validated['calle'] = preg_replace('/\s+/', ' ', trim($request->calle));
 
     // 2. Si falla, mandamos el editing_clinic_id a la sesión
     if ($validator->fails()) {
