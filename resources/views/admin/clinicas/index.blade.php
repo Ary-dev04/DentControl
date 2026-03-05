@@ -109,6 +109,7 @@
                         maxlength="50"
                         {{-- Permitimos letras, números, espacios, ñ y acentos --}}
                         oninput="this.value = this.value.replace(/[^a-zA-Z0-9ñÑáéíóúÁÉÍÓÚ\s&'-]/g, '')"
+                        onblur="this.value = this.value.trim().replace(/\s+/g, ' ')"
                         value="{{ old('nombre') }}" 
                         class="@error('nombre') is-invalid @enderror"
                         title="Solo se permiten letras, números y espacios">

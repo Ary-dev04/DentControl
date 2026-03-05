@@ -42,6 +42,9 @@ class ClinicaController extends Controller
             'rfc.regex' => 'El formato del RFC es inválido (Ej: ABCD123456EF7).',
         ]);
 
+        // 2. Limpiar el nombre (Tu línea mágica)
+    $validated['nombre'] = preg_replace('/\s+/', ' ', trim($request->nombre));
+
         if ($request->hasFile('logo_ruta')) {
             $image = $request->file('logo_ruta');
             $name = 'logo_' . time() . '.' . $image->getClientOriginalExtension();
@@ -87,6 +90,9 @@ class ClinicaController extends Controller
         'nombre.max'      => 'El nombre no debe exceder los 50 caracteres.',
         'nombre.regex'    => 'El nombre solo permite letras, números y espacios.',
     ]);
+
+    // 2. Limpiar el nombre (Tu línea mágica)
+    $validated['nombre'] = preg_replace('/\s+/', ' ', trim($request->nombre));
 
     // 2. Si falla, mandamos el editing_clinic_id a la sesión
     if ($validator->fails()) {
