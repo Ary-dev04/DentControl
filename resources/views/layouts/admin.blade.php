@@ -6,6 +6,7 @@
 
   <link rel="stylesheet" href="{{ asset('css/stylesBaseSaas.css') }}">
   <link rel="stylesheet" href="{{ asset('css/saas-dashboard.css') }}">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
 
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
 </head>

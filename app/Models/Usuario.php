@@ -23,6 +23,7 @@ class Usuario extends Authenticatable
         'nombre',
         'apellido_paterno',
         'apellido_materno',
+        'email', 'telefono',
         'cedula_profesional',
         'nom_usuario',
         'password',

@@ -19,10 +19,14 @@ class UsuarioSeeder extends Seeder
             'id_clinica'        => 1, 
             'nombre'            => 'Admin',
             'apellido_paterno'  => 'Sistema',
+            'apellido_materno'  => 'Control',
             'nom_usuario'       => 'admin',
             'password'          => 'DentControl2026', 
             'rol'               => 'superadmin',
-            'estatus'           => 'activo'
+            'estatus'           => 'activo',
+            'email'            => 'admin@dentcontrol.com',
+        'telefono'         => '1234567890',
+        'cedula_profesional' => '00000000',
         ]);
     }
 }
