@@ -36,7 +36,7 @@ class UsuarioController extends Controller
             'nombre'   => 'required|string|min:3|max:50|regex:/^[a-zA-ZñÑáéíóúÁÉÍÓÚ\s]+$/u',
             'apellido_paterno' => 'required|string|min:3|max:50|regex:/^[a-zA-ZñÑáéíóúÁÉÍÓÚ\s]+$/u',
             'apellido_materno' => 'required|string|min:3|max:50|regex:/^[a-zA-ZñÑáéíóúÁÉÍÓÚ\s]+$/u',
-            'email'    => 'required|email|unique:usuario,email',
+            'email'    => 'required|email:rfc,dns|unique:usuario,email',
             'telefono' => 'required|numeric|digits:10|unique:usuario,telefono',
             'cedula_profesional' => 'required_if:rol,dentista|nullable|unique:usuario,cedula_profesional|regex:/^[0-9]{7,8}$/',
             'nom_usuario' => 'required|alpha_num|min:4|max:20|unique:usuario,nom_usuario',
@@ -60,7 +60,12 @@ class UsuarioController extends Controller
             'password.numbers' => 'La contraseña debe incluir al menos un número.',
             'password.regex' => 'La contraseña no debe contener espacios ni caracteres especiales.',
             'cedula_profesional.regex' => 'La cédula debe ser de 7 a 8 números.',
-            'cedula_profesional.required_if' => 'La cédula es obligatoria para dentistas.'
+            'cedula_profesional.required_if' => 'La cédula es obligatoria para dentistas.',
+            'email.required' => 'El correo electrónico es obligatorio.',
+    'email.email' => 'El formato del correo no es válido.',
+    'email.unique' => 'Este correo ya está registrado en el sistema.',
+    'email.rfc' => 'El formato del correo es inválido según los estándares RFC.',
+    'email.dns' => 'El dominio del correo (lo que va después del @) no parece existir.',
         ]);
 
         // Corrección de la limpieza de datos en el método store
@@ -81,7 +86,7 @@ $validated['apellido_materno'] = preg_replace('/\s+/', ' ', trim($request->apell
     $usuario = Usuario::findOrFail($id);
 
     //Si el usuario es admin, no se puede tocar
-    if ($usuario->rol === 'admin') {
+    if ($usuario->rol === 'superadmin') {
         return redirect()->back()->with('error', 'El Superadministrador no puede ser suspendido.');
     }
     
@@ -106,61 +111,70 @@ $validated['apellido_materno'] = preg_replace('/\s+/', ' ', trim($request->apell
 
 public function update(Request $request, $id)
 {
-    $usuario = Usuario::findOrFail($id);
+    try {
+        $usuario = Usuario::findOrFail($id);
+        $request->merge(['rol' => $usuario->rol]);
 
-    // REGLA: Si el usuario es admin, solo él puede editar sus datos 
-    // y NUNCA puede cambiarse el rol a sí mismo a algo inferior.
-    if ($usuario->rol === 'superadmin') {
-        $request->merge(['rol' => 'superadmin']); // Forzamos que el rol siga siendo admin
+        // REGLA: Si el usuario es admin, forzamos que el rol siga siendo admin
+        if ($usuario->rol === 'superadmin') {
+            $request->merge(['rol' => 'superadmin']);
+        }
         
-        // Opcional: Impedir que otros editen al admin
-        //if (auth()->user()->id_usuario !== $usuario->id_usuario) {
-        //     return redirect()->route('usuarios.index')->with('error', 'No puedes editar al Superadministrador.');
-        //}
-    }
-    
-    $rules = [
-        'id_clinica' => 'required',
-        'nombre' => 'required|string|max:50|regex:/^[a-zA-ZñÑáéíóúÁÉÍÓÚ\s]+$/u',
-        'apellido_paterno' => 'required|string|max:50|regex:/^[a-zA-ZñÑáéíóúÁÉÍÓÚ\s]+$/u',
-        'apellido_materno' => 'required|string|max:50|regex:/^[a-zA-ZñÑáéíóúÁÉÍÓÚ\s]+$/u',
-        'email' => 'required|email|unique:usuario,email,' . $id . ',id_usuario',
+        $rules = [
+            'id_clinica' => 'required',
+            'nombre' => 'required|string|max:50|regex:/^[a-zA-ZñÑáéíóúÁÉÍÓÚ\s]+$/u',
+            'apellido_paterno' => 'required|string|max:50|regex:/^[a-zA-ZñÑáéíóúÁÉÍÓÚ\s]+$/u',
+            'apellido_materno' => 'required|string|max:50|regex:/^[a-zA-ZñÑáéíóúÁÉÍÓÚ\s]+$/u',
+            'email' => 'required|email:rfc,dns|unique:usuario,email,' . $id . ',id_usuario',
             'telefono' => 'required|numeric|digits:10|unique:usuario,telefono,' . $id . ',id_usuario',
-        'nom_usuario' => 'required|unique:usuario,nom_usuario,' . $id . ',id_usuario',
-        'rol' => 'required|in:superadmin,dentista,asistente',
-        'cedula_profesional' => 'required_if:rol,dentista|nullable|unique:usuario,cedula_profesional,' . $id . ',id_usuario|regex:/^[0-9]{7,8}$/',
-    ];
+            'nom_usuario' => 'required|alpha_num|min:4|max:20|unique:usuario,nom_usuario,' . $id . ',id_usuario',
+            'rol' => 'required|in:superadmin,dentista,asistente',
+            'cedula_profesional' => 'required_if:rol,dentista|nullable|unique:usuario,cedula_profesional,' . $id . ',id_usuario|regex:/^[0-9]{7,8}$/',
+        ];
 
-    // Solo validamos password si el usuario escribió algo nuevo
-    if ($request->filled('password')) {
-        $rules['password'] = [
-        'required',    
-        'regex:/^[a-zA-Z0-9]+$/', Password::min(8)->letters()->mixedCase()->numbers()];
+        if ($request->filled('password')) {
+            $rules['password'] = [
+                'required',    
+                'regex:/^[a-zA-Z0-9]+$/', 
+                \Illuminate\Validation\Rules\Password::min(8)->letters()->mixedCase()->numbers()
+            ];
+        }
+
+        $messages = [
+            'nombre.regex' => 'El nombre solo puede contener letras y espacios.',
+            'apellido_paterno.regex' => 'El apellido paterno solo puede contener letras y espacios.',
+            'nombre.min' => 'El nombre debe tener al menos 3 letras.',
+            'password.min' => 'La contraseña es demasiado corta (mínimo 8 caracteres).',
+            'password.letters' => 'La contraseña debe incluir al menos una letra.',
+            'password.mixed_case' => 'La contraseña debe tener mayúsculas y minúsculas.',
+            'password.numbers' => 'La contraseña debe incluir al menos un número.',
+            'password.regex' => 'La contraseña no debe contener espacios ni caracteres especiales.',
+        ];
+
+        // Cambiamos $request->validate por Validator para manejar el fallo manualmente
+        $validated = $request->validate($rules, $messages);
+
+        $validated['nombre'] = preg_replace('/\s+/', ' ', trim($request->nombre));
+        $validated['apellido_paterno'] = preg_replace('/\s+/', ' ', trim($request->apellido_paterno));
+        $validated['apellido_materno'] = preg_replace('/\s+/', ' ', trim($request->apellido_materno));
+        //$validated['nom_usuario'] = preg_replace('/\s+/', ' ', trim($request->nom_usuario));
+        
+        if (!$request->filled('password')) {
+            unset($validated['password']); 
+        }
+
+        $usuario->update($validated);
+
+        return redirect()->route('usuarios.index')->with('success', 'Usuario actualizado correctamente.');
+
+    } catch (\Illuminate\Validation\ValidationException $e) {
+        // ESTA ES LA PARTE CLAVE:
+        // Si la validación falla, regresamos con los errores, los datos del input 
+        // y el ID del usuario que estábamos editando.
+        return redirect()->back()
+            ->withErrors($e->validator)
+            ->withInput()
+            ->with('editing_user_id', $id);
     }
-    $messages = [
-    'nombre.regex' => 'El nombre solo puede contener letras y espacios.',
-    'apellido_paterno.regex' => 'El apellido paterno solo puede contener letras y espacios.',
-    'nombre.min' => 'El nombre debe tener al menos 3 letras.',
-    'password.min' => 'La contraseña es demasiado corta (mínimo 8 caracteres).',
-    'password.letters' => 'La contraseña debe incluir al menos una letra.',
-    'password.mixed_case' => 'La contraseña debe tener mayúsculas y minúsculas.',
-    'password.numbers' => 'La contraseña debe incluir al menos un número.',
-    'password.regex' => 'La contraseña no debe contener espacios ni caracteres especiales.',
-];
-
-    $validated = $request->validate($rules, $messages);
-
-    $validated['nombre'] = preg_replace('/\s+/', ' ', trim($request->nombre));
-    $validated['apellido_paterno'] = preg_replace('/\s+/', ' ', trim($request->apellido_paterno));
-    $validated['apellido_materno'] = preg_replace('/\s+/', ' ', trim($request->apellido_materno));
-    
-    if (!$request->filled('password')) {
-        unset($validated['password']); // No actualizamos password si está vacío
-    }
-
-
-    $usuario->update($validated);
-
-    return redirect()->route('usuarios.index')->with('success', 'Usuario actualizado correctamente.');
-    }
+}
 }

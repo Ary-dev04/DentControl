@@ -213,7 +213,8 @@
             <div class="form-group-custom">
                 <label>Usuario (Login)</label>
                 <input type="text" name="nom_usuario" id="nom_usuario" value="{{ old('nom_usuario') }}" required
-                       class="@error('nom_usuario') is-invalid @enderror">
+                       maxlength="15" class="@error('nom_usuario') is-invalid @enderror" oninput="validateLoginInput(this)"
+                       placeholder="Ejemplo: hola123">
                 @error('nom_usuario') <span class="text-danger">{{ $message }}</span> @enderror
             </div>
         </div>
@@ -267,104 +268,161 @@ function prepareCreateModal() {
     form.reset(); 
 
     form.querySelectorAll('.text-danger').forEach(el => el.remove());
-    // 2. Limpiar manualmente los campos (esto evita que Laravel 'recuerde' datos viejos)
+
+    // 2. Limpiar manualmente los campos
     const fields = ['nombre', 'apellido_paterno', 'apellido_materno', 'email', 'telefono', 'nom_usuario', 'password_input', 'cedula_profesional', 'rol'];
     fields.forEach(fieldId => {
         const element = document.getElementById(fieldId);
         if(element) {
-            element.value = ''; // Forzamos el valor vacío
-            element.classList.remove('is-invalid'); // Quitamos el borde rojo si existía
+            element.value = ''; 
+            element.classList.remove('is-invalid'); 
         }
     });
 
-    // 3. Resetear el Select de Clínica (si tiene un ID específico)
+    // --- NUEVA LÓGICA PARA EL ROL ---
+    const rolSelect = document.getElementById('rol');
+    if (rolSelect) {
+        // A. Habilitar el select (por si veníamos de una edición donde se bloqueó)
+        rolSelect.disabled = false;
+
+        // B. Quitar la opción de superadmin si se agregó dinámicamente en una edición
+        const superOpt = rolSelect.querySelector('option[value="superadmin"]');
+        if (superOpt) {
+            superOpt.remove();
+        }
+    }
+
+    // C. Desactivar el input hidden de rol para que no interfiera en la creación
+    const rolHidden = document.getElementById('rol_hidden');
+    if (rolHidden) {
+        rolHidden.disabled = true;
+        rolHidden.value = '';
+    }
+    // --------------------------------
+
+    // 3. Resetear el Select de Clínica
     const clinicaSelect = document.getElementById('id_clinica');
     if(clinicaSelect) clinicaSelect.value = '';
+
     const passInput = document.getElementById('password_input');
-    passInput.placeholder = "8 carac. (letras, Mayús. y núm.)"; // El texto que quieres
+    passInput.placeholder = "8 carac. (letras, Mayús. y núm.)"; 
     passInput.required = true;
 
     // 4. Configurar el modal para modo "Crear"
     form.action = "{{ route('usuarios.store') }}";
     const methodInput = form.querySelector('input[name="_method"]');
-    if(methodInput) methodInput.remove(); // Eliminamos el método PUT si se quedó de una edición
+    if(methodInput) methodInput.remove(); 
 
     document.getElementById('modalTitle').innerText = 'Agregar usuario';
-    document.getElementById('password_input').required = true;
-    //document.getElementById('password_input').placeholder = "";
     document.getElementById('cedulaGroup').style.display = 'none';
 
     // 5. Finalmente, abrir el modal
     openUserModal();
 }
     @if($errors->any())
-        window.onload = function() { 
-            openUserModal(); 
+    window.onload = function() { 
+        openUserModal(); 
 
-            // Lógica para mantener visible la cédula si hubo errores
+        const form = document.getElementById('userForm');
+        // 1. Detectamos si venimos de una edición fallida
+        const editingId = "{{ session('editing_user_id') }}";
+
+        if (editingId || "{{ old('_method') }}" === 'PUT') {
+            const id = editingId || "{{ basename(url()->previous()) }}"; // Intenta recuperar el ID
+            
+            document.getElementById('modalTitle').innerText = 'Editar usuario';
+            
+            // 2. ACTUALIZAMOS LA RUTA: Esto evita que te mande a "Registrar"
+            form.action = `/usuarios/${id}`;
+            
+            // 3. ASEGURAMOS EL MÉTODO PUT: Para que Laravel sepa que es actualización
+            let methodInput = form.querySelector('input[name="_method"]');
+            if (!methodInput) {
+                methodInput = document.createElement('input');
+                methodInput.type = 'hidden';
+                methodInput.name = '_method';
+                form.appendChild(methodInput);
+            }
+            methodInput.value = 'PUT';
+
+            // 4. Password no es obligatorio al fallar edición
+            const passInput = document.getElementById('password_input');
+            passInput.required = false;
+            passInput.placeholder = "Dejar en blanco para no cambiar";
+        }
+
+        // Lógica de la cédula (se mantiene igual)
         const rolActual = document.getElementById('rol').value;
         if(rolActual === 'dentista') {
             document.getElementById('cedulaGroup').style.display = 'flex';
         }
-            @if(session('editing_user_id') || old('_method') == 'PUT')
-                document.getElementById('modalTitle').innerText = 'Editar usuario';
-                toggleCedula();
-            @endif
-        };
-    @endif
+        
+        toggleCedula();
+    };
+@endif
 
     function editUser(id) {
-        document.getElementById('modalTitle').innerText = 'Editar usuario';
-        const form = document.getElementById('userForm');
-        form.action = `/usuarios/${id}`;
-        
-        let methodInput = form.querySelector('input[name="_method"]');
-        if (!methodInput) {
-            methodInput = document.createElement('input');
-            methodInput.type = 'hidden';
-            methodInput.name = '_method';
-            form.appendChild(methodInput);
-        }
-        methodInput.value = 'PUT';
-
-       fetch(`/usuarios/${id}/edit`)
-            .then(response => response.json())
-            .then(data => {
-                form.id_clinica.value = data.id_clinica;
-                form.nombre.value = data.nombre;
-                form.apellido_paterno.value = data.apellido_paterno;
-                form.apellido_materno.value = data.apellido_materno || '';
-                form.nom_usuario.value = data.nom_usuario;
-                form.email.value = data.email;
-                form.telefono.value = data.telefono;
-                
-                const rolSelect = document.getElementById('rol');
-                if (data.rol === 'superadmin') {
-                    rolSelect.innerHTML += `<option value="superadmin">Superadmin</option>`;
-                    rolSelect.value = 'superadmin';
-                    rolSelect.disabled = true;
-                    document.getElementById('rol_hidden').value = 'superadmin';
-                    document.getElementById('rol_hidden').disabled = false;
-                } else {
-                    rolSelect.disabled = false;
-                    document.getElementById('rol_hidden').disabled = true;
-                    rolSelect.innerHTML = `
-                        <option value="">Seleccionar</option>
-                        <option value="dentista">Dentista / Dueño</option>
-                        <option value="asistente">Asistente</option>
-                    `;
-                    rolSelect.value = data.rol;
-                }
-                form.cedula_profesional.value = data.cedula_profesional || '';
-                
-                const passInput = document.getElementById('password_input');
-                passInput.placeholder = "Dejar en blanco para no cambiar";
-                passInput.required = false;
-
-                toggleCedula();
-                openUserModal();
-            });
+    document.getElementById('modalTitle').innerText = 'Editar usuario';
+    const form = document.getElementById('userForm');
+    form.action = `/usuarios/${id}`;
+    
+    form.querySelectorAll('.is-invalid').forEach(el => el.classList.remove('is-invalid'));
+    form.querySelectorAll('.text-danger').forEach(el => el.remove());
+    
+    let methodInput = form.querySelector('input[name="_method"]');
+    if (!methodInput) {
+        methodInput = document.createElement('input');
+        methodInput.type = 'hidden';
+        methodInput.name = '_method';
+        form.appendChild(methodInput);
     }
+    methodInput.value = 'PUT';
+
+    fetch(`/usuarios/${id}/edit`)
+        .then(response => response.json())
+        .then(data => {
+            form.id_clinica.value = data.id_clinica;
+            form.nombre.value = data.nombre;
+            form.apellido_paterno.value = data.apellido_paterno;
+            form.apellido_materno.value = data.apellido_materno || '';
+            form.nom_usuario.value = data.nom_usuario;
+            form.email.value = data.email;
+            form.telefono.value = data.telefono;
+            
+            // --- LÓGICA DE ROL BLOQUEADO PARA TODOS ---
+            const rolSelect = document.getElementById('rol');
+            const rolHidden = document.getElementById('rol_hidden');
+
+            // NUEVO: Verificar si el rol es superadmin y añadir la opción si falta
+            if (data.rol === 'superadmin') {
+                let superOpt = rolSelect.querySelector('option[value="superadmin"]');
+                if (!superOpt) {
+                    const newOpt = document.createElement('option');
+                    newOpt.value = 'superadmin';
+                    newOpt.text = 'Superadministrador';
+                    rolSelect.add(newOpt);
+                }
+            }
+
+            rolSelect.value = data.rol; 
+            rolSelect.disabled = true; 
+
+            if (rolHidden) {
+                rolHidden.value = data.rol;
+                rolHidden.disabled = false; 
+            }
+            // ------------------------------------------
+
+            form.cedula_profesional.value = data.cedula_profesional || '';
+            
+            const passInput = document.getElementById('password_input');
+            passInput.placeholder = "Dejar en blanco para no cambiar";
+            passInput.required = false;
+
+            toggleCedula();
+            openUserModal();
+        });
+}
 
     function openUserModal() {
         document.getElementById('userModal').style.display = 'flex';
@@ -418,30 +476,40 @@ function prepareCreateModal() {
     }
 
     function validateEmailInput(input) {
-    let value = input.value;
+    // 1. Limpieza básica en tiempo real (minúsculas y sin espacios)
+    let value = input.value.toLowerCase().replace(/\s/g, '');
 
-    // 1. Convertir a minúsculas de inmediato
-    value = value.toLowerCase();
+    // 1.1 FILTRO DE CARACTERES ESPECIALES (NUEVO)
+    // Solo permite: letras, números, @, punto, guion y guion bajo. 
+    // Borra todo lo demás (*, #, $, etc.)
+    value = value.replace(/[^a-z0-9@._-]/g, '');
 
-    // 2. Eliminar cualquier carácter que no sea permitido en un email
-    // Permite: letras, números, @, punto, guion medio, guion bajo y signo más
-    value = value.replace(/[^a-z0-9@._+-]/g, '');
-
-    // 3. No permitir dos arrobas (solo deja la primera)
+    // 1.2 EVITAR DOBLE @ (NUEVO)
     const parts = value.split('@');
     if (parts.length > 2) {
         value = parts[0] + '@' + parts.slice(1).join('');
     }
 
-    // 4. No permitir dos puntos seguidos (..)
-    value = value.replace(/\.{2,}/g, '.');
-
-    // 5. No permitir que el primer carácter sea un punto o una arroba
-    if (value.startsWith('.') || value.startsWith('@')) {
-        value = value.substring(1);
-    }
-
+    // Actualizamos el valor visual del input con el texto limpio
     input.value = value;
+
+    // 2. Expresión regular para formato de email (mantenemos la tuya)
+    const emailRegex = /^[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,}$/;
+    const errorSpan = document.getElementById('emailError');
+
+    // 3. Validación visual (mantenemos tu lógica de colores)
+    if (value.length > 0) {
+        if (!emailRegex.test(value)) {
+            input.style.border = "1px solid #ef4444"; // Borde rojo
+            if(errorSpan) errorSpan.style.display = 'block';
+        } else {
+            input.style.border = "1px solid #10b981"; // Borde verde
+            if(errorSpan) errorSpan.style.display = 'none';
+        }
+    } else {
+        input.style.border = "1px solid #d1d5db"; // Reset color si está vacío
+        if(errorSpan) errorSpan.style.display = 'none';
+    }
 }
 
 function filterUsers() {
@@ -468,5 +536,16 @@ function filterUsers() {
     }
 }
     
+function validateLoginInput(input) {
+    // 1. Convertir a minúsculas y eliminar espacios en blanco de inmediato
+    let value = input.value.toLowerCase().replace(/\s/g, '');
+
+    // 2. FILTRO ESTRICTO: Solo permite letras de la 'a' a la 'z' y números del 0 al 9
+    // Elimina caracteres especiales, puntos, guiones y tildes
+    value = value.replace(/[^a-z0-9]/g, '');
+
+    // 3. Asignar el valor limpio de vuelta al input
+    input.value = value;
+}
 </script>
 @endpush
