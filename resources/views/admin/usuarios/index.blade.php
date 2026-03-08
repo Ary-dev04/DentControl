@@ -86,13 +86,13 @@
     @endif
 
     <table id="userTable" style="margin-top:25px; width: 100%; border-collapse: collapse;">
-      <thead>
+    <thead>
         <tr>
-          <th>Nombre Completo</th>
-          <th>Clínica</th>
-          <th>Rol</th>
-          <th>Estado</th>
-          <th>Acciones</th>
+        <th>Nombre Completo</th>
+        <th>Clínica</th>
+        <th>Rol</th>
+        <th>Estado</th>
+        <th>Acciones</th>
         </tr>
       </thead>
       <tbody>

@@ -29,7 +29,7 @@
                 <h2>Iniciar sesión</h2>
 
                 @if ($errors->any())
-                    <div class="error-message">
+                    <div class="error-message" style="color: #ef4444; font-size: 0.875rem; margin-bottom: 1rem; text-align: center; font-weight: bold;">
                         {{ $errors->first() }}
                     </div>
                 @endif
