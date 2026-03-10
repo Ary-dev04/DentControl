@@ -18,6 +18,7 @@ class CatalogoTratamiento extends Model
         'id_clinica',
         'nombre',
         'descripcion',
+        'duracion_sugerido_sesion',
         'precio_sugerido',
         'estatus'
     ];

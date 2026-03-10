@@ -16,14 +16,17 @@ return new class extends Migration
 
             $table->unsignedBigInteger('id_paciente');
             $table->unsignedBigInteger('id_usuario');
-            $table->unsignedBigInteger('id_cat_servicio');
+            $table->unsignedBigInteger('id_cat_servicio')->nullable();
             $table->unsignedBigInteger('id_tratamiento')->nullable();
             $table->unsignedBigInteger('id_clinica');
-            
+
             $table->date('fecha');
             $table->time('hora');
             $table->string('motivo_consulta')->nullable();
 
+            $table->decimal('monto_cobrado', 10, 2)->default(0);
+            $table->integer('duracion')->nullable();
+            $table->enum('estatus_cita', ['programada', 'finalizada', 'cancelada'])->default('programada');
             $table->timestamps();
             //llaves foraneas
             $table->foreign('id_paciente')

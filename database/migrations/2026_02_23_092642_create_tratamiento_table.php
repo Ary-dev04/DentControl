@@ -23,7 +23,7 @@ return new class extends Migration
             // Información clínica
             $table->text('diagnostico_inicial')->nullable();
 
-            $table->decimal('precio_final', 10, 2)->nullable();
+            $table->decimal('precio_estimado', 10, 2)->nullable();
 
             $table->date('fecha_inicio')->nullable();
             $table->date('fecha_fin')->nullable();

@@ -18,7 +18,7 @@ return new class extends Migration
 
             $table->string('nombre');
             $table->text('descripcion')->nullable();
-
+            $table->integer('duracion_sugerido_sesion')->nullable();
             $table->decimal('precio_sugerido', 10, 2)->nullable();
             $table->enum('estatus', ['activo', 'baja'])->default('activo');
 

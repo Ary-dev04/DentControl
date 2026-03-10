@@ -1,0 +1,117 @@
+/* ================= ACCIONES SUPERIORES ================= */
+.form-actions {
+  margin: 20px 0;
+  display: flex;
+  gap: 10px;
+}
+
+/* ================= SECCIÓN TABLA ================= */
+.table-section {
+  margin-top: 25px;
+}
+
+.table-section h3 {
+  margin-bottom: 15px;
+  color: #333;
+}
+
+/* ================= BOTONES DE TABLA ================= */
+.data-table button {
+  padding: 6px 12px;
+  font-size: 13px;
+  border-radius: 6px;
+}
+
+/* ================= MODALES ================= */
+.modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0,0,0,0.55);
+  display: none; /* luego con JS se muestra */
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+.modal-content {
+  background: white;
+  padding: 25px;
+  border-radius: 14px;
+  width: 420px;
+  max-height: 90vh;
+  overflow-y: auto;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.25);
+}
+
+.modal-content.large {
+  width: 900px;
+}
+
+.modal-content h3 {
+  margin-top: 0;
+  margin-bottom: 20px;
+  color: #0d6efd;
+}
+
+/* ================= FORMULARIOS ================= */
+.form-row {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 15px;
+  margin-bottom: 15px;
+}
+
+.full-width {
+  grid-column: 1 / -1;
+}
+
+/* ================= RADIO BUTTONS ================= */
+.modal label {
+  font-size: 14px;
+  cursor: pointer;
+}
+
+.modal input[type="radio"] {
+  margin-right: 6px;
+}
+
+/* ================= BOTONES EN MODAL ================= */
+.modal .form-actions {
+  justify-content: flex-end;
+  margin-top: 20px;
+}
+
+/* ================= RESPONSIVE ================= */
+@media (max-width: 768px) {
+  .modal-content.large {
+    width: 95%;
+  }
+}
+
+/* Mostrar modal cuando es target */
+.modal:target {
+  display: flex;
+}
+
+
+
+/* Mostrar solo el modal seleccionado */
+.modal:target {
+  display: flex;
+}
+
+/* Cuando no hay target, ningún modal se muestra */
+.modal {
+  display: none;
+}
+#calendarExistente,
+#calendarNuevo {
+  margin-top: 15px;
+  border-radius: 10px;
+  background: white;
+  padding: 10px;
+}
+

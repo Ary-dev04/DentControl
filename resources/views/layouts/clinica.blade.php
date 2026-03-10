@@ -31,12 +31,15 @@
         <a href="#">
             <i class="fa-solid fa-chart-pie"></i> Reportes
         </a>
-        <a href="#">
+        <a href="{{ route('catalogos.index') }}" class="{{ Request::is('catalogos*') ? 'active' : '' }}">
             <i class="fa-solid fa-list-check"></i> Registrar catálogos
         </a>
     @endif
 
     @if(auth()->user()->rol === 'asistente')
+        <a href="#">
+            <i class="fa-solid fa-calendar-day"></i> Agenda del día
+        </a>
         <a href="{{ route('pacientes.index') }}">
             <i class="fa-solid fa-user"></i> Pacientes
         </a>

@@ -6,6 +6,7 @@ use App\Http\Controllers\Admin\AdminController;
 use App\Http\Controllers\Admin\ClinicaController; 
 use App\Http\Controllers\Admin\UsuarioController;
 use App\Http\Controllers\Clinica\DashboardController;
+use App\Http\Controllers\Clinica\CatalogoController;
 
 // --- RUTAS PÚBLICAS ---
 Route::get('/', [AuthController::class, 'showLogin'])->name('login');
@@ -31,12 +32,24 @@ Route::middleware(['auth', 'can:admin-only'])->group(function () {
     Route::get('/usuarios/{id}/edit', [UsuarioController::class, 'edit'])->name('usuarios.edit');
     Route::put('/usuarios/{id}', [UsuarioController::class, 'update'])->name('usuarios.update');
     Route::patch('/usuarios/{id}/toggle', [UsuarioController::class, 'toggleStatus'])->name('usuarios.toggle');
+
 });
 
 // 2. DENTISTAS (Gestión de su propia clínica)
 Route::middleware(['auth', 'can:dentista-only'])->group(function () {
     Route::get('/dentista/dashboard', [DashboardController::class, 'index'])->name('dentista.dashboard');
     Route::get('/pacientes', [PacienteController::class, 'index'])->name('pacientes.index');
+
+    // Vistas principales
+    Route::get('/catalogos', [CatalogoController::class, 'index'])->name('catalogos.index');
+
+    // Rutas para Servicios
+    Route::post('/catalogos/servicios', [CatalogoController::class, 'storeServicio'])->name('servicios.store');
+    Route::delete('/catalogos/servicios/{id}', [CatalogoController::class, 'destroyServicio'])->name('servicios.destroy');
+
+    // Rutas para Tratamientos
+    Route::post('/catalogos/tratamientos', [CatalogoController::class, 'storeTratamiento'])->name('tratamientos.store');
+    Route::delete('/catalogos/tratamientos/{id}', [CatalogoController::class, 'destroyTratamiento'])->name('tratamientos.destroy');
 });
 
 // 3. ASISTENTES (Agenda y recepción)
