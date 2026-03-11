@@ -36,11 +36,11 @@ Route::middleware(['auth', 'can:admin-only'])->group(function () {
 // 2. DENTISTAS (Gestión de su propia clínica)
 Route::middleware(['auth', 'can:dentista-only'])->group(function () {
     Route::get('/dentista/dashboard', [DashboardController::class, 'index'])->name('dentista.dashboard');
-    Route::get('/pacientes', [PacienteController::class, 'index'])->name('pacientes.index');
+    //Route::get('/pacientes', [PacienteController::class, 'index'])->name('pacientes.index');
 });
 
 // 3. ASISTENTES (Agenda y recepción)
 Route::middleware(['auth', 'can:asistente-only'])->group(function () {
     Route::get('/asistente/dashboard', [DashboardController::class, 'index'])->name('asistente.dashboard');
-    Route::get('/agenda', [AgendaController::class, 'index'])->name('agenda.index');
+   // Route::get('/agenda', [AgendaController::class, 'index'])->name('agenda.index');
 });

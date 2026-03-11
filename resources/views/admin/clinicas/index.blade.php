@@ -14,10 +14,10 @@
     <div class="search-wrapper">
     <i class="fa-solid fa-magnifying-glass search-icon"></i>
     <input type="text" 
-           id="clinicSearch" 
-           class="search-input" 
-           placeholder="Buscar por nombre o RFC..." 
-           onkeyup="filterClinics()">
+        id="clinicSearch" 
+        class="search-input" 
+        placeholder="Buscar por nombre o RFC..." 
+        onkeyup="filterClinics()">
     </div>
 
     {{-- Alertas de éxito--}}
@@ -392,44 +392,52 @@
             });
     }
 
-    // Lógica de Copomex
-    document.getElementById('codigo_postal').addEventListener('blur', function() {
-        const cp = this.value;
-        const token = "d1730311-71cf-4809-99d5-e6b2bdb2b08c";
+    // Lógica con API Local (Adiós Copomex 👋)
+document.getElementById('codigo_postal').addEventListener('blur', function() {
+    const cp = this.value;
 
-        if (cp.length === 5) {
-            const estadoInput = document.getElementById('estado');
-            const ciudadInput = document.getElementById('ciudad');
-            const coloniaSelect = document.getElementById('colonia_select');
+    if (cp.length === 5) {
+        const estadoInput = document.getElementById('estado');
+        const ciudadInput = document.getElementById('ciudad');
+        const coloniaSelect = document.getElementById('colonia_select');
 
-            estadoInput.value = "Cargando...";
-            
-            fetch(`https://api.copomex.com/query/info_cp/${cp}?token=${token}`)
-                .then(response => response.json())
-                .then(data => {
-                    if (data && data.length > 0) {
-                        const info = data[0].response;
-                        estadoInput.value = info.estado;
-                        ciudadInput.value = info.municipio;
+        estadoInput.value = "Cargando...";
+        
+        // 1. Apuntamos a tu nueva ruta local
+        fetch(`/api/cp/${cp}`)
+            .then(response => response.json())
+            .then(data => {
+                // 2. Evaluamos el "success" que programaste en Laravel
+                if (data.success) { 
+                    estadoInput.value = data.estado;
+                    // Ojo: Copomex lo llamaba municipio, tú API te devuelve municipio y ciudad.
+                    // Usaremos municipio para que se comporte igual que antes.
+                    ciudadInput.value = data.municipio;
 
-                        coloniaSelect.innerHTML = '<option value="">Selecciona colonia...</option>';
-                        data.forEach(item => {
-                            const option = document.createElement('option');
-                            option.value = item.response.asentamiento;
-                            option.textContent = item.response.asentamiento;
-                            coloniaSelect.appendChild(option);
-                        });
-                    } else {
-                        estadoInput.value = "";
-                        alert("CP no encontrado.");
-                    }
-                })
-                .catch(err => {
-                    console.error('API Error:', err);
+                    coloniaSelect.innerHTML = '<option value="">Selecciona colonia...</option>';
+                    
+                    // 3. Iteramos directamente sobre tu arreglo de colonias
+                    data.colonias.forEach(colonia => {
+                        const option = document.createElement('option');
+                        option.value = colonia;       // El nombre de la colonia directamente
+                        option.textContent = colonia; // El nombre de la colonia directamente
+                        coloniaSelect.appendChild(option);
+                    });
+                } else {
                     estadoInput.value = "";
-                });
-        }
-    });
+                    ciudadInput.value = "";
+                    coloniaSelect.innerHTML = '<option value="">Selecciona colonia...</option>';
+                    alert("CP no encontrado en la base local.");
+                }
+            })
+            .catch(err => {
+                console.error('API Error:', err);
+                estadoInput.value = "";
+                ciudadInput.value = "";
+                coloniaSelect.innerHTML = '<option value="">Selecciona colonia...</option>';
+            });
+    }
+});
 
     // NUEVA LÓGICA DE VISTA PREVIA LOGO 
 document.getElementById('logo_input').addEventListener('change', function(e) {
