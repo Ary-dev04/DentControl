@@ -45,11 +45,15 @@ Route::middleware(['auth', 'can:dentista-only'])->group(function () {
 
     // Rutas para Servicios
     Route::post('/catalogos/servicios', [CatalogoController::class, 'storeServicio'])->name('servicios.store');
-    Route::delete('/catalogos/servicios/{id}', [CatalogoController::class, 'destroyServicio'])->name('servicios.destroy');
+    Route::put('/catalogos/servicios/{id}', [CatalogoController::class, 'updateServicio'])->name('servicios.update');
+    //Route::delete('/catalogos/servicios/{id}', [CatalogoController::class, 'destroyServicio'])->name('servicios.destroy');
+    Route::patch('/catalogos/servicios/{id}/toggle', [CatalogoController::class, 'toggleServicio'])->name('servicios.toggle');
 
     // Rutas para Tratamientos
     Route::post('/catalogos/tratamientos', [CatalogoController::class, 'storeTratamiento'])->name('tratamientos.store');
-    Route::delete('/catalogos/tratamientos/{id}', [CatalogoController::class, 'destroyTratamiento'])->name('tratamientos.destroy');
+    Route::put('/catalogos/tratamientos/{id}', [CatalogoController::class, 'updateTratamiento'])->name('tratamientos.update');
+    //Route::delete('/catalogos/tratamientos/{id}', [CatalogoController::class, 'destroyTratamiento'])->name('tratamientos.destroy');
+    Route::patch('/catalogos/tratamientos/{id}/toggle', [CatalogoController::class, 'toggleTratamiento'])->name('tratamientos.toggle');
 });
 
 // 3. ASISTENTES (Agenda y recepción)

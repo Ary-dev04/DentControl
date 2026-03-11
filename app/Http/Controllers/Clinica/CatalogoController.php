@@ -19,13 +19,9 @@ class CatalogoController extends Controller
         $id_clinica = Auth::user()->id_clinica;
 
         // Obtenemos solo los que están activos para la tabla principal
-        $servicios = CatalogoServicio::where('id_clinica', $id_clinica)
-            ->where('estatus', 'activo')
-            ->get();
+        $servicios = CatalogoServicio::where('id_clinica', $id_clinica)->get();
 
-        $tratamientos = CatalogoTratamiento::where('id_clinica', $id_clinica)
-            ->where('estatus', 'activo')
-            ->get();
+        $tratamientos = CatalogoTratamiento::where('id_clinica', $id_clinica)->get();
 
         return view('dentista.catalogos.index', compact('servicios', 'tratamientos'));
     }
@@ -49,7 +45,7 @@ class CatalogoController extends Controller
                 })
             ],
             'duracion' => 'required|integer|min:1|max:480',
-            'precio_sugerido' => 'required|numeric|min:0',
+            'precio_sugerido' => 'required|numeric|min:0.01|max:999999.99',
             'descripcion' => 'nullable|string|max:255',
         ], [
             'nombre.required' => 'El nombre del servicio es obligatorio.',
@@ -57,6 +53,7 @@ class CatalogoController extends Controller
             'precio_sugerido.numeric' => 'El precio debe ser un número válido.',
             'precio_sugerido.min' => 'El precio no puede ser menor a 0.01.',
             'duracion.min' => 'La duración debe ser al menos 1 minuto.',
+            'precio_sugerido.max' => 'El precio ingresado es demasiado alto.',
         ]);
 
         CatalogoServicio::create([
@@ -92,13 +89,14 @@ class CatalogoController extends Controller
             ],
             'duracion_sugerido_sesion' => 'required|integer|min:1|max:480',
             'descripcion' => 'nullable|string|max:255',
-            'precio_sugerido' => 'required|numeric|min:0',
+            'precio_sugerido' => 'required|numeric|min:0.01|max:999999.99',
         ], [
             'nombre.unique' => 'Ya tienes un tratamiento registrado con este nombre.',
             'nombre.required' => 'El nombre del tratamiento es obligatorio.',
             'precio_sugerido.numeric' => 'El precio debe ser un número válido.',
             'precio_sugerido.min' => 'El precio no puede ser menor a 0.01.',
             'duracion.min' => 'La duración debe ser al menos 1 minuto.',
+            'precio_sugerido.max' => 'El precio ingresado es demasiado alto.',
         ]);
 
         CatalogoTratamiento::create([
@@ -117,17 +115,75 @@ class CatalogoController extends Controller
     /**
      * "Dar de baja" (Cambio de estatus)
      */
-    public function destroyServicio($id)
-    {
-        $servicio = CatalogoServicio::findOrFail($id);
-        $servicio->update(['estatus' => 'baja']);
-        return redirect()->back()->with('success', 'Servicio dado de baja.');
-    }
+    public function toggleServicio($id)
+{
+    $servicio = CatalogoServicio::findOrFail($id);
+    $nuevoEstado = ($servicio->estatus === 'activo') ? 'baja' : 'activo';
+    
+    $servicio->update(['estatus' => $nuevoEstado]);
 
-    public function destroyTratamiento($id)
-    {
-        $tratamiento = CatalogoTratamiento::findOrFail($id);
-        $tratamiento->update(['estatus' => 'baja']);
-        return redirect()->back()->with('success', 'Tratamiento dado de baja.');
-    }
+    return redirect()->back()->with('success', "Servicio marcado como $nuevoEstado.");
+}
+
+public function toggleTratamiento($id)
+{
+    $tratamiento = CatalogoTratamiento::findOrFail($id);
+    $nuevoEstado = ($tratamiento->estatus === 'activo') ? 'baja' : 'activo';
+
+    $tratamiento->update(['estatus' => $nuevoEstado]);
+
+    return redirect()->back()->with('success', "Tratamiento marcado como $nuevoEstado.");
+}
+
+    /**
+ * Actualiza un servicio existente.
+ */
+public function updateServicio(Request $request, $id)
+{
+    $id_clinica = Auth::user()->id_clinica;
+    $request->validate([
+        'nombre' => [
+            'required', 'string', 'max:100',
+            Rule::unique('catalogo_servicios')->where(fn ($q) => 
+                $q->where('id_clinica', $id_clinica)->where('estatus', 'activo')
+            )->ignore($id, 'id_cat_servicio')
+        ],
+        'duracion' => 'required|integer|min:1',
+        'precio_sugerido' => 'required|numeric|min:0.01|max:999999.99',
+    ], $this->mensajesError());
+
+    CatalogoServicio::findOrFail($id)->update($request->all());
+    return redirect()->back()->with('success', 'Servicio actualizado correctamente.');
+}
+
+/**
+ * Actualiza un tratamiento existente.
+ */
+public function updateTratamiento(Request $request, $id)
+{
+    $id_clinica = Auth::user()->id_clinica;
+    $request->validate([
+        'nombre' => [
+            'required', 'string', 'max:100',
+            Rule::unique('catalogo_tratamientos')->where(fn ($q) => 
+                $q->where('id_clinica', $id_clinica)->where('estatus', 'activo')
+            )->ignore($id, 'id_cat_tratamientos')
+        ],
+        'duracion_sugerido_sesion' => 'required|integer|min:1',
+        'precio_sugerido' => 'required|numeric|min:0.01|max:999999.99',
+    ], $this->mensajesError());
+
+    CatalogoTratamiento::findOrFail($id)->update($request->all());
+    return redirect()->back()->with('success', 'Tratamiento actualizado correctamente.');
+}
+
+private function mensajesError() {
+    return [
+        'nombre.unique' => 'Este nombre ya está en uso en otro registro activo.',
+        'nombre.required' => 'El nombre es obligatorio.',
+        'precio_sugerido.min' => 'El precio debe ser mayor a 0.',
+        'duracion.min' => 'La duración debe ser de al menos 1 minuto.',
+        'precio_sugerido.max' => 'El precio ingresado es demasiado alto.',
+    ];
+}
 }
