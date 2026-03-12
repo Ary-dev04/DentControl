@@ -50,7 +50,7 @@
                             <td>{{ $servicio->duracion }} min</td>
                             <td>${{ number_format($servicio->precio_sugerido, 2) }}</td>
                             <td>
-                                <div style="display: flex; gap: 5px; align-items: center;">
+                                <div class="acciones-wrapper">
                                     <button type="button" class="btn-primary" style="padding: 5px 10px;" 
                                         
                                         onclick="abrirEditarServicio('{{ $servicio->id_cat_servicio }}', '{{ addslashes($servicio->nombre) }}', '{{ addslashes($servicio->descripcion) }}', '{{ $servicio->duracion }}', '{{ $servicio->precio_sugerido }}')">
@@ -95,7 +95,7 @@
                             <td>{{ $tratamiento->duracion_sugerido_sesion }} min</td>
                             <td>${{ number_format($tratamiento->precio_sugerido, 2) }}</td>
                             <td>
-                                <div style="display: flex; gap: 5px; align-items: center;">
+                                <div class="acciones-wrapper">
                                     <button type="button" class="btn-primary" style="padding: 5px 10px;" 
                                         
                                         onclick="abrirEditarTratamiento('{{ $tratamiento->id_cat_tratamientos }}', '{{ addslashes($tratamiento->nombre) }}', '{{ addslashes($tratamiento->descripcion) }}', '{{ $tratamiento->duracion_sugerido_sesion }}', '{{ $tratamiento->precio_sugerido }}')">
@@ -143,12 +143,12 @@
             <div style="display:flex; gap:10px;">
                 <div class="form-group" style="flex:1;">
                     <label>Duración (min)*</label>
-                    <input type="number" name="duracion" min="1" value="{{ old('tipo') == 'nuevo_serv' ? old('duracion') : '' }}" placeholder="0" required>
+                    <input type="number" name="duracion" min="1" max="480" oninput="if(this.value.length > 3) this.value = this.value.slice(0, 3);" value="{{ old('tipo') == 'nuevo_serv' ? old('duracion') : '' }}" placeholder="0" required>
                     @if(old('tipo') == 'nuevo_serv') @error('duracion') <small style="color:red;">{{ $message }}</small> @enderror @endif
                 </div>
                 <div class="form-group" style="flex:1;">
                     <label>Precio Sugerido*</label>
-                    <input type="number" step="0.01" min="0.01" max="999999.99" oninput="if(this.value.length > 9) this.value = this.value.slice(0, 9);" class="input-precio" name="precio_sugerido" value="{{ old('tipo') == 'nuevo_serv' ? old('precio_sugerido') : '' }}"
+                    <input type="number" step="0.01" min="1.00" max="999999.99" oninput="if(this.value.length > 9) this.value = this.value.slice(0, 9);" class="input-precio" name="precio_sugerido" value="{{ old('tipo') == 'nuevo_serv' ? old('precio_sugerido') : '' }}"
                            onkeypress="return isNumberKey(event)" placeholder="0.00" required>
                     @if(old('tipo') == 'nuevo_serv') @error('precio_sugerido') <small style="color:red;">{{ $message }}</small> @enderror @endif
                 </div>
@@ -179,12 +179,12 @@
             <div style="display:flex; gap:10px;">
                 <div class="form-group" style="flex:1;">
                     <label>Duración Sesión (min)*</label>
-                    <input type="number" name="duracion_sugerido_sesion" min="1" value="{{ old('tipo') == 'nuevo_trat' ? old('duracion_sugerido_sesion') : '' }}" placeholder="0" required>
+                    <input type="number" name="duracion_sugerido_sesion" min="1" max="480" oninput="if(this.value.length > 3) this.value = this.value.slice(0, 3);" value="{{ old('tipo') == 'nuevo_trat' ? old('duracion_sugerido_sesion') : '' }}" placeholder="0" required>
                     @if(old('tipo') == 'nuevo_trat') @error('duracion_sugerido_sesion') <small style="color:red;">{{ $message }}</small> @enderror @endif
                 </div>
                 <div class="form-group" style="flex:1;">
                     <label>Precio Total Aproximado*</label>
-                    <input type="number" step="0.01" min="0.01" max="999999.99" oninput="if(this.value.length > 9) this.value = this.value.slice(0, 9);" class="input-precio" name="precio_sugerido" value="{{ old('tipo') == 'nuevo_trat' ? old('precio_sugerido') : '' }}"
+                    <input type="number" step="0.01" min="1.00" max="999999.99" oninput="if(this.value.length > 9) this.value = this.value.slice(0, 9);" class="input-precio" name="precio_sugerido" value="{{ old('tipo') == 'nuevo_trat' ? old('precio_sugerido') : '' }}"
                            onkeypress="return isNumberKey(event)" placeholder="0.00" required>
                     @if(old('tipo') == 'nuevo_trat') @error('precio_sugerido') <small style="color:red;">{{ $message }}</small> @enderror @endif
                 </div>
@@ -216,12 +216,12 @@
             <div style="display:flex; gap:10px;">
                 <div class="form-group" style="flex:1;">
                     <label>Duración (min)*</label>
-                    <input type="number" name="duracion" id="edit_serv_duracion" value="{{ old('tipo') == 'edit_serv' ? old('duracion') : '' }}" min="1" max="480" required>
+                    <input type="number" name="duracion" id="edit_serv_duracion" value="{{ old('tipo') == 'edit_serv' ? old('duracion') : '' }}" min="1" max="480" oninput="if(this.value.length > 3) this.value = this.value.slice(0, 3);" required>
                     @if(old('tipo') == 'edit_serv') @error('duracion') <small style="color:red;">{{ $message }}</small> @enderror @endif
                 </div>
                 <div class="form-group" style="flex:1;">
                     <label>Precio Sugerido*</label>
-                    <input type="number" step="0.01" min="0.01" max="999999.99" oninput="if(this.value.length > 9) this.value = this.value.slice(0, 9);" class="input-precio" name="precio_sugerido" id="edit_serv_precio" value="{{ old('tipo') == 'edit_serv' ? old('precio_sugerido') : '' }}" onkeypress="return isNumberKey(event)" required>
+                    <input type="number" step="0.01" min="1.00" max="999999.99" oninput="if(this.value.length > 9) this.value = this.value.slice(0, 9);" class="input-precio" name="precio_sugerido" id="edit_serv_precio" value="{{ old('tipo') == 'edit_serv' ? old('precio_sugerido') : '' }}" onkeypress="return isNumberKey(event)" required>
                     @if(old('tipo') == 'edit_serv') @error('precio_sugerido') <small style="color:red;">{{ $message }}</small> @enderror @endif
                 </div>
             </div>
@@ -252,12 +252,12 @@
             <div style="display:flex; gap:10px;">
                 <div class="form-group" style="flex:1;">
                     <label>Duración Sesión (min)*</label>
-                    <input type="number" name="duracion_sugerido_sesion" id="edit_trat_duracion" value="{{ old('tipo') == 'edit_trat' ? old('duracion_sugerido_sesion') : '' }}" min="1" max="480" required>
+                    <input type="number" name="duracion_sugerido_sesion" id="edit_trat_duracion" value="{{ old('tipo') == 'edit_trat' ? old('duracion_sugerido_sesion') : '' }}" min="1" max="480" oninput="if(this.value.length > 3) this.value = this.value.slice(0, 3);" required>
                     @if(old('tipo') == 'edit_trat') @error('duracion_sugerido_sesion') <small style="color:red;">{{ $message }}</small> @enderror @endif
                 </div>
                 <div class="form-group" style="flex:1;">
                     <label>Precio Total Aproximado*</label>
-                    <input type="number" step="0.01" min="0.01" max="999999.99" class="input-precio" oninput="if(this.value.length > 9) this.value = this.value.slice(0, 9);" name="precio_sugerido" id="edit_trat_precio" value="{{ old('tipo') == 'edit_trat' ? old('precio_sugerido') : '' }}" onkeypress="return isNumberKey(event)" required>
+                    <input type="number" step="0.01" min="1.00" max="999999.99" class="input-precio" oninput="if(this.value.length > 9) this.value = this.value.slice(0, 9);" name="precio_sugerido" id="edit_trat_precio" value="{{ old('tipo') == 'edit_trat' ? old('precio_sugerido') : '' }}" onkeypress="return isNumberKey(event)" required>
                     @if(old('tipo') == 'edit_trat') @error('precio_sugerido') <small style="color:red;">{{ $message }}</small> @enderror @endif
                 </div>
             </div>
@@ -355,14 +355,16 @@ document.querySelectorAll('input[name="precio_sugerido"]').forEach(input => {
     input.addEventListener('change', function() {
         const valor = parseFloat(this.value);
         const limiteMaximo = 999999.99;
+        const limiteMinimo = 1.00;
 
         if (valor > limiteMaximo) {
             alert('Error: La cantidad ingresada excede el límite permitido ($999,999.99). El campo se limpiará.');
             this.value = ''; // Deja el campo vacío
             this.focus();    // Devuelve el cursor al campo para reintentar
-        } else if (valor <= 0) {
-            alert('Error: El precio debe ser mayor a 0.00.');
+        } else if (valor <= limiteMinimo) {
+            alert('Error: El precio debe ser mayor a $1.00.');
             this.value = ''; // También limpiamos si es 0 o negativo
+            this.focus(); 
         }
     });
 });
@@ -373,6 +375,25 @@ document.querySelectorAll('form').forEach(form => {
         if(btn) {
             btn.disabled = true;
             btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Guardando...';
+        }
+    });
+});
+
+// Validación para Duración (Servicios y Tratamientos)
+document.querySelectorAll('input[name="duracion"], input[name="duracion_sugerido_sesion"]').forEach(input => {
+    input.addEventListener('change', function() {
+        const valor = parseInt(this.value);
+        const limiteMaximo = 480; // 8 horas máximo
+        const limiteMinimo = 1;
+
+        if (valor > limiteMaximo) {
+            alert('Error: La duración no puede exceder los 480 minutos (8 horas). El campo se limpiará.');
+            this.value = ''; 
+            this.focus();
+        } else if (valor < limiteMinimo) {
+            alert('Error: La duración debe ser de al menos 1 minuto.');
+            this.value = '';
+            this.focus();
         }
     });
 });

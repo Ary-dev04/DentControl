@@ -45,13 +45,13 @@ class CatalogoController extends Controller
                 })
             ],
             'duracion' => 'required|integer|min:1|max:480',
-            'precio_sugerido' => 'required|numeric|min:0.01|max:999999.99',
+            'precio_sugerido' => 'required|numeric|min:1.00|max:999999.99',
             'descripcion' => 'nullable|string|max:255',
         ], [
             'nombre.required' => 'El nombre del servicio es obligatorio.',
             'nombre.unique' => 'Ya tienes un servicio registrado con este nombre.',
             'precio_sugerido.numeric' => 'El precio debe ser un número válido.',
-            'precio_sugerido.min' => 'El precio no puede ser menor a 0.01.',
+            'precio_sugerido.min' => 'El precio no puede ser menor a 1.00.',
             'duracion.min' => 'La duración debe ser al menos 1 minuto.',
             'precio_sugerido.max' => 'El precio ingresado es demasiado alto.',
         ]);
@@ -89,12 +89,12 @@ class CatalogoController extends Controller
             ],
             'duracion_sugerido_sesion' => 'required|integer|min:1|max:480',
             'descripcion' => 'nullable|string|max:255',
-            'precio_sugerido' => 'required|numeric|min:0.01|max:999999.99',
+            'precio_sugerido' => 'required|numeric|min:1.00|max:999999.99',
         ], [
             'nombre.unique' => 'Ya tienes un tratamiento registrado con este nombre.',
             'nombre.required' => 'El nombre del tratamiento es obligatorio.',
             'precio_sugerido.numeric' => 'El precio debe ser un número válido.',
-            'precio_sugerido.min' => 'El precio no puede ser menor a 0.01.',
+            'precio_sugerido.min' => 'El precio no puede ser menor a 1.00.',
             'duracion.min' => 'La duración debe ser al menos 1 minuto.',
             'precio_sugerido.max' => 'El precio ingresado es demasiado alto.',
         ]);
@@ -149,7 +149,7 @@ public function updateServicio(Request $request, $id)
             )->ignore($id, 'id_cat_servicio')
         ],
         'duracion' => 'required|integer|min:1',
-        'precio_sugerido' => 'required|numeric|min:0.01|max:999999.99',
+        'precio_sugerido' => 'required|numeric|min:1.00|max:999999.99',
     ], $this->mensajesError());
 
     CatalogoServicio::findOrFail($id)->update($request->all());
@@ -170,7 +170,7 @@ public function updateTratamiento(Request $request, $id)
             )->ignore($id, 'id_cat_tratamientos')
         ],
         'duracion_sugerido_sesion' => 'required|integer|min:1',
-        'precio_sugerido' => 'required|numeric|min:0.01|max:999999.99',
+        'precio_sugerido' => 'required|numeric|min:1.00|max:999999.99',
     ], $this->mensajesError());
 
     CatalogoTratamiento::findOrFail($id)->update($request->all());
@@ -181,7 +181,7 @@ private function mensajesError() {
     return [
         'nombre.unique' => 'Este nombre ya está en uso en otro registro activo.',
         'nombre.required' => 'El nombre es obligatorio.',
-        'precio_sugerido.min' => 'El precio debe ser mayor a 0.',
+        'precio_sugerido.min' => 'El precio debe ser al menos $1.',
         'duracion.min' => 'La duración debe ser de al menos 1 minuto.',
         'precio_sugerido.max' => 'El precio ingresado es demasiado alto.',
     ];

@@ -7,9 +7,11 @@ body {
 
 .app-container {
   display: flex;
-  height: 100vh;
+  align-items: flex-start; /* Ayuda a que la sidebar no se estire raro */
+  min-height: 100vh;
 }
 
+/* ================= SIDEBAR ================= */
 /* ================= SIDEBAR ================= */
 .sidebar {
   width: 240px;
@@ -17,6 +19,11 @@ body {
   color: white;
   display: flex;
   flex-direction: column;
+  
+  /* AÑADE ESTO */
+  position: sticky;   /* Se queda pegada */
+  top: 0;            /* Empieza desde arriba */
+  height: 100vh;     /* Mide exactamente el alto de la pantalla */
 }
 
 .logo {
