@@ -20,6 +20,7 @@ class Paciente extends Model
         'apellido_materno',
         'fecha_nacimiento',
         'sexo',
+        'email',
         'telefono',
         'curp',
         'ocupacion',

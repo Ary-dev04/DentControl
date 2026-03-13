@@ -7,6 +7,7 @@ use App\Http\Controllers\Admin\ClinicaController;
 use App\Http\Controllers\Admin\UsuarioController;
 use App\Http\Controllers\Clinica\DashboardController;
 use App\Http\Controllers\Clinica\CatalogoController;
+use App\Http\Controllers\Clinica\PacienteController;
 
 // --- RUTAS PÚBLICAS ---
 Route::get('/', [AuthController::class, 'showLogin'])->name('login');
@@ -38,7 +39,7 @@ Route::middleware(['auth', 'can:admin-only'])->group(function () {
 // 2. DENTISTAS (Gestión de su propia clínica)
 Route::middleware(['auth', 'can:dentista-only'])->group(function () {
     Route::get('/dentista/dashboard', [DashboardController::class, 'index'])->name('dentista.dashboard');
-    Route::get('/pacientes', [PacienteController::class, 'index'])->name('pacientes.index');
+    //Route::get('/pacientes', [PacienteController::class, 'index'])->name('pacientes.index');
 
     // Vistas principales
     Route::get('/catalogos', [CatalogoController::class, 'index'])->name('catalogos.index');
@@ -57,7 +58,21 @@ Route::middleware(['auth', 'can:dentista-only'])->group(function () {
 });
 
 // 3. ASISTENTES (Agenda y recepción)
+// 3. ASISTENTES (Agenda y recepción)
 Route::middleware(['auth', 'can:asistente-only'])->group(function () {
+    
+    // URL: /asistente/dashboard
     Route::get('/asistente/dashboard', [DashboardController::class, 'index'])->name('asistente.dashboard');
-    Route::get('/agenda', [AgendaController::class, 'index'])->name('agenda.index');
+    
+    // URL: /asistente/pacientes
+    Route::get('/asistente/pacientes', [PacienteController::class, 'index'])->name('pacientes.index');
+    
+    // URL: /asistente/pacientes (para el POST)
+    Route::post('/asistente/pacientes', [PacienteController::class, 'store'])->name('pacientes.store');
+    Route::post('/pacientes/store-cita-existente', [PacienteController::class, 'storeCitaExistente'])->name('pacientes.store_cita_existente');
+    
+    // URL: /asistente/pacientes/{id}/tratamientos
+    Route::get('/asistente/pacientes/{id}/tratamientos', [PacienteController::class, 'getTratamientosActivos'])->name('pacientes.tratamientos');
+
+    Route::get('/obtener-duracion', [App\Http\Controllers\Clinica\PacienteController::class, 'obtenerDuracion'])->name('pacientes.duracion');
 });
