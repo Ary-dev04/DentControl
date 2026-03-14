@@ -214,3 +214,28 @@
     background-color: #f0f9ff !important;
     cursor: pointer;
 }
+
+.fc-v-event { /* Estilo de eventos verticales (en vista de día) */
+    border-radius: 4px;
+    opacity: 0.9;
+}
+
+/* Asegura que los eventos en la vista de tiempo tengan prioridad visual */
+.fc-timegrid-event {
+    z-index: 10 !important;
+    opacity: 1 !important;
+    min-height: 20px; /* Para que citas muy cortas se alcancen a ver */
+}
+
+/* Colorear el fondo de la hora ocupada para que sea obvio */
+.fc-timegrid-event-inner {
+    background-color: #f87171 !important;
+}
+
+/* Estilo para que el texto de "OCUPADO" no se desborde */
+.fc-event-main {
+    padding: 2px;
+    font-size: 0.75rem;
+    font-weight: bold;
+    overflow: hidden;
+}

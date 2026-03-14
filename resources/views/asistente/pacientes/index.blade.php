@@ -414,77 +414,92 @@ function cambiarModal(c, a) { cerrarModal(c); setTimeout(() => abrirModal(a), 50
 function inicializarCalendario(idDiv, idInput) {
     const el = document.getElementById(idDiv);
     const input = document.getElementById(idInput);
+    if (!el) return;
     el.innerHTML = ''; 
 
     let cal = new FullCalendar.Calendar(el, {
         locale: 'es',
-        initialView: 'dayGridMonth', // Empezamos viendo el mes completo
+        timeZone: 'local',   
+        initialView: 'dayGridMonth',
         headerToolbar: {
             left: 'prev,next today',
             center: 'title',
-            right: 'dayGridMonth,timeGridDay' // Permitimos cambiar entre vistas
+            right: 'dayGridMonth,timeGridDay'
         },
         buttonText: {
             today: 'Hoy',
             month: 'Mes',
             day: 'Día'
         },
-        validRange: { start: new Date().toISOString().split('T')[0] }, // No fechas pasadas
+        // Carga de citas ocupadas desde el controlador
+        events: {
+            url: '/api/citas-ocupadas',
+            method: 'GET',
+            failure: function() {
+                console.error("Error al cargar las citas ocupadas.");
+            }
+        },
+        // Configuración de horario de oficina
+        eventDisplay: 'block',
         slotMinTime: "08:00:00",
         slotMaxTime: "21:00:00",
         allDaySlot: false,
+        slotDuration: '00:15:00', // Franjas de 15 min para mejor visualización
         
-        // Cargar citas ocupadas desde tu base de datos
-        events: '/api/citas-ocupadas', // Debes tener una ruta que devuelva el JSON de citas
-
+        // No permitir fechas pasadas
+        validRange: { 
+            start: new Date().toISOString().split('T')[0] 
+        },
+        
         dateClick: function(info) {
             const ahora = new Date();
             
-            // 1. Si hace clic en un día en la vista de MES
+            // 1. Si estamos en vista de MES, al hacer clic saltamos al DÍA
             if (info.view.type === 'dayGridMonth') {
-                // Validar que no sea un día pasado
-                if (info.date < ahora.setHours(0,0,0,0)) {
-                    alert("No puedes seleccionar una fecha pasada.");
-                    return;
-                }
-                // Cambiar a la vista de día para elegir hora
+                if (info.date < ahora.setHours(0,0,0,0)) return;
                 cal.changeView('timeGridDay', info.dateStr);
             } 
-            // 2. Si hace clic en una hora en la vista de DÍA
-            else if (info.view.type === 'timeGridDay') {
+            // 2. Si estamos en vista de DÍA, seleccionamos la hora
+            else {
+                // Validar que no sea una hora pasada del mismo día
                 if (info.date < ahora) {
                     alert("No puedes seleccionar una hora que ya pasó.");
                     return;
                 }
 
-                // Guardar la fecha y hora seleccionada
+                // Guardar el valor en el input oculto
                 input.value = info.dateStr;
                 
-                // Retroalimentación visual
+                // Feedback visual: limpiar otros slots y marcar el seleccionado
                 document.querySelectorAll('.fc-timegrid-slot').forEach(s => s.style.background = "");
                 info.dayEl.style.background = "#d1e7ff";
                 
-                // Mostrar texto de confirmación
+                // Mostrar mensaje de confirmación debajo del calendario
                 let label = document.getElementById('info-fecha-' + idDiv);
                 if(!label){
                     label = document.createElement('div'); 
                     label.id = 'info-fecha-' + idDiv;
+                    label.style.marginTop = "10px";
+                    label.style.fontWeight = "bold";
+                    label.style.color = "#0d6efd";
                     el.after(label);
                 }
                 const opciones = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' };
-                label.innerHTML = "✅ Cita seleccionada: " + info.date.toLocaleString('es-MX', opciones);
+                label.innerHTML = "📅 Seleccionado: " + info.date.toLocaleString('es-MX', opciones);
             }
         },
-        // Estilo para los eventos existentes (citas ocupadas)
-        eventBackgroundColor: '#ef4444', 
-        eventBorderColor: '#b91c1c',
-        eventTextColor: '#ffffff',
-        displayEventTime: true
+        // Estilo para las citas ocupadas
+        eventDidMount: function(info) {
+            info.el.title = "Horario ocupado";
+            info.el.style.cursor = 'not-allowed';
+        }
     });
-    
-    cal.render();
-}
 
+    cal.render();
+    
+    // Ajustar el tamaño del calendario (importante para modales)
+    setTimeout(() => { cal.updateSize(); }, 200);
+}
 // --- FUNCIONES AUXILIARES (AJAX Y FILTROS) ---
 function mostrarOpcionesAtencion(tipo) {
     document.getElementById('contenedor_tratamiento').style.display = tipo === 'tratamiento' ? 'block' : 'none';

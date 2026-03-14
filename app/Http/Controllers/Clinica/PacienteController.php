@@ -242,19 +242,34 @@ class PacienteController extends Controller
         return response()->json($data);
     }
 
-    public function getCitasOcupadas() {
-    $citas = Cita::select('fecha_cita as start', 'duracion', 'motivo_consulta as title')
-                 ->get()
-                 ->map(function($cita) {
-                     // FullCalendar necesita 'end' para bloquear el bloque de tiempo
-                     $start = \Carbon\Carbon::parse($cita->start);
-                     return [
-                         'title' => 'Ocupado',
-                         'start' => $cita->start,
-                         'end'   => $start->addMinutes($cita->duracion)->toDateTimeString(),
-                         'color' => '#94a3b8' // Color gris para lo ocupado
-                     ];
-                 });
-    return response()->json($citas);
+    public function getCitasOcupadas()
+{
+    $id_clinica = Auth::user()->id_clinica;
+
+    $citas = DB::table('citas')
+        ->where('id_clinica', $id_clinica)
+        ->whereIn('estatus_cita', ['programada', 'confirmada'])
+        ->get();
+
+    $eventos = [];
+
+    foreach ($citas as $cita) {
+    $inicio = \Carbon\Carbon::parse($cita->fecha . ' ' . $cita->hora);
+    $fin = (clone $inicio)->addMinutes($cita->duracion);
+
+    $eventos[] = [
+        'id'    => $cita->id_cita,
+        'title' => 'OCUPADO', 
+        // Cambiamos toIso8601String() por format('Y-m-d\TH:i:s')
+        'start' => $inicio->format('Y-m-d\TH:i:s'), 
+        'end'   => $fin->format('Y-m-d\TH:i:s'),   
+        'backgroundColor' => '#f87171', 
+        'borderColor' => '#ef4444',
+        'textColor' => '#ffffff',
+        'display' => 'block'
+    ];
+}
+
+    return response()->json($eventos);
 }
 }
