@@ -20,6 +20,7 @@ class Tratamiento extends Model
         'id_clinica',
         'id_cat_tratamientos',
         'diagnostico_inicial',
+        'precio_estimado',
         'precio_final',
         'fecha_inicio',
         'fecha_fin',

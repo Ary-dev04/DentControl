@@ -164,3 +164,53 @@
     font-size: 1.2em;
     color: #333;
 }
+
+/* Resaltado para la fecha seleccionada (Punto 5) */
+[id^="info-fecha-"] {
+    background: #e0f2fe;
+    border-left: 4px solid #0284c7;
+    padding: 10px;
+    margin-top: 10px;
+    border-radius: 4px;
+    font-size: 0.9rem;
+}
+
+/* Estilos para validación en tiempo real */
+    .error-message {
+        color: #e11d48;
+        font-size: 0.75rem;
+        margin-top: 4px;
+        display: none;
+    }
+    .input-error {
+        border-color: #e11d48 !important;
+        background-color: #fff1f2 !important;
+    }
+    .input-success {
+        border-color: #10b981 !important;
+    }
+    /* Estilo para fecha seleccionada en calendario */
+    [id^="info-fecha-"] {
+        background: #e0f2fe;
+        border-left: 4px solid #0284c7;
+        padding: 10px;
+        margin-top: 10px;
+        border-radius: 4px;
+        font-size: 0.9rem;
+    }
+
+    .fc {
+    max-height: 500px;
+    font-size: 0.85rem;
+}
+
+.fc-toolbar-title {
+    font-size: 1.1rem !important;
+    text-transform: capitalize;
+}
+
+/* Resaltar que los días son clickeables */
+.fc-daygrid-day:hover, .fc-timegrid-slot:hover {
+    background-color: #f0f9ff !important;
+    cursor: pointer;
+}

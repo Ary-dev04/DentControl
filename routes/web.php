@@ -39,7 +39,6 @@ Route::middleware(['auth', 'can:admin-only'])->group(function () {
 // 2. DENTISTAS (Gestión de su propia clínica)
 Route::middleware(['auth', 'can:dentista-only'])->group(function () {
     Route::get('/dentista/dashboard', [DashboardController::class, 'index'])->name('dentista.dashboard');
-    //Route::get('/pacientes', [PacienteController::class, 'index'])->name('pacientes.index');
 
     // Vistas principales
     Route::get('/catalogos', [CatalogoController::class, 'index'])->name('catalogos.index');
@@ -47,32 +46,32 @@ Route::middleware(['auth', 'can:dentista-only'])->group(function () {
     // Rutas para Servicios
     Route::post('/catalogos/servicios', [CatalogoController::class, 'storeServicio'])->name('servicios.store');
     Route::put('/catalogos/servicios/{id}', [CatalogoController::class, 'updateServicio'])->name('servicios.update');
-    //Route::delete('/catalogos/servicios/{id}', [CatalogoController::class, 'destroyServicio'])->name('servicios.destroy');
+    
     Route::patch('/catalogos/servicios/{id}/toggle', [CatalogoController::class, 'toggleServicio'])->name('servicios.toggle');
 
     // Rutas para Tratamientos
     Route::post('/catalogos/tratamientos', [CatalogoController::class, 'storeTratamiento'])->name('tratamientos.store');
     Route::put('/catalogos/tratamientos/{id}', [CatalogoController::class, 'updateTratamiento'])->name('tratamientos.update');
-    //Route::delete('/catalogos/tratamientos/{id}', [CatalogoController::class, 'destroyTratamiento'])->name('tratamientos.destroy');
+    
     Route::patch('/catalogos/tratamientos/{id}/toggle', [CatalogoController::class, 'toggleTratamiento'])->name('tratamientos.toggle');
 });
 
 // 3. ASISTENTES (Agenda y recepción)
-// 3. ASISTENTES (Agenda y recepción)
 Route::middleware(['auth', 'can:asistente-only'])->group(function () {
     
-    // URL: /asistente/dashboard
+    
     Route::get('/asistente/dashboard', [DashboardController::class, 'index'])->name('asistente.dashboard');
     
-    // URL: /asistente/pacientes
+   
     Route::get('/asistente/pacientes', [PacienteController::class, 'index'])->name('pacientes.index');
     
-    // URL: /asistente/pacientes (para el POST)
     Route::post('/asistente/pacientes', [PacienteController::class, 'store'])->name('pacientes.store');
     Route::post('/pacientes/store-cita-existente', [PacienteController::class, 'storeCitaExistente'])->name('pacientes.store_cita_existente');
     
-    // URL: /asistente/pacientes/{id}/tratamientos
-    Route::get('/asistente/pacientes/{id}/tratamientos', [PacienteController::class, 'getTratamientosActivos'])->name('pacientes.tratamientos');
+    
+    //Route::get('/asistente/pacientes/{id}/tratamientos', [PacienteController::class, 'getTratamientosActivos'])->name('pacientes.tratamientos');
+    //Route::get('/asistente/pacientes/{id}/tratamientos-activos', [PacienteController::class, 'tratamientosActivos'])->name('pacientes.tratamientos_activos');
 
     Route::get('/obtener-duracion', [App\Http\Controllers\Clinica\PacienteController::class, 'obtenerDuracion'])->name('pacientes.duracion');
+    Route::get('/pacientes/{id}/tratamientos-activos', [PacienteController::class, 'tratamientosActivos']);
 });

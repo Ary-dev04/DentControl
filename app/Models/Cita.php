@@ -19,9 +19,13 @@ class Cita extends Model
         'id_usuario',
         'id_cat_servicio',
         'id_tratamiento',
+        'id_clinica',
         'fecha',
         'hora',
-        'motivo_consulta'
+        'motivo_consulta',
+        'monto_cobrado',
+        'duracion',
+        'estatus_cita'
     ];
 
     //Relaciones
