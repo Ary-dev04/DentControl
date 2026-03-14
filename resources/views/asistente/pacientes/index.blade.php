@@ -417,7 +417,15 @@ const validaciones = {
     //email: (v) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v) || "Ingrese un correo electrónico válido",
     curp: (v) => v === "" || /^[A-Z]{4}[0-9]{6}[H,M][A-Z]{5}[0-9,A-Z][0-9]$/.test(v) || "Formato de CURP inválido (18 caracteres)",
     codigo_postal: (v) => /^[0-9]{5}$/.test(v) || "El CP debe tener 5 dígitos",
-    peso: (v) => v === "" || (parseFloat(v) > 0 && parseFloat(v) < 500) || "Ingrese un peso válido",
+    //peso: (v) => v === "" || (parseFloat(v) > 0 && parseFloat(v) < 500) || "Ingrese un peso válido",
+    peso: (v) => {
+    if (v === "" || v === null) return true;
+    const p = parseFloat(v);
+    return (p >= 0.5 && p <= 500) || "Ingrese un peso válido (0.5 - 500 kg)";
+    },
+    const p = parseFloat(v);
+    return (p > 0.5 && p < 500) || "Ingrese un peso válido (0.5 - 500 kg)";
+    },
     duracion: (v) => (parseInt(v) >= 5 && parseInt(v) <= 480) || "La duración debe ser entre 5 y 480 min",
     num_ext: (v) => v.trim() !== "" || "El número exterior es obligatorio",
     colonia: (v) => v.trim() !== "" || "Campo obligatorio",
@@ -491,6 +499,7 @@ function initRealTimeValidation() {
             if (!input.nextElementSibling || !input.nextElementSibling.classList.contains('error-message')) {
                 const span = document.createElement('span');
                 span.className = 'error-message';
+                span.style.display = 'none';
                 input.parentNode.appendChild(span);
             }
 
@@ -499,9 +508,16 @@ function initRealTimeValidation() {
                 const errorSpan = this.parentNode.querySelector('.error-message');
                 
                 if (validador) {
+                    if (this.value.toString().trim() === "") {
+                        errorSpan.style.display = 'none';
+                        this.classList.remove('input-error', 'input-success'); // Quitamos ambos colores
+                        return; // Detenemos la validación aquí
+                    }
+
                     const mensaje = validador(this.value);
                     if (mensaje !== true) {
                         this.classList.add('input-error');
+                        this.classList.remove('input-success');
                         errorSpan.textContent = mensaje;
                         errorSpan.style.display = 'block';
                     } else {
@@ -509,6 +525,12 @@ function initRealTimeValidation() {
                         this.classList.add('input-success');
                         errorSpan.style.display = 'none';
                     }
+                }
+            });
+            // Marcar el campo como "tocado" cuando el usuario sale de él
+            input.addEventListener('blur', function() {
+                if (this.value.trim() !== "") {
+                    this.classList.add('touched');
                 }
             });
         });
@@ -796,6 +818,9 @@ document.addEventListener('DOMContentLoaded', function() {
                 setTimeout(() => mostrarOpcionesAtencion('{{ old("tipo_atencion") }}'), 300);
             @endif
         @endif
+        setTimeout(() => {
+        document.querySelectorAll('.alert-danger').forEach(el => el.remove());
+    }, 5000);
     @endif
 
     const camposTexto = ['nombre', 'apellido_paterno', 'apellido_materno', 'nombre_tutor'];
@@ -925,11 +950,25 @@ function abrirRegistroMenor() {
 function prepararFormulario(form) {
     form.reset();
     // Limpiar mensajes de error
-    form.querySelectorAll('.error-message').forEach(m => m.style.display = 'none');
+    //form.querySelectorAll('.error-message').forEach(m => m.style.display = 'none');
     // Limpiar clases de colores (rojo/verde)
+    //form.querySelectorAll('input, select').forEach(i => {
+      //  i.classList.remove('input-error', 'input-success');
+    //});
+    // 1. Quitar clases de 'tocado' para que la validación no salte sola
     form.querySelectorAll('input, select').forEach(i => {
-        i.classList.remove('input-error', 'input-success');
+        i.classList.remove('input-error', 'input-success', 'touched');
     });
+
+    // 2. Ocultar spans de error
+    form.querySelectorAll('.error-message').forEach(m => {
+        m.style.display = 'none';
+        m.textContent = '';
+    });
+
+    // 3. Limpiar errores de Laravel (si existieran en el DOM)
+    const laravelErrors = form.querySelectorAll('.text-danger, .alert-danger');
+    laravelErrors.forEach(e => e.remove());
 }
 
 function validarMotivo(input) {
