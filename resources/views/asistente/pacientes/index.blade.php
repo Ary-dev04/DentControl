@@ -130,9 +130,12 @@
            onblur="limpiarEmailFinal(this)">
 </div>
                 <div class="form-group">
-                    <label>Teléfono</label>
-                    <input type="text" name="telefono" maxlength="10" oninput="this.value = this.value.replace(/[^0-9]/g, '')" value="{{ old('telefono') }}">
-                </div>
+    <label>Teléfono (Paciente)</label>
+    <input type="text" name="telefono" id="tel_paciente" maxlength="10" 
+           oninput="this.value = this.value.replace(/[^0-9]/g, '')" 
+           value="{{ old('telefono') }}">
+    <small style="color: #6c757d;">* Opcional para menores</small>
+</div>
                 <div class="form-group">
                     <label>CURP</label>
                     <input type="text" name="curp" maxlength="18" style="text-transform: uppercase;" oninput="this.value = this.value.toUpperCase()" value="{{ old('curp') }}">
@@ -431,10 +434,32 @@ const validaciones = {
         if (isVisible && v.trim().length < 3) return "El nombre del tutor es obligatorio";
         return true;
     },
+    // CORRECCIÓN TELÉFONO PACIENTE
+    // BUSCA ESTA PARTE EN TU CÓDIGO Y REEMPLÁZALA
+telefono: (v) => {
+    const seccionTutor = document.getElementById('seccion_tutor');
+    // Verificamos si la sección de tutor está visible (es menor)
+    const esMenor = seccionTutor && seccionTutor.style.display === 'block';
+    
+    // Si está vacío
+    if (v.trim() === "") {
+        if (esMenor) return true; // Si es menor, el vacío es VÁLIDO (opcional)
+        return "El teléfono es obligatorio para adultos"; // Si es adulto, es ERROR
+    }
+    
+    // Si escribió algo, validar formato
+    return /^[0-9]{10}$/.test(v) || "Ingrese 10 dígitos numéricos";
+},
+
+    // CORRECCIÓN TELÉFONO TUTOR
     telefono_tutor: (v) => {
-        const isVisible = document.getElementById('seccion_tutor').style.display === 'block';
-        if (isVisible && !/^[0-9]{10}$/.test(v)) return "El teléfono debe tener 10 dígitos";
-        return true;
+        const seccionTutor = document.getElementById('seccion_tutor');
+        const esMenor = seccionTutor && seccionTutor.style.display === 'block';
+        
+        if (esMenor) {
+            return /^[0-9]{10}$/.test(v) || "El teléfono del tutor es obligatorio (10 dígitos)";
+        }
+        return true; 
     },
 
     email: (v) => {
@@ -510,8 +535,9 @@ function cerrarModal(id) {
             });
 
             // 3. Limpiar clases de validación (bordes rojos/verdes)
-            const inputs = formulario.querySelectorAll('input, select');
+            const inputs = formulario.querySelectorAll('input, select, textarea');
             inputs.forEach(input => {
+                input.value = "";
                 input.classList.remove('input-error', 'input-success');
             });
 
@@ -807,14 +833,23 @@ function abrirRegistroAdulto() {
     // Cerramos el modal de selección y abrimos el de registro
     cambiarModal('modalSeleccion', 'modalNuevo');
     
-    // Nos aseguramos que la sección del tutor esté OCULTA
+    // CORRECCIÓN: Definir 'form' buscando el ID correcto
+    const form = document.getElementById('formNuevo');
+    if (form) {
+        form.reset();
+        // Limpiamos rastros de validaciones previas
+        form.querySelectorAll('.error-message').forEach(m => m.style.display = 'none');
+        form.querySelectorAll('input').forEach(i => i.classList.remove('input-error', 'input-success'));
+    }
+
+    // Manejo de la sección del tutor
     const seccionTutor = document.getElementById('seccion_tutor');
     if (seccionTutor) {
         seccionTutor.style.display = 'none';
-        // Quitamos el 'required' de los campos internos para que deje enviar el form
         document.getElementById('input_nombre_tutor').required = false;
         document.getElementById('select_parentesco').required = false;
         document.getElementById('input_tel_tutor').required = false;
+        document.getElementById('tel_paciente').required = true;
     }
 }
 
@@ -822,14 +857,25 @@ function abrirRegistroMenor() {
     // Cerramos el modal de selección y abrimos el de registro
     cambiarModal('modalSeleccion', 'modalNuevo');
     
+    // CORRECCIÓN: Definir 'form' buscando el ID correcto
+    const form = document.getElementById('formNuevo');
+    if (form) {
+        form.reset();
+        // Limpiamos rastros de validaciones previas
+        form.querySelectorAll('.error-message').forEach(m => m.style.display = 'none');
+        form.querySelectorAll('input').forEach(i => i.classList.remove('input-error', 'input-success'));
+    }
+    
     // Mostramos la sección del tutor
     const seccionTutor = document.getElementById('seccion_tutor');
     if (seccionTutor) {
         seccionTutor.style.display = 'block';
-        // Hacemos que los campos sean OBLIGATORIOS solo si es menor
         document.getElementById('input_nombre_tutor').required = true;
         document.getElementById('select_parentesco').required = true;
         document.getElementById('input_tel_tutor').required = true;
+        
+        // El teléfono del paciente se vuelve opcional si es menor
+        document.getElementById('tel_paciente').required = false;
     }
 }
 
