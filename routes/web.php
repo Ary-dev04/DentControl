@@ -75,4 +75,5 @@ Route::middleware(['auth', 'can:asistente-only'])->group(function () {
     Route::get('/obtener-duracion', [App\Http\Controllers\Clinica\PacienteController::class, 'obtenerDuracion'])->name('pacientes.duracion');
     Route::get('/pacientes/{id}/tratamientos-activos', [PacienteController::class, 'tratamientosActivos']);
     Route::get('/api/citas-ocupadas', [PacienteController::class, 'getCitasOcupadas'])->name('citas.ocupadas');
+    Route::get('/validar-cita-duplicada', [App\Http\Controllers\Clinica\PacienteController::class, 'validarCitaDuplicada']);
 });

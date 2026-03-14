@@ -342,13 +342,13 @@
     <label style="font-weight: bold; display: block; margin-bottom: 10px;">Tipo de atención *</label>
     <div style="display: flex; gap: 20px;">
         <label>
-            <input type="radio" name="tipo_atencion" value="seguimiento" onclick="mostrarOpcionesExistente('seguimiento')" required> Seguimiento
+            <input type="radio" name="tipo_atencion_ex" value="seguimiento" onclick="mostrarOpcionesExistente('seguimiento')" required> Seguimiento
         </label>
         <label>
-            <input type="radio" name="tipo_atencion" value="nuevo_tratamiento" onclick="mostrarOpcionesExistente('nuevo_tratamiento')"> Nuevo Tratamiento
+            <input type="radio" name="tipo_atencion_ex" value="nuevo_tratamiento" onclick="mostrarOpcionesExistente('nuevo_tratamiento')"> Nuevo Tratamiento
         </label>
         <label>
-            <input type="radio" name="tipo_atencion" value="servicio" onclick="mostrarOpcionesExistente('servicio')"> Servicio Rápido
+            <input type="radio" name="tipo_atencion_ex" value="servicio" onclick="mostrarOpcionesExistente('servicio')"> Servicio Rápido
         </label>
     </div>
 
@@ -666,29 +666,39 @@ function inicializarCalendario(idDiv, idInput) {
             else {
                 // Validar que no sea una hora pasada del mismo día
                 if (info.date < ahora) {
-                    alert("No puedes seleccionar una hora que ya pasó.");
-                    return;
-                }
+        alert("No puedes seleccionar una hora que ya pasó.");
+        return;
+    }
 
-                // Guardar el valor en el input oculto
-                input.value = info.dateStr;
-                
-                // Feedback visual: limpiar otros slots y marcar el seleccionado
-                document.querySelectorAll('.fc-timegrid-slot').forEach(s => s.style.background = "");
-                info.dayEl.style.background = "#d1e7ff";
-                
-                // Mostrar mensaje de confirmación debajo del calendario
-                let label = document.getElementById('info-fecha-' + idDiv);
-                if(!label){
-                    label = document.createElement('div'); 
-                    label.id = 'info-fecha-' + idDiv;
-                    label.style.marginTop = "10px";
-                    label.style.fontWeight = "bold";
-                    label.style.color = "#0d6efd";
-                    el.after(label);
+    // --- NUEVA LÓGICA DE VALIDACIÓN DE DUPLICADOS ---
+    const idPaciente = document.querySelector('select[name="id_paciente"]')?.value;
+    const fechaSeleccionada = info.dateStr.split('T')[0]; // Obtiene YYYY-MM-DD
+
+    if (idPaciente && fechaSeleccionada) {
+        fetch(`/validar-cita-duplicada?id_paciente=${idPaciente}&fecha=${fechaSeleccionada}`)
+            .then(response => response.json())
+            .then(data => {
+                if (data.existe) {
+                    // Si ya tiene cita, avisamos y pintamos el mensaje en rojo
+                    alert("⚠️ ¡Atención! Este paciente ya tiene una cita agendada para este día.");
+                    
+                    const label = document.getElementById('info-fecha-' + idDiv);
+                    if (label) {
+                        label.style.color = "#dc3545"; // Rojo de error
+                        label.innerHTML = "❌ El paciente ya tiene cita este día.";
+                    }
+                    input.value = ""; // Vaciamos el input para evitar el envío
+                } else {
+                    // Si NO tiene cita, procedemos normal
+                    input.value = info.dateStr;
+                    marcarSlotSeleccionado(info, idDiv, el);
                 }
-                const opciones = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' };
-                label.innerHTML = "📅 Seleccionado: " + info.date.toLocaleString('es-MX', opciones);
+            });
+    } else {
+        // Si es un paciente nuevo (no hay id_paciente aún), procedemos normal
+        input.value = info.dateStr;
+        marcarSlotSeleccionado(info, idDiv, el);
+    }
             }
         },
         // Estilo para las citas ocupadas
@@ -702,6 +712,24 @@ function inicializarCalendario(idDiv, idInput) {
     
     // Ajustar el tamaño del calendario (importante para modales)
     setTimeout(() => { cal.updateSize(); }, 200);
+}
+
+// Función auxiliar para no repetir el feedback visual
+function marcarSlotSeleccionado(info, idDiv, el) {
+    document.querySelectorAll('.fc-timegrid-slot').forEach(s => s.style.background = "");
+    info.dayEl.style.background = "#d1e7ff";
+    
+    let label = document.getElementById('info-fecha-' + idDiv);
+    if(!label){
+        label = document.createElement('div'); 
+        label.id = 'info-fecha-' + idDiv;
+        label.style.marginTop = "10px";
+        label.style.fontWeight = "bold";
+        el.after(label);
+    }
+    label.style.color = "#0d6efd"; // Azul normal
+    const opciones = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' };
+    label.innerHTML = "📅 Seleccionado: " + info.date.toLocaleString('es-MX', opciones);
 }
 // --- FUNCIONES AUXILIARES (AJAX Y FILTROS) ---
 function mostrarOpcionesAtencion(tipo) {

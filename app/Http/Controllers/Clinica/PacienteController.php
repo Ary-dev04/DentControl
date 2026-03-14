@@ -187,6 +187,25 @@ class PacienteController extends Controller
         $id_clinica = Auth::user()->id_clinica;
         $id_usuario = Auth::id();
 
+        // --- INICIO VALIDACIÓN DUPLICADOS ---
+    $dt = new \DateTime($validated['fecha_cita']);
+    $fecha = $dt->format('Y-m-d');
+    $hora  = $dt->format('H:i:s');
+
+    // Buscamos si el paciente ya tiene una cita ese mismo día en esta clínica
+    $citaDuplicada = DB::table('citas')
+        ->where('id_paciente', $validated['id_paciente'])
+        ->where('fecha', $fecha)
+        ->whereIn('estatus_cita', ['programada', 'confirmada'])
+        ->exists();
+
+    if ($citaDuplicada) {
+        return redirect()->back()
+            ->with('error', 'El paciente ya tiene una cita programada para el día seleccionado.')
+            ->withInput();
+    }
+    // --- FIN VALIDACIÓN DUPLICADOS ---
+
         try {
             DB::transaction(function () use ($request, $validated, $id_clinica, $id_usuario) {
                 
@@ -288,5 +307,20 @@ class PacienteController extends Controller
 }
 
     return response()->json($eventos);
+}
+
+public function validarCitaDuplicada(Request $request) {
+// Si no llega el ID o la fecha, respondemos que no existe para no romper el JS
+    if (!$request->id_paciente || !$request->fecha) {
+        return response()->json(['existe' => false]);
+    }
+
+    $existe = DB::table('citas')
+        ->where('id_paciente', $request->id_paciente)
+        ->where('fecha', $request->fecha)
+        ->whereIn('estatus_cita', ['programada', 'confirmada'])
+        ->exists();
+
+    return response()->json(['existe' => $existe]);
 }
 }
