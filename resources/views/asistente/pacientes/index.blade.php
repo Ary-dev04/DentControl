@@ -300,7 +300,7 @@
             <div class="form-row">
                 <div class="form-group full-width">
                     <label>Motivo de la cita *</label>
-                    <input type="text" name="motivo_consulta" required value="{{ old('motivo_consulta') }}">
+                    <input type="text" name="motivo_consulta" required value="{{ old('motivo_consulta') }}" oninput="validarMotivo(this)">
                 </div>
             </div>
 
@@ -401,7 +401,7 @@
         <small style="color: #6c757d;">* Según catálogo</small>
                 </div>
                 <div class="form-group"><label>Duración real de la cita (min) *</label><input type="number" name="duracion" id="duracion_real_ex" required><small style="color: #6c757d;">* Tiempo que se bloqueará en la agenda</small></div>
-                <div class="form-group"><label>Motivo *</label><input type="text" name="motivo_consulta" required></div>
+                <div class="form-group"><label>Motivo *</label><input type="text" name="motivo_consulta" value="{{ old('motivo_consulta') }}" oninput="validarMotivo(this)" required></div>
             </div>
             <button type="submit" class="btn-primary" style="width: 100%;">Guardar Cita</button>
         </form>
@@ -425,7 +425,17 @@ const validaciones = {
     estado: (v) => v.trim() !== "" || "Campo obligatorio",
     calle: (v) => v.trim() !== "" || "Campo obligatorio",
     alergias: (v) => v.trim() !== "" || "Especifique alergias o escriba 'Ninguna'",
-    motivo_consulta: (v) => v.trim().length > 3 || "Especifique el motivo",
+    //motivo_consulta: (v) => v.trim().length > 3 || "Especifique el motivo",
+    motivo_consulta: (v) => {
+        if (v.trim().length < 4) return "Especifique el motivo";
+        
+        // Esta regex valida que el texto solo contenga caracteres permitidos
+        const regexValida = /^[a-zA-Z0-9áéíóúÁÉÍÓÚñÑ .,]+$/;
+        if (!regexValida.test(v)) {
+            return "No se permiten caracteres especiales (como @, #, $, %, etc.)";
+        }
+        return true;
+    },
     //duracion: (v) => (parseInt(v) >= 5) || "La duración mínima es de 5 minutos"
     precio_estimado: (v) => v === "" || parseFloat(v) >= 0 || "El precio no puede ser negativo",
     diagnostico_inicial: (v) => true, // Siempre es válido aunque esté vacío
@@ -829,53 +839,93 @@ document.addEventListener('input', function (event) {
 }, false);
 
 
+// --- FUNCIONES DE APERTURA DE REGISTRO ---
+
 function abrirRegistroAdulto() {
-    // Cerramos el modal de selección y abrimos el de registro
     cambiarModal('modalSeleccion', 'modalNuevo');
     
-    // CORRECCIÓN: Definir 'form' buscando el ID correcto
     const form = document.getElementById('formNuevo');
-    if (form) {
-        form.reset();
-        // Limpiamos rastros de validaciones previas
-        form.querySelectorAll('.error-message').forEach(m => m.style.display = 'none');
-        form.querySelectorAll('input').forEach(i => i.classList.remove('input-error', 'input-success'));
-    }
+    if (!form) return;
 
-    // Manejo de la sección del tutor
+    // 1. Resetear formulario y limpiar estilos
+    prepararFormulario(form);
+
+    // 2. Configurar Fechas: Mínimo 18 años cumplidos hacia atrás
+    const hoy = new Date();
+    const hace18Anios = new Date(hoy.getFullYear() - 18, hoy.getMonth(), hoy.getDate()).toISOString().split('T')[0];
+    
+    const inputFecha = form.querySelector('input[name="fecha_nacimiento"]');
+    inputFecha.max = hace18Anios; // No puede ser más joven que 18 años
+    inputFecha.min = "1920-01-01";
+
+    // 3. Manejo de la sección del tutor (OCULTAR)
     const seccionTutor = document.getElementById('seccion_tutor');
     if (seccionTutor) {
         seccionTutor.style.display = 'none';
-        document.getElementById('input_nombre_tutor').required = false;
-        document.getElementById('select_parentesco').required = false;
-        document.getElementById('input_tel_tutor').required = false;
-        document.getElementById('tel_paciente').required = true;
+        gestionarAtributosTutor(false);
     }
 }
 
 function abrirRegistroMenor() {
-    // Cerramos el modal de selección y abrimos el de registro
     cambiarModal('modalSeleccion', 'modalNuevo');
     
-    // CORRECCIÓN: Definir 'form' buscando el ID correcto
     const form = document.getElementById('formNuevo');
-    if (form) {
-        form.reset();
-        // Limpiamos rastros de validaciones previas
-        form.querySelectorAll('.error-message').forEach(m => m.style.display = 'none');
-        form.querySelectorAll('input').forEach(i => i.classList.remove('input-error', 'input-success'));
-    }
-    
-    // Mostramos la sección del tutor
+    if (!form) return;
+
+    // 1. Resetear formulario y limpiar estilos
+    prepararFormulario(form);
+
+    // 2. Configurar Fechas: Máximo 18 años (nacidos de hace 18 años a hoy)
+    const hoy = new Date();
+    const hace18Anios = new Date(hoy.getFullYear() - 18, hoy.getMonth(), hoy.getDate()).toISOString().split('T')[0];
+    const fechaHoy = hoy.toISOString().split('T')[0];
+
+    const inputFecha = form.querySelector('input[name="fecha_nacimiento"]');
+    inputFecha.min = hace18Anios; // No puede ser más viejo de 18 años
+    inputFecha.max = fechaHoy;    // No puede haber nacido en el futuro
+
+    // 3. Manejo de la sección del tutor (MOSTRAR)
     const seccionTutor = document.getElementById('seccion_tutor');
     if (seccionTutor) {
         seccionTutor.style.display = 'block';
-        document.getElementById('input_nombre_tutor').required = true;
-        document.getElementById('select_parentesco').required = true;
-        document.getElementById('input_tel_tutor').required = true;
-        
-        // El teléfono del paciente se vuelve opcional si es menor
-        document.getElementById('tel_paciente').required = false;
+        gestionarAtributosTutor(true);
+    }
+}
+
+// --- FUNCIONES AUXILIARES PARA EVITAR REPETIR CÓDIGO ---
+
+function prepararFormulario(form) {
+    form.reset();
+    // Limpiar mensajes de error
+    form.querySelectorAll('.error-message').forEach(m => m.style.display = 'none');
+    // Limpiar clases de colores (rojo/verde)
+    form.querySelectorAll('input, select').forEach(i => {
+        i.classList.remove('input-error', 'input-success');
+    });
+}
+
+function validarMotivo(input) {
+    // Permite letras, números, espacios, puntos y comas.
+    // Remueve todo lo demás instantáneamente.
+    const regex = /[^a-zA-Z0-9áéíóúÁÉÍÓÚñÑ .,]/g;
+    input.value = input.value.replace(regex, '');
+    
+    // Aprovechamos para usar tu función de controlar espacios que ya tienes
+    controlarEspacios(input); 
+}
+
+function gestionarAtributosTutor(esRequerido) {
+    // Campos del tutor
+    const camposTutor = ['input_nombre_tutor', 'select_parentesco', 'input_tel_tutor'];
+    camposTutor.forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.required = esRequerido;
+    });
+
+    // El teléfono del paciente es obligatorio SOLO para adultos
+    const telPaciente = document.getElementById('tel_paciente');
+    if (telPaciente) {
+        telPaciente.required = !esRequerido;
     }
 }
 
