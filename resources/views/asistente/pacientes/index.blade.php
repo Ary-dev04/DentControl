@@ -70,7 +70,7 @@
                 <p>Buscar en el expediente y agendar nueva cita o seguimiento.</p>
             </div>
 
-            <div class="selection-card" onclick="cambiarModal('modalSeleccion', 'modalNuevo')">
+            <div class="selection-card" onclick="abrirRegistroAdulto()">
                 <div class="card-icon" style="background: #dcfce7; color: #16a34a;">
                     <i class="fa-solid fa-user-plus"></i>
                 </div>
@@ -123,9 +123,12 @@
 
             <div class="form-row">
                 <div class="form-group">
-                    <label>Email *</label>
-                    <input type="email" name="email" maxlength="100" required value="{{ old('email') }}">
-                </div>
+    <label>Email *</label>
+    <input type="email" name="email" maxlength="100" required 
+           value="{{ old('email') }}"
+           oninput="validarEmailInput(this)"
+           onblur="limpiarEmailFinal(this)">
+</div>
                 <div class="form-group">
                     <label>Teléfono</label>
                     <input type="text" name="telefono" maxlength="10" oninput="this.value = this.value.replace(/[^0-9]/g, '')" value="{{ old('telefono') }}">
@@ -165,10 +168,60 @@
 
             <div class="form-row">
                 <div class="form-group"><label>Estado *</label><input type="text" name="estado" required value="{{ old('estado') }}"></div>
-                <div class="form-group"><label>No. Exterior *</label><input type="text" name="num_ext" required value="{{ old('num_ext') }}"></div>
-                <div class="form-group"><label>No. Interior</label><input type="text" name="num_int" value="{{ old('num_int') }}"></div>
-                <div class="form-group"><label>Calle *</label><input type="text" name="calle" required value="{{ old('calle') }}"></div>
+                <div class="form-group">
+        <label>No. Exterior *</label>
+        <input type="text" name="num_ext" required 
+               value="{{ old('num_ext') }}"
+               oninput="this.value = this.value.replace(/[^a-zA-Z0-9 ]/g, ''); controlarEspacios(this)"
+               onblur="limpiarEspacios(this)">
+    </div>
+    <div class="form-group">
+        <label>No. Interior</label>
+        <input type="text" name="num_int" 
+               value="{{ old('num_int') }}"
+               oninput="this.value = this.value.replace(/[^a-zA-Z0-9 ]/g, ''); controlarEspacios(this)"
+               onblur="limpiarEspacios(this)">
+    </div>
+    <div class="form-group">
+        <label>Calle *</label>
+        <input type="text" name="calle" required 
+               value="{{ old('calle') }}"
+               oninput="this.value = this.value.replace(/[^a-zA-Z0-9áéíóúÁÉÍÓÚñÑ ]/g, ''); controlarEspacios(this)"
+               onblur="limpiarEspacios(this)">
+    </div>
             </div>
+            
+            <div id="seccion_tutor" style="display: none; background: #fffcf0; border: 1px dashed #eab308; padding: 15px; border-radius: 8px; margin: 20px 0;">
+    <h4 style="margin-top: 0; color: #854d0e; font-size: 1rem;">
+        <i class="fa-solid fa-person-breastfeeding"></i> Datos del Padre o Tutor
+    </h4>
+    <div class="form-row">
+        <div class="form-group" style="flex: 2;">
+    <label>Nombre Completo *</label>
+    <input type="text" name="nombre_tutor" id="input_nombre_tutor" 
+           placeholder="Ej. María Pérez García"
+           onkeypress="return soloLetras(event)"
+           oninput="controlarEspacios(this); this.value = this.value.replace(/[0-9]/g, '')"
+           onblur="limpiarEspacios(this)">
+</div>
+        <div class="form-group">
+            <label>Parentesco *</label>
+            <select name="parentesco_tutor" id="select_parentesco">
+                <option value="">-- Seleccione --</option>
+                <option value="Madre">Madre</option>
+                <option value="Padre">Padre</option>
+                <option value="Tutor Legal">Tutor Legal</option>
+                <option value="Otro">Otro familiar</option>
+            </select>
+        </div>
+        <div class="form-group">
+            <label>Teléfono Tutor *</label>
+            <input type="text" name="telefono_tutor" id="input_tel_tutor" 
+                   maxlength="10" 
+                   oninput="this.value = this.value.replace(/[^0-9]/g, '')">
+        </div>
+    </div>
+</div>
 
             <div class="atencion-selector" style="margin: 20px 0; padding: 15px; background: #f8fafc; border-radius: 8px; border: 1px solid #e2e8f0;">
                 <label style="font-weight: bold; display: block; margin-bottom: 10px;">¿A qué viene hoy? *</label>
@@ -358,7 +411,7 @@ const validaciones = {
     nombre: (v) => v.trim().length >= 2 || "El nombre es obligatorio (min 2 letras)",
     apellido_paterno: (v) => v.trim().length >= 2 || "El apellido es obligatorio",
     apellido_materno: (v) => v.trim().length >= 2 || "El apellido es obligatorio",
-    email: (v) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v) || "Ingrese un correo electrónico válido",
+    //email: (v) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v) || "Ingrese un correo electrónico válido",
     curp: (v) => v === "" || /^[A-Z]{4}[0-9]{6}[H,M][A-Z]{5}[0-9,A-Z][0-9]$/.test(v) || "Formato de CURP inválido (18 caracteres)",
     codigo_postal: (v) => /^[0-9]{5}$/.test(v) || "El CP debe tener 5 dígitos",
     peso: (v) => v === "" || (parseFloat(v) > 0 && parseFloat(v) < 500) || "Ingrese un peso válido",
@@ -373,6 +426,23 @@ const validaciones = {
     //duracion: (v) => (parseInt(v) >= 5) || "La duración mínima es de 5 minutos"
     precio_estimado: (v) => v === "" || parseFloat(v) >= 0 || "El precio no puede ser negativo",
     diagnostico_inicial: (v) => true, // Siempre es válido aunque esté vacío
+    nombre_tutor: (v) => {
+        const isVisible = document.getElementById('seccion_tutor').style.display === 'block';
+        if (isVisible && v.trim().length < 3) return "El nombre del tutor es obligatorio";
+        return true;
+    },
+    telefono_tutor: (v) => {
+        const isVisible = document.getElementById('seccion_tutor').style.display === 'block';
+        if (isVisible && !/^[0-9]{10}$/.test(v)) return "El teléfono debe tener 10 dígitos";
+        return true;
+    },
+
+    email: (v) => {
+        const regex = /^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,6}$/;
+        if (v.trim() === "") return "El correo es obligatorio";
+        if (!regex.test(v)) return "Formato de correo inválido (ejemplo@dominio.com)";
+        return true;
+    }
 };
 
 function initRealTimeValidation() {
@@ -472,7 +542,8 @@ function cerrarModal(id) {
             'contenedor_seguimiento_ex', 
             'contenedor_servicio_ex',
             'contenedor_nuevo_plan_ex',
-            'precio_estimado'
+            'precio_estimado',
+            'seccion_tutor'
         ];
         contenedores.forEach(c => {
             const el = document.getElementById(c);
@@ -627,7 +698,12 @@ function soloLetras(e) {
     let key = e.keyCode || e.which;
     let tecla = String.fromCharCode(key).toLowerCase();
     let letras = " áéíóúabcdefghijklmnñopqrstuvwxyz";
-    if (letras.indexOf(tecla) == -1 && key != 8 && key != 46) e.preventDefault();
+    //if (letras.indexOf(tecla) == -1 && key != 8 && key != 46) e.preventDefault();
+    if (letras.indexOf(tecla) == -1 && key != 8 && key != 46 && key != 13) {
+        e.preventDefault();
+        return false;
+    }
+    return true;
 }
 
 // --- INICIALIZACIÓN FINAL ---
@@ -657,6 +733,22 @@ document.addEventListener('DOMContentLoaded', function() {
             @endif
         @endif
     @endif
+
+    const camposTexto = ['nombre', 'apellido_paterno', 'apellido_materno', 'nombre_tutor'];
+    
+    camposTexto.forEach(nombreCampo => {
+        const input = document.getElementsByName(nombreCampo)[0];
+        if (input) {
+            // Aplicar control de espacios en tiempo real
+            input.addEventListener('input', function() {
+                controlarEspacios(this);
+            });
+            // Aplicar limpieza final al salir
+            input.addEventListener('blur', function() {
+                limpiarEspacios(this);
+            });
+        }
+    });
 });
 
 // Función para cargar tratamientos (tu original)
@@ -709,5 +801,68 @@ document.addEventListener('input', function (event) {
     event.target.style.height = 'auto';
     event.target.style.height = (event.target.scrollHeight) + 'px';
 }, false);
+
+
+function abrirRegistroAdulto() {
+    // Cerramos el modal de selección y abrimos el de registro
+    cambiarModal('modalSeleccion', 'modalNuevo');
+    
+    // Nos aseguramos que la sección del tutor esté OCULTA
+    const seccionTutor = document.getElementById('seccion_tutor');
+    if (seccionTutor) {
+        seccionTutor.style.display = 'none';
+        // Quitamos el 'required' de los campos internos para que deje enviar el form
+        document.getElementById('input_nombre_tutor').required = false;
+        document.getElementById('select_parentesco').required = false;
+        document.getElementById('input_tel_tutor').required = false;
+    }
+}
+
+function abrirRegistroMenor() {
+    // Cerramos el modal de selección y abrimos el de registro
+    cambiarModal('modalSeleccion', 'modalNuevo');
+    
+    // Mostramos la sección del tutor
+    const seccionTutor = document.getElementById('seccion_tutor');
+    if (seccionTutor) {
+        seccionTutor.style.display = 'block';
+        // Hacemos que los campos sean OBLIGATORIOS solo si es menor
+        document.getElementById('input_nombre_tutor').required = true;
+        document.getElementById('select_parentesco').required = true;
+        document.getElementById('input_tel_tutor').required = true;
+    }
+}
+
+// 1. Evita que el usuario escriba dos espacios seguidos mientras teclea
+function controlarEspacios(input) {
+    // Reemplaza dos o más espacios consecutivos por uno solo
+    input.value = input.value.replace(/\s{2,}/g, ' ');
+    
+    // Evita que el primer carácter sea un espacio
+    if (input.value.startsWith(' ')) {
+        input.value = input.value.trim();
+    }
+}
+
+// 2. Limpia el texto cuando el usuario sale del campo (limpieza final)
+function limpiarEspacios(input) {
+    // Trim elimina espacios al inicio y al final
+    // El regex limpia cualquier doble espacio que haya quedado
+    input.value = input.value.trim().replace(/\s{2,}/g, ' ');
+}
+
+function validarEmailInput(input) {
+    // 1. Elimina cualquier espacio en blanco en tiempo real (en cualquier posición)
+    input.value = input.value.replace(/\s+/g, '');
+
+    // 2. Opcional: Solo permite caracteres válidos para un correo
+    // Esto bloquea letras con acentos, eñes y símbolos raros como #$%&
+    input.value = input.value.replace(/[^a-zA-Z0-9@._-]/g, '');
+}
+
+function limpiarEmailFinal(input) {
+    // 1. Asegura que no queden espacios (por si pegaron el texto)
+    input.value = input.value.trim().toLowerCase(); // Los correos siempre se guardan mejor en minúsculas
+}
 </script>
 @endsection

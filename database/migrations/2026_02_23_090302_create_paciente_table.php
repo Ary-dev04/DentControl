@@ -35,7 +35,6 @@ return new class extends Migration
             $table->string('colonia')->nullable();
             $table->string('ciudad')->nullable();
             $table->string('estado')->nullable();
-            $table->string('codigo_postal')->nullable();
 
             $table->enum('estatus', ['activo', 'baja'])->default('activo');
 

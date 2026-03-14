@@ -32,7 +32,10 @@ class Paciente extends Model
         'ciudad',
         'estado',
         'codigo_postal',
-        'estatus'
+        'estatus',
+        'nombre_tutor',
+        'parentesco_tutor',
+        'telefono_tutor'
     ];
     //Relaciones
 

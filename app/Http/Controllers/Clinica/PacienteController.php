@@ -71,6 +71,9 @@ class PacienteController extends Controller
             'tipo_atencion'    => 'required|in:tratamiento,servicio',
             'alergias'         => 'required|string|max:500',
             'precio_estimado'  => 'nullable|numeric|min:0',
+            'nombre_tutor'    => 'nullable|string|max:100',
+            'parentesco_tutor'=> 'nullable|string|max:50',
+            'telefono_tutor'  => 'nullable|digits:10',
         ]);
 
         $id_clinica = Auth::user()->id_clinica;
@@ -100,6 +103,10 @@ class PacienteController extends Controller
                     'estado'           => $validated['estado'],
                     'codigo_postal'    => $validated['codigo_postal'],
                     'estatus'          => 'activo',
+
+                    'nombre_tutor'     => $validated['nombre_tutor'],
+                    'parentesco_tutor' => $validated['parentesco_tutor'],
+                    'telefono_tutor'   => $validated['telefono_tutor'],
                 ]);
 
                 // 2. Crear Expediente Clínico (Base para el historial)
