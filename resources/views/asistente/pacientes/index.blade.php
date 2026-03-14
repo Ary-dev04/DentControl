@@ -410,21 +410,17 @@
 
 <script>
 // --- LÓGICA DE VALIDACIÓN EN TIEMPO REAL ---
+// --- LÓGICA DE VALIDACIÓN EN TIEMPO REAL ---
 const validaciones = {
     nombre: (v) => v.trim().length >= 2 || "El nombre es obligatorio (min 2 letras)",
     apellido_paterno: (v) => v.trim().length >= 2 || "El apellido es obligatorio",
     apellido_materno: (v) => v.trim().length >= 2 || "El apellido es obligatorio",
-    //email: (v) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v) || "Ingrese un correo electrónico válido",
     curp: (v) => v === "" || /^[A-Z]{4}[0-9]{6}[H,M][A-Z]{5}[0-9,A-Z][0-9]$/.test(v) || "Formato de CURP inválido (18 caracteres)",
-    codigo_postal: (v) => /^[0-9]{5}$/.test(v) || "El CP debe tener 5 dígitos",
-    //peso: (v) => v === "" || (parseFloat(v) > 0 && parseFloat(v) < 500) || "Ingrese un peso válido",
+    codigo_postal: (v) => v === "" || /^[0-9]{5}$/.test(v) || "El CP debe tener 5 dígitos",
     peso: (v) => {
-    if (v === "" || v === null) return true;
-    const p = parseFloat(v);
-    return (p >= 0.5 && p <= 500) || "Ingrese un peso válido (0.5 - 500 kg)";
-    },
-    const p = parseFloat(v);
-    return (p > 0.5 && p < 500) || "Ingrese un peso válido (0.5 - 500 kg)";
+        if (v === "" || v === null) return true;
+        const p = parseFloat(v);
+        return (p >= 0.5 && p <= 500) || "Ingrese un peso válido (0.5 - 500 kg)";
     },
     duracion: (v) => (parseInt(v) >= 5 && parseInt(v) <= 480) || "La duración debe ser entre 5 y 480 min",
     num_ext: (v) => v.trim() !== "" || "El número exterior es obligatorio",
@@ -433,57 +429,41 @@ const validaciones = {
     estado: (v) => v.trim() !== "" || "Campo obligatorio",
     calle: (v) => v.trim() !== "" || "Campo obligatorio",
     alergias: (v) => v.trim() !== "" || "Especifique alergias o escriba 'Ninguna'",
-    //motivo_consulta: (v) => v.trim().length > 3 || "Especifique el motivo",
     motivo_consulta: (v) => {
         if (v.trim().length < 4) return "Especifique el motivo";
-        
-        // Esta regex valida que el texto solo contenga caracteres permitidos
         const regexValida = /^[a-zA-Z0-9áéíóúÁÉÍÓÚñÑ .,]+$/;
-        if (!regexValida.test(v)) {
-            return "No se permiten caracteres especiales (como @, #, $, %, etc.)";
-        }
+        if (!regexValida.test(v)) return "No se permiten caracteres especiales";
         return true;
     },
-    //duracion: (v) => (parseInt(v) >= 5) || "La duración mínima es de 5 minutos"
     precio_estimado: (v) => v === "" || parseFloat(v) >= 0 || "El precio no puede ser negativo",
-    diagnostico_inicial: (v) => true, // Siempre es válido aunque esté vacío
+    diagnostico_inicial: (v) => true,
     nombre_tutor: (v) => {
-        const isVisible = document.getElementById('seccion_tutor').style.display === 'block';
+        const seccionTutor = document.getElementById('seccion_tutor');
+        const isVisible = seccionTutor && seccionTutor.style.display === 'block';
         if (isVisible && v.trim().length < 3) return "El nombre del tutor es obligatorio";
         return true;
     },
-    // CORRECCIÓN TELÉFONO PACIENTE
-    // BUSCA ESTA PARTE EN TU CÓDIGO Y REEMPLÁZALA
-telefono: (v) => {
-    const seccionTutor = document.getElementById('seccion_tutor');
-    // Verificamos si la sección de tutor está visible (es menor)
-    const esMenor = seccionTutor && seccionTutor.style.display === 'block';
-    
-    // Si está vacío
-    if (v.trim() === "") {
-        if (esMenor) return true; // Si es menor, el vacío es VÁLIDO (opcional)
-        return "El teléfono es obligatorio para adultos"; // Si es adulto, es ERROR
-    }
-    
-    // Si escribió algo, validar formato
-    return /^[0-9]{10}$/.test(v) || "Ingrese 10 dígitos numéricos";
-},
-
-    // CORRECCIÓN TELÉFONO TUTOR
+    telefono: (v) => {
+        const seccionTutor = document.getElementById('seccion_tutor');
+        const esMenor = seccionTutor && seccionTutor.style.display === 'block';
+        if (v.trim() === "") {
+            if (esMenor) return true;
+            return "El teléfono es obligatorio para adultos";
+        }
+        return /^[0-9]{10}$/.test(v) || "Ingrese 10 dígitos numéricos";
+    },
     telefono_tutor: (v) => {
         const seccionTutor = document.getElementById('seccion_tutor');
         const esMenor = seccionTutor && seccionTutor.style.display === 'block';
-        
         if (esMenor) {
             return /^[0-9]{10}$/.test(v) || "El teléfono del tutor es obligatorio (10 dígitos)";
         }
         return true; 
     },
-
     email: (v) => {
         const regex = /^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,6}$/;
         if (v.trim() === "") return "El correo es obligatorio";
-        if (!regex.test(v)) return "Formato de correo inválido (ejemplo@dominio.com)";
+        if (!regex.test(v)) return "Formato de correo inválido";
         return true;
     }
 };
