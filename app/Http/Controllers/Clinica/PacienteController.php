@@ -70,6 +70,7 @@ class PacienteController extends Controller
             'motivo_consulta'  => 'required|string|max:255',
             'tipo_atencion'    => 'required|in:tratamiento,servicio',
             'alergias'         => 'required|string|max:500',
+            'precio_estimado'  => 'nullable|numeric|min:0',
         ]);
 
         $id_clinica = Auth::user()->id_clinica;
@@ -123,7 +124,8 @@ class PacienteController extends Controller
                         'id_usuario'          => $id_usuario,
                         'id_clinica'          => $id_clinica,
                         'id_cat_tratamientos' => $request->id_cat_tratamiento,
-                        'diagnostico_inicial' => $validated['motivo_consulta'],
+                        'diagnostico_inicial' => null,
+                        'precio_estimado'     => $request->precio_estimado,
                         'fecha_inicio'        => $fecha,
                         'estatus'             => 'curso',
                     ]);
@@ -135,7 +137,7 @@ class PacienteController extends Controller
                         'id_usuario'     => $id_usuario,
                         'fecha'          => $fecha,
                         'hora'           => $hora,
-                        'nota_texto'     => 'Registro inicial de tratamiento: ' . $validated['motivo_consulta'],
+                        'nota_texto'     => 'Plan de tratamiento abierto. Diagnóstico y presupuesto pendientes de valoración clínica.',
                         'created_at'     => now(),
                     ]);
                 } else {
@@ -171,7 +173,8 @@ class PacienteController extends Controller
             'fecha_cita'      => 'required|date|after:now',
             'duracion'        => 'required|integer|min:5|max:480',
             'motivo_consulta' => 'required|string|max:255',
-            'tipo_atencion'   => 'required|in:tratamiento,servicio',
+            'tipo_atencion_ex' => 'required|in:seguimiento,nuevo_tratamiento,servicio',
+            'precio_estimado' => 'nullable|numeric|min:0',
         ]);
 
         $id_clinica = Auth::user()->id_clinica;
@@ -187,22 +190,29 @@ class PacienteController extends Controller
                 $id_tratamiento_rel = null;
                 $id_cat_servicio_rel = null;
 
-                if ($validated['tipo_atencion'] === 'tratamiento') {
-                    // Se asume que id_cat_tratamiento viene del select del modal
-                    $id_tratamiento_rel = $request->id_cat_tratamiento;
+                // LÓGICA SEGÚN EL TIPO DE ATENCIÓN
+            if ($validated['tipo_atencion_ex'] === 'nuevo_tratamiento') {
+                // CREAR UN NUEVO REGISTRO DE TRATAMIENTO
+                $nuevoTratamiento = Tratamiento::create([
+                    'id_paciente'         => $validated['id_paciente'],
+                    'id_usuario'          => $id_usuario,
+                    'id_clinica'          => $id_clinica,
+                    'id_cat_tratamientos' => $request->id_cat_tratamiento_nuevo,
+                    'diagnostico_inicial' => $request->diagnostico_nuevo, // Opcional
+                    'precio_estimado'     => $request->precio_estimado_nuevo, // Opcional
+                    'fecha_inicio'        => $fecha,
+                    'estatus'             => 'curso',
+                ]);
+                $id_tratamiento_final = $nuevoTratamiento->id_tratamiento;
 
-                    // Agregamos una nota de evolución indicando que se programó un seguimiento
-                    DB::table('notas_evolucion')->insert([
-                        'id_tratamiento' => $id_tratamiento_rel,
-                        'id_usuario'     => $id_usuario,
-                        'fecha'          => $fecha,
-                        'hora'           => $hora,
-                        'nota_texto'     => 'Cita de seguimiento programada: ' . $validated['motivo_consulta'],
-                        'created_at'     => now(),
-                    ]);
-                } else {
-                    $id_cat_servicio_rel = $request->id_cat_servicio;
-                }
+            } elseif ($validated['tipo_atencion_ex'] === 'seguimiento') {
+                // USAR EL QUE YA EXISTE
+                $id_tratamiento_final = $request->id_tratamiento_existente;
+
+            } else {
+                // ES UN SERVICIO RÁPIDO
+                $id_servicio_final = $request->id_cat_servicio_ex;
+            }
 
                 DB::table('citas')->insert([
                     'id_paciente'     => $validated['id_paciente'],

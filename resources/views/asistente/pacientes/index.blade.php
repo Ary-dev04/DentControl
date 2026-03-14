@@ -30,16 +30,6 @@
             </div>
         @endif
 
-        @if ($errors->any())
-            <div style="background: #fff3cd; color: #856404; padding: 15px; border-radius: 5px; margin-bottom: 20px;">
-                <ul>
-                    @foreach ($errors->all() as $error)
-                        <li>{{ $error }}</li>
-                    @endforeach
-                </ul>
-            </div>
-        @endif
-
         <section class="table-section">
             <table class="data-table">
                 <thead>
@@ -68,12 +58,33 @@
 </div>
 
 <div id="modalSeleccion" class="custom-modal">
-    <div class="custom-modal-content">
-        <span class="close-btn" onclick="cerrarModal('modalSeleccion')">&times;</span>
-        <h3>¿El paciente ya existe?</h3>
-        <div style="display: flex; flex-direction: column; gap: 15px; margin-top: 20px;">
-            <button class="btn-primary" onclick="cambiarModal('modalSeleccion', 'modalExistente')">Paciente existente</button>
-            <button class="btn-primary" onclick="cambiarModal('modalSeleccion', 'modalNuevo')">Paciente nuevo</button>
+    <div class="custom-modal-content" style="max-width: 850px;"> <span class="close-btn" onclick="cerrarModal('modalSeleccion')">&times;</span>
+        <h3 style="text-align: center; margin-bottom: 25px; color: #1e293b;">¿A quién registraremos hoy?</h3>
+        
+        <div class="selection-cards-container">
+            <div class="selection-card" onclick="cambiarModal('modalSeleccion', 'modalExistente')">
+                <div class="card-icon" style="background: #e0f2fe; color: #0284c7;">
+                    <i class="fa-solid fa-user-check"></i>
+                </div>
+                <h4>Paciente Existente</h4>
+                <p>Buscar en el expediente y agendar nueva cita o seguimiento.</p>
+            </div>
+
+            <div class="selection-card" onclick="cambiarModal('modalSeleccion', 'modalNuevo')">
+                <div class="card-icon" style="background: #dcfce7; color: #16a34a;">
+                    <i class="fa-solid fa-user-plus"></i>
+                </div>
+                <h4>Paciente Nuevo</h4>
+                <p>Crear un nuevo expediente clínico para un paciente adulto.</p>
+            </div>
+
+            <div class="selection-card" onclick="abrirRegistroMenor()">
+                <div class="card-icon" style="background: #fef3c7; color: #d97706;">
+                    <i class="fa-solid fa-child"></i>
+                </div>
+                <h4>Menor de Edad</h4>
+                <p>Registrar a un menor incluyendo obligatoriamente los datos del tutor.</p>
+            </div>
         </div>
     </div>
 </div>
@@ -82,6 +93,16 @@
     <div class="custom-modal-content large">
         <span class="close-btn" onclick="cerrarModal('modalNuevo')">&times;</span>
         <h3>Registrar paciente y cita</h3>
+        @if ($errors->any())
+    <div style="background: #fee2e2; color: #991b1b; padding: 12px; border-radius: 6px; margin-bottom: 15px; border: 1px solid #f87171;">
+        <p style="margin: 0; font-weight: bold;">Por favor, corrige los siguientes errores:</p>
+        <ul style="margin: 5px 0 0 20px; font-size: 0.9em;">
+            @foreach ($errors->all() as $error)
+                <li>{{ $error }}</li>
+            @endforeach
+        </ul>
+    </div>
+@endif
         
         <form action="{{ route('pacientes.store') }}" method="POST" id="formNuevo">
             @csrf
@@ -95,7 +116,7 @@
                     <input type="text" name="apellido_paterno" maxlength="50" required value="{{ old('apellido_paterno') }}">
                 </div>
                 <div class="form-group">
-                    <label>Apellido Materno</label>
+                    <label>Apellido Materno *</label>
                     <input type="text" name="apellido_materno" maxlength="50" value="{{ old('apellido_materno') }}">
                 </div>
             </div>
@@ -152,19 +173,41 @@
             <div class="atencion-selector" style="margin: 20px 0; padding: 15px; background: #f8fafc; border-radius: 8px; border: 1px solid #e2e8f0;">
                 <label style="font-weight: bold; display: block; margin-bottom: 10px;">¿A qué viene hoy? *</label>
                 <div style="display: flex; gap: 20px; margin-bottom: 15px;">
-                    <label><input type="radio" name="tipo_atencion" value="tratamiento" onclick="mostrarOpcionesAtencion('tratamiento')" required> Nuevo Plan</label>
-                    <label><input type="radio" name="tipo_atencion" value="servicio" onclick="mostrarOpcionesAtencion('servicio')"> Servicio Rápido</label>
+                    <label>
+    <input type="radio" name="tipo_atencion" value="tratamiento" 
+    onclick="mostrarOpcionesAtencion('tratamiento')" required
+    {{ old('tipo_atencion') == 'tratamiento' ? 'checked' : '' }}> Nuevo Plan
+</label>
+<label>
+    <input type="radio" name="tipo_atencion" value="servicio" 
+    onclick="mostrarOpcionesAtencion('servicio')"
+    {{ old('tipo_atencion') == 'servicio' ? 'checked' : '' }}> Servicio Rápido
+</label>
                 </div>
 
                 <div id="contenedor_tratamiento" style="display: none;">
-                    <label>Seleccione el Tratamiento:</label>
-                    <select name="id_cat_tratamiento" id="select_tratamiento" class="form-control" onchange="consultarDuracionDB('tratamiento', this.value)">
-                        <option value="">-- Seleccionar --</option>
-                        @foreach($catTratamientos as $t)
-                            <option value="{{ $t->id_cat_tratamientos }}">{{ $t->nombre }}</option>
-                        @endforeach
-                    </select>
-                </div>
+    <label>Seleccione el Tratamiento:</label>
+    <select name="id_cat_tratamiento" id="select_tratamiento" class="form-control" onchange="consultarDuracionDB('tratamiento', this.value)">
+        <option value="">-- Seleccionar --</option>
+        @foreach($catTratamientos as $t)
+            <option value="{{ $t->id_cat_tratamientos }}">{{ $t->nombre }}</option>
+        @endforeach
+    </select>
+
+    <div class="form-group" style="margin-top: 12px;">
+        <label>Precio Estimado (Opcional)</label>
+        <div style="display: flex; align-items: center; gap: 5px;">
+            <span style="font-weight: bold;">$</span>
+            <input type="number" name="precio_estimado" id="precio_estimado_input" step="0.01" class="form-control" placeholder="0.00">
+        </div>
+        <small style="color: #6c757d;">Presupuesto global aproximado.</small>
+    </div>
+
+    <div class="form-group" style="margin-top: 12px;">
+        <label>Diagnóstico Inicial / Notas del Plan (Opcional)</label>
+        <textarea name="diagnostico_inicial" class="form-control" rows="2" placeholder="Ej: Paciente requiere ortodoncia por apiñamiento severo..."></textarea>
+    </div>
+</div>
 
                 <div id="contenedor_servicio" style="display: none;">
                     <label>Seleccione el Servicio:</label>
@@ -189,10 +232,12 @@
                 <div class="form-group">
                     <label>Duración sugerida (min)</label>
                     <input type="number" id="duracion_sugerida" value="0" readonly style="background-color: #f8f9fa; cursor: not-allowed;">
+                    <small style="color: #6c757d;">* Según catálogo</small>
                 </div>
                 <div class="form-group">
-                    <label>Duración real (min) *</label>
+                    <label>Duración real de la cita (min) *</label>
                     <input type="number" name="duracion" id="duracion_real" required>
+                    <small style="color: #6c757d;">* Tiempo que se bloqueará en la agenda</small>
                 </div>
             </div>
 
@@ -212,35 +257,81 @@
     <div class="custom-modal-content large">
         <span class="close-btn" onclick="cerrarModal('modalExistente')">&times;</span>
         <h3>Registrar cita – Paciente existente</h3>
+        @if ($errors->any())
+    <div style="background: #fee2e2; color: #991b1b; padding: 12px; border-radius: 6px; margin-bottom: 15px; border: 1px solid #f87171;">
+        <p style="margin: 0; font-weight: bold;">Por favor, corrige los siguientes errores:</p>
+        <ul style="margin: 5px 0 0 20px; font-size: 0.9em;">
+            @foreach ($errors->all() as $error)
+                <li>{{ $error }}</li>
+            @endforeach
+        </ul>
+    </div>
+@endif
         <form action="{{ route('pacientes.store_cita_existente') }}" method="POST" id="formExistente">
             @csrf
             <div class="form-row">
                 <div class="form-group full-width">
                     <label>Buscar paciente *</label>
-                    <select name="id_paciente" class="form-control" required style="width: 100%">
-                        <option value="">-- Seleccione --</option>
-                        @foreach($pacientes as $p)
-                            <option value="{{ $p->id_paciente }}" {{ old('id_paciente') == $p->id_paciente ? 'selected' : '' }}>{{ $p->nombre }} {{ $p->apellido_paterno }}</option>
-                        @endforeach
-                    </select>
+                    <select name="id_paciente" class="form-control" required style="width: 100%" onchange="actualizarTratamientosAlCambiarPaciente()">
+    <option value="">-- Seleccione --</option>
+    @foreach($pacientes as $p)
+        <option value="{{ $p->id_paciente }}" {{ old('id_paciente') == $p->id_paciente ? 'selected' : '' }}>
+            {{ $p->nombre }} {{ $p->apellido_paterno }}
+        </option>
+    @endforeach
+</select>
                 </div>
             </div>
             <div class="atencion-selector" style="margin: 20px 0; padding: 15px; background: #f0fdf4; border-radius: 8px; border: 1px solid #bbf7d0;">
-                <label style="font-weight: bold; display: block; margin-bottom: 10px;">Tipo de atención *</label>
-                <div style="display: flex; gap: 20px;">
-                    <label><input type="radio" name="tipo_atencion" value="tratamiento" onclick="mostrarOpcionesExistente('tratamiento')" required> Seguimiento</label>
-                    <label><input type="radio" name="tipo_atencion" value="servicio" onclick="mostrarOpcionesExistente('servicio')"> Servicio Rápido</label>
-                </div>
-                <div id="contenedor_tratamiento_ex" style="display: none; margin-top: 15px;">
-                    <select name="id_cat_tratamiento" id="select_tratamiento_ex" class="form-control"><option value="">-- Seleccionar --</option></select>
-                </div>
-                <div id="contenedor_servicio_ex" style="display: none; margin-top: 15px;">
-                    <select name="id_cat_servicio" class="form-control" onchange="consultarDuracionDB('servicio', this.value)">
-                        <option value="">-- Seleccionar Servicio --</option>
-                        @foreach($catServicios as $s) <option value="{{ $s->id_cat_servicio }}">{{ $s->nombre }}</option> @endforeach
-                    </select>
-                </div>
-            </div>
+    <label style="font-weight: bold; display: block; margin-bottom: 10px;">Tipo de atención *</label>
+    <div style="display: flex; gap: 20px;">
+        <label>
+            <input type="radio" name="tipo_atencion" value="seguimiento" onclick="mostrarOpcionesExistente('seguimiento')" required> Seguimiento
+        </label>
+        <label>
+            <input type="radio" name="tipo_atencion" value="nuevo_tratamiento" onclick="mostrarOpcionesExistente('nuevo_tratamiento')"> Nuevo Tratamiento
+        </label>
+        <label>
+            <input type="radio" name="tipo_atencion" value="servicio" onclick="mostrarOpcionesExistente('servicio')"> Servicio Rápido
+        </label>
+    </div>
+
+    <div id="contenedor_seguimiento_ex" style="display: none; margin-top: 15px;">
+        <label>Seleccione el tratamiento actual:</label>
+        <select name="id_tratamiento_existente" id="select_tratamiento_ex" class="form-control">
+            <option value="">-- Seleccionar --</option>
+        </select>
+    </div>
+
+    <div id="contenedor_nuevo_plan_ex" style="display: none; margin-top: 15px;">
+        <label>Seleccione el Nuevo Tratamiento:</label>
+        <select name="id_cat_tratamiento_nuevo" class="form-control" onchange="consultarDuracionDB('tratamiento', this.value)">
+            <option value="">-- Seleccionar del catálogo --</option>
+            @foreach($catTratamientos as $t)
+                <option value="{{ $t->id_cat_tratamientos }}">{{ $t->nombre }}</option>
+            @endforeach
+        </select>
+        
+        <div class="form-group" style="margin-top: 10px;">
+            <label>Precio Estimado (Opcional)</label>
+            <input type="number" name="precio_estimado_nuevo" step="0.01" class="form-control" placeholder="0.00">
+        </div>
+        
+        <div class="form-group" style="margin-top: 10px;">
+            <label>Diagnóstico Inicial (Opcional)</label>
+            <textarea name="diagnostico_nuevo" class="form-control" rows="2" placeholder="Notas sobre este nuevo problema..."></textarea>
+        </div>
+    </div>
+
+    <div id="contenedor_servicio_ex" style="display: none; margin-top: 15px;">
+        <select name="id_cat_servicio" class="form-control" onchange="consultarDuracionDB('servicio', this.value)">
+            <option value="">-- Seleccionar Servicio --</option>
+            @foreach($catServicios as $s) 
+                <option value="{{ $s->id_cat_servicio }}">{{ $s->nombre }}</option> 
+            @endforeach
+        </select>
+    </div>
+</div>
             <div class="form-row">
                 <div class="form-group full-width">
                     <div id="calendarExistente" style="min-height: 400px; border: 1px solid #ccc; background: white;"></div>
@@ -253,7 +344,7 @@
         <input type="number" id="duracion_sugerida_ex" value="" readonly style="background-color: #f8f9fa; cursor: not-allowed; border: 1px solid #dee2e6;">
         <small style="color: #6c757d;">* Según catálogo</small>
                 </div>
-                <div class="form-group"><label>Duración real (min) *</label><input type="number" name="duracion" id="duracion_real_ex" required></div>
+                <div class="form-group"><label>Duración real de la cita (min) *</label><input type="number" name="duracion" id="duracion_real_ex" required><small style="color: #6c757d;">* Tiempo que se bloqueará en la agenda</small></div>
                 <div class="form-group"><label>Motivo *</label><input type="text" name="motivo_consulta" required></div>
             </div>
             <button type="submit" class="btn-primary" style="width: 100%;">Guardar Cita</button>
@@ -266,6 +357,7 @@
 const validaciones = {
     nombre: (v) => v.trim().length >= 2 || "El nombre es obligatorio (min 2 letras)",
     apellido_paterno: (v) => v.trim().length >= 2 || "El apellido es obligatorio",
+    apellido_materno: (v) => v.trim().length >= 2 || "El apellido es obligatorio",
     email: (v) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v) || "Ingrese un correo electrónico válido",
     curp: (v) => v === "" || /^[A-Z]{4}[0-9]{6}[H,M][A-Z]{5}[0-9,A-Z][0-9]$/.test(v) || "Formato de CURP inválido (18 caracteres)",
     codigo_postal: (v) => /^[0-9]{5}$/.test(v) || "El CP debe tener 5 dígitos",
@@ -279,6 +371,8 @@ const validaciones = {
     alergias: (v) => v.trim() !== "" || "Especifique alergias o escriba 'Ninguna'",
     motivo_consulta: (v) => v.trim().length > 3 || "Especifique el motivo",
     //duracion: (v) => (parseInt(v) >= 5) || "La duración mínima es de 5 minutos"
+    precio_estimado: (v) => v === "" || parseFloat(v) >= 0 || "El precio no puede ser negativo",
+    diagnostico_inicial: (v) => true, // Siempre es válido aunque esté vacío
 };
 
 function initRealTimeValidation() {
@@ -375,8 +469,10 @@ function cerrarModal(id) {
         const contenedores = [
             'contenedor_tratamiento', 
             'contenedor_servicio', 
-            'contenedor_tratamiento_ex', 
-            'contenedor_servicio_ex'
+            'contenedor_seguimiento_ex', 
+            'contenedor_servicio_ex',
+            'contenedor_nuevo_plan_ex',
+            'precio_estimado'
         ];
         contenedores.forEach(c => {
             const el = document.getElementById(c);
@@ -535,6 +631,7 @@ function soloLetras(e) {
 }
 
 // --- INICIALIZACIÓN FINAL ---
+// --- INICIALIZACIÓN FINAL ACTUALIZADA ---
 document.addEventListener('DOMContentLoaded', function() {
     initRealTimeValidation();
     
@@ -544,31 +641,73 @@ document.addEventListener('DOMContentLoaded', function() {
         if(input) input.onkeypress = soloLetras;
     });
 
-    // Reabrir modal si hay errores de Laravel
+    // --- Lógica para reabrir modal con errores de Laravel ---
     @if ($errors->any())
-        @if(old('id_paciente')) abrirModal('modalExistente');
-        @else abrirModal('modalNuevo');
+        @if(old('id_paciente')) 
+            abrirModal('modalExistente');
+            // Si el usuario ya había seleccionado un tipo, lo mostramos
+            @if(old('tipo_atencion'))
+                setTimeout(() => mostrarOpcionesExistente('{{ old("tipo_atencion") }}'), 300);
+            @endif
+        @else 
+            abrirModal('modalNuevo');
+            // Si el usuario ya había seleccionado un tipo, lo mostramos
+            @if(old('tipo_atencion'))
+                setTimeout(() => mostrarOpcionesAtencion('{{ old("tipo_atencion") }}'), 300);
+            @endif
         @endif
     @endif
 });
 
 // Función para cargar tratamientos (tu original)
 function mostrarOpcionesExistente(tipo) {
-    const divT = document.getElementById('contenedor_tratamiento_ex');
-    const divS = document.getElementById('contenedor_servicio_ex');
+    const divSeguimiento = document.getElementById('contenedor_seguimiento_ex');
+    const divNuevoPlan = document.getElementById('contenedor_nuevo_plan_ex');
+    const divServicio = document.getElementById('contenedor_servicio_ex');
     const idP = document.querySelector('select[name="id_paciente"]').value;
 
-    if (tipo === 'tratamiento') {
-        if (!idP) { alert("Seleccione paciente"); return; }
-        divT.style.display = 'block'; divS.style.display = 'none';
+    // Resetear visibilidad
+    divSeguimiento.style.display = 'none';
+    divNuevoPlan.style.display = 'none';
+    divServicio.style.display = 'none';
+
+    if (tipo === 'seguimiento') {
+        if (!idP) { 
+            alert("Por favor, seleccione un paciente primero.");
+            document.querySelectorAll('input[name="tipo_atencion"]').forEach(r => r.checked = false);
+            return; 
+        }
+        divSeguimiento.style.display = 'block';
         const sel = document.getElementById('select_tratamiento_ex');
-        fetch(`/pacientes/${idP}/tratamientos-activos`).then(r => r.json()).then(data => {
-            sel.innerHTML = '<option value="">-- Seleccionar --</option>';
-            data.forEach(t => sel.innerHTML += `<option value="${t.id_tratamiento}">${t.nombre}</option>`);
-        });
-    } else {
-        divT.style.display = 'none'; divS.style.display = 'block';
+        fetch(`/pacientes/${idP}/tratamientos-activos`)
+            .then(r => r.json())
+            .then(data => {
+                sel.innerHTML = '<option value="">-- Seleccionar Tratamiento en Curso --</option>';
+                data.forEach(t => sel.innerHTML += `<option value="${t.id_tratamiento}">${t.nombre}</option>`);
+            });
+    } else if (tipo === 'nuevo_tratamiento') {
+        divNuevoPlan.style.display = 'block';
+    } else if (tipo === 'servicio') {
+        divServicio.style.display = 'block';
     }
 }
+
+function actualizarTratamientosAlCambiarPaciente() {
+    // 1. Verificamos si el radio de "seguimiento" está seleccionado
+    const radioSeguimiento = document.querySelector('input[name="tipo_atencion"][value="seguimiento"]');
+    
+    if (radioSeguimiento && radioSeguimiento.checked) {
+        // 2. Si está seleccionado, llamamos a tu función original para que refresque la lista
+        mostrarOpcionesExistente('seguimiento');
+    }
+}
+
+document.addEventListener('input', function (event) {
+    if (event.target.tagName.toLowerCase() !== 'textarea') return;
+    
+    // Auto-ajuste de altura
+    event.target.style.height = 'auto';
+    event.target.style.height = (event.target.scrollHeight) + 'px';
+}, false);
 </script>
 @endsection

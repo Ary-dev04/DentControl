@@ -130,7 +130,7 @@
         padding: 20px;
         border-radius: 12px;
         width: 90%;
-        max-width: 500px;
+        max-width: 600px;
         position: relative;
     }
     .custom-modal-content.large { max-width: 900px; max-height: 90vh; overflow-y: auto; }
@@ -238,4 +238,111 @@
     font-size: 0.75rem;
     font-weight: bold;
     overflow: hidden;
+}
+
+.error-message {
+    color: #dc3545;
+    font-size: 0.75rem;
+    margin-top: 4px;
+    display: none;
+}
+.input-error {
+    border-color: #dc3545 !important;
+}
+.input-success {
+    border-color: #198754 !important;
+}
+
+/* Estilo para los contenedores de texto largo */
+.form-group textarea.form-control {
+    width: 100%;
+    padding: 12px 15px;
+    border: 1px solid #ced4da;
+    border-radius: 8px;
+    background-color: #ffffff;
+    font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+    font-size: 0.95rem;
+    line-height: 1.5;
+    color: #495057;
+    resize: vertical; /* Solo permite estirar hacia abajo */
+    transition: border-color 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+    min-height: 100px;
+}
+
+/* Efecto cuando el doctor está escribiendo */
+.form-group textarea.form-control:focus {
+    color: #212529;
+    background-color: #fff;
+    border-color: #86b7fe;
+    outline: 0;
+    box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.15);
+}
+
+/* Placeholder más sutil */
+.form-group textarea.form-control::placeholder {
+    color: #adb5bd;
+    font-style: italic;
+    font-size: 0.9rem;
+}
+
+/* Contenedor de las tarjetas */
+.selection-cards-container {
+    display: flex;
+    gap: 20px;
+    justify-content: center;
+    padding: 10px;
+}
+
+/* Estilo base de la tarjeta */
+.selection-card {
+    flex: 1;
+    background: #ffffff;
+    border: 2px solid #f1f5f9;
+    border-radius: 12px;
+    padding: 25px 20px;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+/* Efecto Hover (pasar el mouse) */
+.selection-card:hover {
+    border-color: #3b82f6;
+    transform: translateY(-5px);
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+}
+
+/* Iconos circulares */
+.card-icon {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+    margin-bottom: 15px;
+}
+
+.selection-card h4 {
+    margin: 0 0 10px 0;
+    color: #1e293b;
+    font-size: 1.1rem;
+}
+
+.selection-card p {
+    margin: 0;
+    color: #64748b;
+    font-size: 0.85rem;
+    line-height: 1.4;
+}
+
+/* Ajuste para móviles */
+@media (max-width: 600px) {
+    .selection-cards-container {
+        flex-direction: column;
+    }
 }
