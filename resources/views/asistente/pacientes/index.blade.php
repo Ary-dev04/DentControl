@@ -203,10 +203,10 @@
         <div class="form-group" style="flex: 2;">
     <label>Nombre Completo *</label>
     <input type="text" name="nombre_tutor" id="input_nombre_tutor" 
-           placeholder="Ej. María Pérez García"
-           onkeypress="return soloLetras(event)"
-           oninput="controlarEspacios(this); this.value = this.value.replace(/[0-9]/g, '')"
-           onblur="limpiarEspacios(this)">
+        placeholder="Ej. María Pérez García"
+        onkeypress="return soloLetras(event)"
+        oninput="controlarEspacios(this); this.value = this.value.replace(/[0-9]/g, '')"
+        onblur="limpiarEspacios(this)">
 </div>
         <div class="form-group">
             <label>Parentesco *</label>
@@ -221,8 +221,8 @@
         <div class="form-group">
             <label>Teléfono Tutor *</label>
             <input type="text" name="telefono_tutor" id="input_tel_tutor" 
-                   maxlength="10" 
-                   oninput="this.value = this.value.replace(/[^0-9]/g, '')">
+                maxlength="10" 
+                oninput="this.value = this.value.replace(/[^0-9]/g, '')">
         </div>
     </div>
 </div>
@@ -410,7 +410,6 @@
 </div>
 
 <script>
-// --- LÓGICA DE VALIDACIÓN EN TIEMPO REAL ---
 // --- LÓGICA DE VALIDACIÓN EN TIEMPO REAL ---
 const validaciones = {
     nombre: (v) => v.trim().length >= 2 || "El nombre es obligatorio (min 2 letras)",
@@ -877,8 +876,9 @@ document.addEventListener('input', function (event) {
 // --- FUNCIONES DE APERTURA DE REGISTRO CORREGIDAS ---
 
 function abrirRegistroAdulto() {
+    document.querySelectorAll('.alert-danger').forEach(a => a.remove());
     const form = document.getElementById('formNuevo'); // 1. Primero obtener el elemento
-    if (!form) return;
+    //if (!form) return;
 
     prepararFormulario(form); // 2. Ahora sí, limpiar
     cambiarModal('modalSeleccion', 'modalNuevo'); // 3. Cambiar el modal
@@ -902,8 +902,9 @@ function abrirRegistroAdulto() {
 }
 
 function abrirRegistroMenor() {
+    document.querySelectorAll('.alert-danger').forEach(a => a.remove());
     const form = document.getElementById('formNuevo'); // 1. Primero obtener el elemento
-    if (!form) return;
+    //if (!form) return;
 
     prepararFormulario(form); // 2. Ahora sí, limpiar
     cambiarModal('modalSeleccion', 'modalNuevo'); // 3. Cambiar el modal
@@ -930,12 +931,13 @@ function abrirRegistroMenor() {
 // --- FUNCIONES AUXILIARES PARA EVITAR REPETIR CÓDIGO ---
 
 function prepararFormulario(form) {
+    if (!form) return;
     // 1. El reset() ya limpia la mayoría de los campos a su estado original
     form.reset();
 
     // 2. Limpiar clases y valores, pero PROTEGIENDO el token
     form.querySelectorAll('input, select, textarea').forEach(i => {
-        i.classList.remove('input-error', 'input-success', 'touched');
+        i.classList.remove('input-error', 'input-success', 'touched', 'is-invalid');
         
         // NO borramos el valor si es el token CSRF o el campo _method
         if (i.name !== '_token' && i.name !== '_method') {
@@ -953,10 +955,8 @@ function prepararFormulario(form) {
     });
 
     // 4. Eliminar alertas de Laravel (tu lógica original)
-    const alertasGlobales = document.querySelectorAll('.alert-danger, .text-danger');
-    alertasGlobales.forEach(alerta => {
-        alerta.remove();
-    });
+    const erroresLaravel = form.querySelectorAll('.invalid-feedback, .text-danger, .alert-danger');
+    erroresLaravel.forEach(e => e.remove());
 }
 
 function validarMotivo(input) {
