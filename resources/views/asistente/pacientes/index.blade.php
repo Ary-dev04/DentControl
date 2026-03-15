@@ -529,81 +529,51 @@ function abrirModal(id) {
 
 function cerrarModal(id) {
     const modal = document.getElementById(id);
-    if (modal) {
-        modal.style.display = 'none';
+    if (!modal) return;
 
-        // 1. Buscar el formulario dentro del modal
-        const formulario = modal.querySelector('form');
-        
-        if (formulario) {
-            // 2. Resetear todos los valores de los inputs/selects
-            formulario.reset();
+    modal.style.display = 'none';
 
-            // Forzar vaciado de campos de duración
-            const fieldsToClear = ['duracion_sugerida', 'duracion_real', 'duracion_real_ex'];
-            fieldsToClear.forEach(fieldId => {
-                const el = document.getElementById(fieldId);
-                if (el) el.value = ""; 
-            });
+    // 1. Limpiar el formulario y errores de Laravel (Observación 1 y 2)
+    const formulario = modal.querySelector('form');
+    if (formulario) {
+        prepararFormulario(formulario);
+    }
 
-            // 3. Limpiar clases de validación (bordes rojos/verdes)
-            const inputs = formulario.querySelectorAll('input, select, textarea');
-            inputs.forEach(input => {
-                input.value = "";
-                input.classList.remove('input-error', 'input-success');
-            });
+    // 2. Limpiar rastros de calendario e información visual
+    const infoFechas = [
+        'info-fecha-calendarNuevo', 
+        'info-fecha-calendarExistente',
+        'info-fecha-calendarNuevo_ex' // por si acaso
+    ];
+    infoFechas.forEach(idInfo => {
+        const el = document.getElementById(idInfo);
+        if (el) el.innerHTML = '';
+    });
 
-            // 4. Ocultar todos los mensajes de error en tiempo real
-            const errorMessages = formulario.querySelectorAll('.error-message');
-            errorMessages.forEach(msg => {
-                msg.style.display = 'none';
-                msg.textContent = '';
-            });
+    // 3. Limpiar inputs específicos que a veces quedan fuera del reset
+    const camposExtra = [
+        'fechaCitaNuevo', 'fechaCitaExistente', 
+        'duracion_sugerida', 'duracion_real', 
+        'duracion_sugerida_ex', 'duracion_real_ex'
+    ];
+    camposExtra.forEach(idField => {
+        const el = document.getElementById(idField);
+        if (el) {
+            el.value = "";
+            el.classList.remove('input-error', 'input-success');
         }
+    });
 
-        // 5. Limpiar rastros específicos de la cita y calendario
-        // Limpiar los inputs ocultos de fecha
-        if (document.getElementById('fechaCitaNuevo')) document.getElementById('fechaCitaNuevo').value = '';
-        if (document.getElementById('fechaCitaExistente')) document.getElementById('fechaCitaExistente').value = '';
-
-        // Limpiar los textos de "Seleccionado: lunes 12..."
-        const infoFechaNuevo = document.getElementById('info-fecha-calendarNuevo');
-        if (infoFechaNuevo) infoFechaNuevo.innerHTML = '';
-        
-        const infoFechaExistente = document.getElementById('info-fecha-calendarExistente');
-        if (infoFechaExistente) infoFechaExistente.innerHTML = '';
-
-        // 6. Resetear la visibilidad de los contenedores dinámicos
-        const contenedores = [
-            'contenedor_tratamiento', 
-            'contenedor_servicio', 
-            'contenedor_seguimiento_ex', 
-            'contenedor_servicio_ex',
-            'contenedor_nuevo_plan_ex',
-            'precio_estimado',
-            'seccion_tutor'
-        ];
-        contenedores.forEach(c => {
-            const el = document.getElementById(c);
-            if (el) el.style.display = 'none';
-        });
-
-        // Dentro de tu función cerrarModal(id)
-const idsALimpiar = [
-    'duracion_sugerida', 
-    'duracion_real', 
-    'duracion_sugerida_ex', 
-    'duracion_real_ex'
-];
-
-idsALimpiar.forEach(fieldId => {
-    const el = document.getElementById(fieldId);
-    if (el) {
-        el.value = "";
-        el.classList.remove('input-error', 'input-success');
-    }
-});
-    }
+    // 4. Resetear visibilidad de contenedores dinámicos
+    const contenedores = [
+        'contenedor_tratamiento', 'contenedor_servicio', 
+        'contenedor_seguimiento_ex', 'contenedor_servicio_ex',
+        'contenedor_nuevo_plan_ex', 'precio_estimado', 'seccion_tutor'
+    ];
+    contenedores.forEach(c => {
+        const el = document.getElementById(c);
+        if (el) el.style.display = 'none';
+    });
 }
 
 document.addEventListener('keydown', function(event) {
@@ -818,6 +788,14 @@ document.addEventListener('DOMContentLoaded', function() {
             });
         }
     });
+
+   // Seleccionamos específicamente el select que está dentro del modal de Paciente Existente
+const selectPacienteEx = document.querySelector('#modalExistente select[name="id_paciente"]');
+if (selectPacienteEx) {
+    selectPacienteEx.addEventListener('change', function() {
+        actualizarTratamientosAlCambiarPaciente();
+    });
+}
 });
 
 // Función para cargar tratamientos (tu original)
@@ -825,9 +803,11 @@ function mostrarOpcionesExistente(tipo) {
     const divSeguimiento = document.getElementById('contenedor_seguimiento_ex');
     const divNuevoPlan = document.getElementById('contenedor_nuevo_plan_ex');
     const divServicio = document.getElementById('contenedor_servicio_ex');
-    const idP = document.querySelector('select[name="id_paciente"]').value;
+    
+    // Usamos el ID del select específico para paciente existente
+    const selectPac = document.querySelector('#modalExistente select[name="id_paciente"]');
+    const idP = selectPac ? selectPac.value : '';
 
-    // Resetear visibilidad
     divSeguimiento.style.display = 'none';
     divNuevoPlan.style.display = 'none';
     divServicio.style.display = 'none';
@@ -835,17 +815,32 @@ function mostrarOpcionesExistente(tipo) {
     if (tipo === 'seguimiento') {
         if (!idP) { 
             alert("Por favor, seleccione un paciente primero.");
+            // Desmarcar radios si no hay paciente
             document.querySelectorAll('input[name="tipo_atencion"]').forEach(r => r.checked = false);
             return; 
         }
+
         divSeguimiento.style.display = 'block';
         const sel = document.getElementById('select_tratamiento_ex');
+if (sel) sel.innerHTML = '<option value="">-- Cargando tratamientos... --</option>';
+
         fetch(`/pacientes/${idP}/tratamientos-activos`)
             .then(r => r.json())
             .then(data => {
-                sel.innerHTML = '<option value="">-- Seleccionar Tratamiento en Curso --</option>';
-                data.forEach(t => sel.innerHTML += `<option value="${t.id_tratamiento}">${t.nombre}</option>`);
+                if (data.length === 0) {
+                    sel.innerHTML = '<option value="">-- Sin tratamientos activos --</option>';
+                } else {
+                    sel.innerHTML = '<option value="">-- Seleccionar Tratamiento en Curso --</option>';
+                    data.forEach(t => {
+                        sel.innerHTML += `<option value="${t.id_tratamiento}">${t.nombre}</option>`;
+                    });
+                }
+            })
+            .catch(err => {
+                console.error("Error:", err);
+                sel.innerHTML = '<option value="">-- Error al cargar --</option>';
             });
+
     } else if (tipo === 'nuevo_tratamiento') {
         divNuevoPlan.style.display = 'block';
     } else if (tipo === 'servicio') {
@@ -854,11 +849,15 @@ function mostrarOpcionesExistente(tipo) {
 }
 
 function actualizarTratamientosAlCambiarPaciente() {
-    // 1. Verificamos si el radio de "seguimiento" está seleccionado
-    const radioSeguimiento = document.querySelector('input[name="tipo_atencion"][value="seguimiento"]');
+    // 1. Buscamos el radio DENTRO del modal existente usando el nombre correcto: tipo_atencion_ex
+    const modalEx = document.getElementById('modalExistente');
+    if (!modalEx) return;
+
+    // IMPORTANTE: Tu HTML usa "tipo_atencion_ex" para los radios de este modal
+    const radioSeguimiento = modalEx.querySelector('input[name="tipo_atencion_ex"][value="seguimiento"]');
     
+    // 2. Si el modo seguimiento está activo, refrescamos la lista
     if (radioSeguimiento && radioSeguimiento.checked) {
-        // 2. Si está seleccionado, llamamos a tu función original para que refresque la lista
         mostrarOpcionesExistente('seguimiento');
     }
 }
@@ -874,24 +873,26 @@ document.addEventListener('input', function (event) {
 
 // --- FUNCIONES DE APERTURA DE REGISTRO ---
 
+// --- FUNCIONES DE APERTURA DE REGISTRO CORREGIDAS ---
+
 function abrirRegistroAdulto() {
-    cambiarModal('modalSeleccion', 'modalNuevo');
-    
-    const form = document.getElementById('formNuevo');
+    const form = document.getElementById('formNuevo'); // 1. Primero obtener el elemento
     if (!form) return;
 
-    // 1. Resetear formulario y limpiar estilos
-    prepararFormulario(form);
-
-    // 2. Configurar Fechas: Mínimo 18 años cumplidos hacia atrás
+    prepararFormulario(form); // 2. Ahora sí, limpiar
+    cambiarModal('modalSeleccion', 'modalNuevo'); // 3. Cambiar el modal
+    
+    // 4. Configurar Fechas
     const hoy = new Date();
     const hace18Anios = new Date(hoy.getFullYear() - 18, hoy.getMonth(), hoy.getDate()).toISOString().split('T')[0];
     
     const inputFecha = form.querySelector('input[name="fecha_nacimiento"]');
-    inputFecha.max = hace18Anios; // No puede ser más joven que 18 años
-    inputFecha.min = "1920-01-01";
+    if (inputFecha) {
+        inputFecha.max = hace18Anios;
+        inputFecha.min = "1920-01-01";
+    }
 
-    // 3. Manejo de la sección del tutor (OCULTAR)
+    // 5. Tutor
     const seccionTutor = document.getElementById('seccion_tutor');
     if (seccionTutor) {
         seccionTutor.style.display = 'none';
@@ -900,24 +901,24 @@ function abrirRegistroAdulto() {
 }
 
 function abrirRegistroMenor() {
-    cambiarModal('modalSeleccion', 'modalNuevo');
-    
-    const form = document.getElementById('formNuevo');
+    const form = document.getElementById('formNuevo'); // 1. Primero obtener el elemento
     if (!form) return;
 
-    // 1. Resetear formulario y limpiar estilos
-    prepararFormulario(form);
+    prepararFormulario(form); // 2. Ahora sí, limpiar
+    cambiarModal('modalSeleccion', 'modalNuevo'); // 3. Cambiar el modal
 
-    // 2. Configurar Fechas: Máximo 18 años (nacidos de hace 18 años a hoy)
+    // 4. Configurar Fechas
     const hoy = new Date();
     const hace18Anios = new Date(hoy.getFullYear() - 18, hoy.getMonth(), hoy.getDate()).toISOString().split('T')[0];
     const fechaHoy = hoy.toISOString().split('T')[0];
 
     const inputFecha = form.querySelector('input[name="fecha_nacimiento"]');
-    inputFecha.min = hace18Anios; // No puede ser más viejo de 18 años
-    inputFecha.max = fechaHoy;    // No puede haber nacido en el futuro
+    if (inputFecha) {
+        inputFecha.min = hace18Anios;
+        inputFecha.max = fechaHoy;
+    }
 
-    // 3. Manejo de la sección del tutor (MOSTRAR)
+    // 5. Tutor
     const seccionTutor = document.getElementById('seccion_tutor');
     if (seccionTutor) {
         seccionTutor.style.display = 'block';
@@ -935,20 +936,24 @@ function prepararFormulario(form) {
     //form.querySelectorAll('input, select').forEach(i => {
       //  i.classList.remove('input-error', 'input-success');
     //});
-    // 1. Quitar clases de 'tocado' para que la validación no salte sola
-    form.querySelectorAll('input, select').forEach(i => {
+    // 1. Limpiar clases de colores y estados de validación JS
+    form.querySelectorAll('input, select, textarea').forEach(i => {
         i.classList.remove('input-error', 'input-success', 'touched');
+        i.value = ""; // Asegurar vacío total
     });
 
-    // 2. Ocultar spans de error
+    // 2. Ocultar spans de error en tiempo real (los de JS)
     form.querySelectorAll('.error-message').forEach(m => {
         m.style.display = 'none';
         m.textContent = '';
     });
 
-    // 3. Limpiar errores de Laravel (si existieran en el DOM)
-    const laravelErrors = form.querySelectorAll('.text-danger, .alert-danger');
-    laravelErrors.forEach(e => e.remove());
+    // 3. ¡IMPORTANTE! Eliminar mensajes de error de Laravel (Observación 1)
+    // Buscamos cualquier alerta de error que esté dentro o ARRIBA del formulario
+    const alertasGlobales = document.querySelectorAll('.alert-danger, .text-danger');
+    alertasGlobales.forEach(alerta => {
+        alerta.remove(); // Esto elimina el mensaje "The tipo atencion ex..."
+    });
 }
 
 function validarMotivo(input) {
@@ -1007,5 +1012,18 @@ function limpiarEmailFinal(input) {
     // 1. Asegura que no queden espacios (por si pegaron el texto)
     input.value = input.value.trim().toLowerCase(); // Los correos siempre se guardan mejor en minúsculas
 }
+
+// Detectar cambio de paciente para actualizar tratamientos automáticamente
+document.addEventListener('change', function(e) {
+    // Verificamos si el cambio fue en el select de paciente
+    if (e.target.name === 'id_paciente') {
+        // Buscamos el radio con el nombre correcto: tipo_atencion_ex
+        const radioSeguimiento = document.querySelector('input[name="tipo_atencion_ex"][value="seguimiento"]');
+        
+        if (radioSeguimiento && radioSeguimiento.checked) {
+            mostrarOpcionesExistente('seguimiento');
+        }
+    }
+});
 </script>
 @endsection
