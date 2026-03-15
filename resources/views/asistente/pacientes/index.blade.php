@@ -150,6 +150,7 @@
                 <div class="form-group">
                     <label>Sexo</label>
                     <select name="sexo">
+                        <option value="" disabled {{ old('sexo') ? '' : 'selected' }}>-- Seleccione --</option>
                         <option value="hombre" {{ old('sexo') == 'hombre' ? 'selected' : '' }}>Hombre</option>
                         <option value="mujer" {{ old('sexo') == 'mujer' ? 'selected' : '' }}>Mujer</option>
                     </select>
@@ -967,15 +968,25 @@ function validarMotivo(input) {
 }
 
 function gestionarAtributosTutor(esRequerido) {
-    // Campos del tutor
-    const camposTutor = ['input_nombre_tutor', 'select_parentesco', 'input_tel_tutor'];
-    camposTutor.forEach(id => {
-        const el = document.getElementById(id);
-        if (el) el.required = esRequerido;
+    // Asegúrate de que estos IDs coincidan EXACTAMENTE con los que pusiste en el HTML
+    const camposTutor = [
+        { id: 'input_nombre_tutor', name: 'nombre_tutor' },
+        { id: 'select_parentesco', name: 'parentesco' },
+        { id: 'input_tel_tutor', name: 'telefono_tutor' }
+    ];
+
+    camposTutor.forEach(campo => {
+        const el = document.getElementById(campo.id);
+        if (el) {
+            el.required = esRequerido;
+            // Si es adulto (no requerido), limpiamos el valor para que no mande basura
+            if (!esRequerido) el.value = ""; 
+        }
     });
 
     // El teléfono del paciente es obligatorio SOLO para adultos
-    const telPaciente = document.getElementById('tel_paciente');
+    // Verifica si el ID es 'tel_paciente' o 'telefono'
+    const telPaciente = document.querySelector('input[name="tel_paciente"]'); 
     if (telPaciente) {
         telPaciente.required = !esRequerido;
     }
