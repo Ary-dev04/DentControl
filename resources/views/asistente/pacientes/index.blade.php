@@ -930,30 +930,32 @@ function abrirRegistroMenor() {
 // --- FUNCIONES AUXILIARES PARA EVITAR REPETIR CÓDIGO ---
 
 function prepararFormulario(form) {
+    // 1. El reset() ya limpia la mayoría de los campos a su estado original
     form.reset();
-    // Limpiar mensajes de error
-    //form.querySelectorAll('.error-message').forEach(m => m.style.display = 'none');
-    // Limpiar clases de colores (rojo/verde)
-    //form.querySelectorAll('input, select').forEach(i => {
-      //  i.classList.remove('input-error', 'input-success');
-    //});
-    // 1. Limpiar clases de colores y estados de validación JS
+
+    // 2. Limpiar clases y valores, pero PROTEGIENDO el token
     form.querySelectorAll('input, select, textarea').forEach(i => {
         i.classList.remove('input-error', 'input-success', 'touched');
-        i.value = ""; // Asegurar vacío total
+        
+        // NO borramos el valor si es el token CSRF o el campo _method
+        if (i.name !== '_token' && i.name !== '_method') {
+            // Solo borramos valores de campos que no sean radios o checkboxes (el reset ya se encarga)
+            if (i.type !== 'radio' && i.type !== 'checkbox') {
+                i.value = "";
+            }
+        }
     });
 
-    // 2. Ocultar spans de error en tiempo real (los de JS)
+    // 3. Ocultar mensajes de error de JS
     form.querySelectorAll('.error-message').forEach(m => {
         m.style.display = 'none';
         m.textContent = '';
     });
 
-    // 3. ¡IMPORTANTE! Eliminar mensajes de error de Laravel (Observación 1)
-    // Buscamos cualquier alerta de error que esté dentro o ARRIBA del formulario
+    // 4. Eliminar alertas de Laravel (tu lógica original)
     const alertasGlobales = document.querySelectorAll('.alert-danger, .text-danger');
     alertasGlobales.forEach(alerta => {
-        alerta.remove(); // Esto elimina el mensaje "The tipo atencion ex..."
+        alerta.remove();
     });
 }
 
