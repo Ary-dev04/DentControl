@@ -86,7 +86,7 @@ class PacienteController extends Controller
         $id_usuario = Auth::id();
 
         try {
-            return DB::transaction(function () use ($request, $validated, $id_clinica, $id_usuario) {
+            return DB::transaction(function () use ($request, $validated, $id_clinica, $id_usuario, $esMenor) {
                 
                 // 1. Crear Paciente
                 $paciente = Paciente::create([
