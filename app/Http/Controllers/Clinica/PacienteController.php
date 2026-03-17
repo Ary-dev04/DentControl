@@ -221,8 +221,10 @@ class PacienteController extends Controller
                 $fecha = $dt->format('Y-m-d');
                 $hora  = $dt->format('H:i:s');
 
-                $id_tratamiento_rel = null;
-                $id_cat_servicio_rel = null;
+                //$id_tratamiento_rel = null;
+                //$id_cat_servicio_rel = null;
+                $id_tratamiento_final = null;
+                $id_servicio_final = null;
 
                 // LÓGICA SEGÚN EL TIPO DE ATENCIÓN
             if ($validated['tipo_atencion_ex'] === 'nuevo_tratamiento') {
@@ -243,8 +245,7 @@ class PacienteController extends Controller
                 // USAR EL QUE YA EXISTE
                 $id_tratamiento_final = $request->id_tratamiento_existente;
 
-            } else {
-                // ES UN SERVICIO RÁPIDO
+            } elseif ($validated['tipo_atencion_ex'] === 'servicio') {
                 $id_servicio_final = $request->id_cat_servicio_ex;
             }
 
