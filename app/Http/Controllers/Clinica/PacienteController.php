@@ -47,16 +47,19 @@ class PacienteController extends Controller
 
     public function store(Request $request)
     {
+        $esMenor = $request->filled('nombre_tutor');
+
         $validated = $request->validate([
             'nombre'           => 'required|string|max:50|regex:/^[a-zA-ZáéíóúÁÉÍÓÚñÑ ]+$/',
             'apellido_paterno' => 'required|string|max:50|regex:/^[a-zA-ZáéíóúÁÉÍÓÚñÑ ]+$/',
             'apellido_materno' => 'required|string|max:50|regex:/^[a-zA-ZáéíóúÁÉÍÓÚñÑ ]+$/',
             'fecha_nacimiento' => 'required|date|after:1900-01-01|before:today',
             'sexo'             => 'required|in:hombre,mujer',
-            'email'            => 'required|email|unique:paciente,email|max:100',
-            'telefono'         => 'required|digits:10',
+            'email'            => $esMenor ? 'nullable|email|max:100' : 'required|email|unique:paciente,email|max:100',
+            'telefono'         => $esMenor ? 'nullable|digits:10' : 'required|digits:10',
             'curp'             => ['required', 'string', 'size:18', 'unique:paciente,curp', 'regex:/^[A-Z]{4}[0-9]{6}[H,M][A-Z]{5}[0-9,A-Z][0-9]$/'],
-            'ocupacion'        => 'nullable|string|max:255',
+            'ocupacion'        => $esMenor ? 'nullable|string|max:255' : 'required|string|max:255',
+            'grado_estudio'    => $esMenor ? 'required|string|max:100' : 'nullable|string|max:100',
             'peso'             => 'required|numeric|between:0.5,500',
             'calle'            => 'required|string|max:255',
             'num_ext'          => 'required|alpha_num|max:10',
@@ -69,11 +72,14 @@ class PacienteController extends Controller
             'duracion'         => 'required|integer|min:5|max:480',
             'motivo_consulta'  => 'required|string|max:255',
             'tipo_atencion'    => 'required|in:tratamiento,servicio',
-            'alergias'         => 'required|string|max:500',
+            'tiene_alergias' => 'required|in:si,no',
+            'alergias' => 'required_if:tiene_alergias,si|max:255',
             'precio_estimado'  => 'nullable|numeric|min:0',
-            'nombre_tutor'    => 'nullable|string|max:100',
-            'parentesco_tutor'=> 'nullable|string|max:50',
-            'telefono_tutor'  => 'nullable|digits:10',
+
+            'nombre_tutor'     => $esMenor ? 'required|string|max:100' : 'nullable',
+            'parentesco_tutor' => $esMenor ? 'required|string|max:50' : 'nullable',
+            'telefono_tutor'   => $esMenor ? 'required|digits:10' : 'nullable',
+            'email_tutor'      => $esMenor ? 'required|email|max:100' : 'nullable',
         ]);
 
         $id_clinica = Auth::user()->id_clinica;
@@ -90,10 +96,11 @@ class PacienteController extends Controller
                     'apellido_materno' => $validated['apellido_materno'],
                     'fecha_nacimiento' => $validated['fecha_nacimiento'],
                     'sexo'             => $validated['sexo'],
-                    'email'            => $validated['email'],
-                    'telefono'         => $validated['telefono'],
+                    'email'            => $esMenor ? null : $validated['email'], // Guardamos NULL si es menor
+                    'telefono'         => $esMenor ? null : $validated['telefono'], // Guardamos NULL si es menor
                     'curp'             => $validated['curp'],
-                    'ocupacion'        => $validated['ocupacion'],
+                    'ocupacion'        => $esMenor ? null : $validated['ocupacion'],
+                    'grado_estudio'    => $esMenor ? $validated['grado_estudio'] : null,
                     'peso'             => $validated['peso'],
                     'calle'            => $validated['calle'],
                     'num_ext'          => $validated['num_ext'],
@@ -107,6 +114,7 @@ class PacienteController extends Controller
                     'nombre_tutor'     => $validated['nombre_tutor'],
                     'parentesco_tutor' => $validated['parentesco_tutor'],
                     'telefono_tutor'   => $validated['telefono_tutor'],
+                    'email_tutor'      => $validated['email_tutor'],
                 ]);
 
                 // 2. Crear Expediente Clínico (Base para el historial)

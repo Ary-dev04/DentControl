@@ -19,13 +19,13 @@
         </div>
 
         @if(session('success'))
-            <div style="background: #d4edda; color: #155724; padding: 15px; border-radius: 5px; margin-bottom: 20px;">
+            <div class="alerta-temporal" style="background: #d4edda; color: #155724; padding: 15px; border-radius: 5px; margin-bottom: 20px;">
                 {{ session('success') }}
             </div>
         @endif
 
         @if(session('error'))
-            <div style="background: #f8d7da; color: #721c24; padding: 15px; border-radius: 5px; margin-bottom: 20px;">
+            <div class="alerta-temporal" style="background: #f8d7da; color: #721c24; padding: 15px; border-radius: 5px; margin-bottom: 20px;">
                 {{ session('error') }}
             </div>
         @endif
@@ -107,62 +107,80 @@
         <form action="{{ route('pacientes.store') }}" method="POST" id="formNuevo">
             @csrf
             <div class="form-row">
-                <div class="form-group">
-                    <label>Nombre(s) *</label>
-                    <input type="text" name="nombre" maxlength="50" required value="{{ old('nombre') }}">
-                </div>
-                <div class="form-group">
-                    <label>Apellido Paterno *</label>
-                    <input type="text" name="apellido_paterno" maxlength="50" required value="{{ old('apellido_paterno') }}">
-                </div>
-                <div class="form-group">
-                    <label>Apellido Materno *</label>
-                    <input type="text" name="apellido_materno" maxlength="50" value="{{ old('apellido_materno') }}">
-                </div>
-            </div>
-
-            <div class="form-row">
-                <div class="form-group">
-    <label>Email *</label>
-    <input type="email" name="email" maxlength="100" required 
-           value="{{ old('email') }}"
-           oninput="validarEmailInput(this)"
-           onblur="limpiarEmailFinal(this)">
+    <div class="form-group">
+        <label>Nombre(s) *</label>
+        <input type="text" name="nombre" maxlength="50" required value="{{ old('nombre') }}">
+    </div>
+    <div class="form-group">
+        <label>Apellido Paterno *</label>
+        <input type="text" name="apellido_paterno" maxlength="50" required value="{{ old('apellido_paterno') }}">
+    </div>
+    <div class="form-group">
+        <label>Apellido Materno *</label>
+        <input type="text" name="apellido_materno" maxlength="50" value="{{ old('apellido_materno') }}">
+    </div>
 </div>
-                <div class="form-group">
-    <label>Teléfono (Paciente)</label>
-    <input type="text" name="telefono" id="tel_paciente" maxlength="10" 
-           oninput="this.value = this.value.replace(/[^0-9]/g, '')" 
-           value="{{ old('telefono') }}">
-    <small style="color: #6c757d;">* Opcional para menores</small>
+
+<div class="form-row">
+    <div class="form-group" id="contenedor_email">
+        <label>Email *</label>
+        <input type="email" name="email" maxlength="100" value="{{ old('email') }}" oninput="validarEmailInput(this)" onblur="limpiarEmailFinal(this)">
+    </div>
+    <div class="form-group" id="contenedor_telefono">
+        <label>Teléfono (Paciente) *</label>
+        <input type="text" name="telefono" id="tel_paciente" maxlength="10" oninput="this.value = this.value.replace(/[^0-9]/g, '')" value="{{ old('telefono') }}">
+    </div>
+    <div class="form-group" id="contenedor_grado" style="display: none;">
+        <label>Grado de estudio *</label>
+        <input type="text" name="grado_estudio" value="{{ old('grado_estudio') }}" placeholder="Ej. 2do de Primaria">
+    </div>
+    <div class="form-group">
+        <label>CURP</label>
+        <input type="text" name="curp" maxlength="18" style="text-transform: uppercase;" oninput="this.value = this.value.toUpperCase()" value="{{ old('curp') }}">
+    </div>
+    <div class="form-group">
+        <label>Fecha de Nacimiento</label>
+        <input type="date" name="fecha_nacimiento" min="1920-01-01" max="{{ date('Y-m-d') }}" value="{{ old('fecha_nacimiento') }}" oninput="controlarEspacios(this)" onblur="limpiarEspacios(this)">
+    </div>
 </div>
-                <div class="form-group">
-                    <label>CURP</label>
-                    <input type="text" name="curp" maxlength="18" style="text-transform: uppercase;" oninput="this.value = this.value.toUpperCase()" value="{{ old('curp') }}">
-                </div>
-                <div class="form-group">
-                    <label>Fecha de Nacimiento</label>
-                    <input type="date" name="fecha_nacimiento" min="1920-01-01" max="{{ date('Y-m-d') }}" value="{{ old('fecha_nacimiento') }}">
-                </div>
-            </div>
 
-            <div class="form-row">
-                <div class="form-group">
-                    <label>Sexo</label>
-                    <select name="sexo">
-                        <option value="" disabled {{ old('sexo') ? '' : 'selected' }}>-- Seleccione --</option>
-                        <option value="hombre" {{ old('sexo') == 'hombre' ? 'selected' : '' }}>Hombre</option>
-                        <option value="mujer" {{ old('sexo') == 'mujer' ? 'selected' : '' }}>Mujer</option>
-                    </select>
-                </div>
-                <div class="form-group"><label>Ocupación</label><input type="text" name="ocupacion" value="{{ old('ocupacion') }}"></div>
-                <div class="form-group"><label>Peso (kg)</label><input type="number" step="0.01" name="peso" value="{{ old('peso') }}"></div>
-                <div class="form-group">
-                    <label>Alergias *</label>
-                    <input type="text" name="alergias" placeholder="Ej: Penicilina o Ninguna" required value="{{ old('alergias') }}">
-                </div>
-            </div>
+<div class="form-row">
+    <div class="form-group">
+        <label>Sexo</label>
+        <select name="sexo">
+            <option value="" disabled {{ old('sexo') ? '' : 'selected' }}>-- Seleccione --</option>
+            <option value="hombre" {{ old('sexo') == 'hombre' ? 'selected' : '' }}>Hombre</option>
+            <option value="mujer" {{ old('sexo') == 'mujer' ? 'selected' : '' }}>Mujer</option>
+        </select>
+    </div>
+    <div class="form-group" id="contenedor_ocupacion">
+        <label>Ocupación *</label>
+        <input type="text" name="ocupacion" value="{{ old('ocupacion') }}">
+    </div>
+    <div class="form-group">
+        <label>Peso (kg)</label>
+        <input type="number" step="0.01" name="peso" value="{{ old('peso') }}">
+    </div>
+    <div class="form-group" style="flex: 2;">
+    <label style="display: block; margin-bottom: 8px; font-weight: bold;">¿Presenta alergias? *</label>
+    <div style="display: flex; gap: 20px; align-items: center; height: 40px;">
+        <label style="font-weight: normal; cursor: pointer;">
+            <input type="radio" name="tiene_alergias" value="no" onclick="toggleAlergias(false)" required> No
+        </label>
+        <label style="font-weight: normal; cursor: pointer;">
+            <input type="radio" name="tiene_alergias" value="si" onclick="toggleAlergias(true)"> Sí
+        </label>
+    </div>
+</div>
 
+<div class="form-group" id="contenedor_alergias_detalle" style="display: none; flex: 2;">
+    <label>Especifique las alergias *</label>
+    <input type="text" name="alergias" id="input_alergias" 
+           placeholder="Ej: Penicilina, Látex..." 
+           oninput="controlarEspacios(this)" 
+           onblur="limpiarEspacios(this)">
+</div>
+</div>
             <h4 style="margin-top:15px; border-bottom: 1px solid #eee;">Dirección</h4>
             <div class="form-row">
                 <div class="form-group"><label>Código Postal *</label><input type="text" name="codigo_postal" maxlength="5" required value="{{ old('codigo_postal') }}"></div>
@@ -195,37 +213,41 @@
     </div>
             </div>
             
-            <div id="seccion_tutor" style="display: none; background: #fffcf0; border: 1px dashed #eab308; padding: 15px; border-radius: 8px; margin: 20px 0;">
-    <h4 style="margin-top: 0; color: #854d0e; font-size: 1rem;">
-        <i class="fa-solid fa-person-breastfeeding"></i> Datos del Padre o Tutor
-    </h4>
-    <div class="form-row">
-        <div class="form-group" style="flex: 2;">
-    <label>Nombre Completo *</label>
-    <input type="text" name="nombre_tutor" id="input_nombre_tutor" 
-        placeholder="Ej. María Pérez García"
-        onkeypress="return soloLetras(event)"
-        oninput="controlarEspacios(this); this.value = this.value.replace(/[0-9]/g, '')"
-        onblur="limpiarEspacios(this)">
-</div>
-        <div class="form-group">
-            <label>Parentesco *</label>
-            <select name="parentesco_tutor" id="select_parentesco">
+        <div id="seccion_tutor" style="display: none; background: #fffcf0; border: 1px dashed #eab308; padding: 15px; border-radius: 8px; margin: 20px 0;">
+            <h4 style="margin-top: 0; color: #854d0e; font-size: 1rem;">
+            <i class="fa-solid fa-person-breastfeeding"></i> Datos del Padre o Tutor
+            </h4>
+            <div class="form-row">
+                <div class="form-group" style="flex: 2;">
+                <label>Nombre Completo *</label>
+                <input type="text" name="nombre_tutor" id="input_nombre_tutor" 
+                placeholder="Ej. María Pérez García"
+                onkeypress="return soloLetras(event)"
+                oninput="controlarEspacios(this); this.value = this.value.replace(/[0-9]/g, '')"
+                onblur="limpiarEspacios(this)">
+            </div>
+            <div class="form-group">
+                <label>Parentesco *</label>
+                <select name="parentesco_tutor" id="select_parentesco">
                 <option value="">-- Seleccione --</option>
                 <option value="Madre">Madre</option>
                 <option value="Padre">Padre</option>
                 <option value="Tutor Legal">Tutor Legal</option>
                 <option value="Otro">Otro familiar</option>
-            </select>
-        </div>
-        <div class="form-group">
-            <label>Teléfono Tutor *</label>
-            <input type="text" name="telefono_tutor" id="input_tel_tutor" 
+                </select>
+            </div>
+            <div class="form-group">
+                <label>Teléfono Tutor *</label>
+                <input type="text" name="telefono_tutor" id="input_tel_tutor" 
                 maxlength="10" 
                 oninput="this.value = this.value.replace(/[^0-9]/g, '')">
+            </div>
+                <div class="form-group">
+                <label>Email del Tutor *</label>
+                <input type="email" name="email_tutor" id="input_email_tutor" class="form-control" oninput="validarEmailInput(this)" onblur="limpiarEmailFinal(this)">
+            </div>
         </div>
     </div>
-</div>
 
             <div class="atencion-selector" style="margin: 20px 0; padding: 15px; background: #f8fafc; border-radius: 8px; border: 1px solid #e2e8f0;">
                 <label style="font-weight: bold; display: block; margin-bottom: 10px;">¿A qué viene hoy? *</label>
@@ -753,6 +775,19 @@ document.addEventListener('DOMContentLoaded', function() {
         if(input) input.onkeypress = soloLetras;
     });
 
+    const alertasGlobales = document.querySelectorAll('div[style*="background: #d4edda"], div[style*="background: #f8d7da"]');
+    alertasGlobales.forEach(function(alerta) {
+        setTimeout(function() {
+            alerta.style.transition = "opacity 0.6s ease, margin 0.6s ease";
+            alerta.style.opacity = "0";
+            alerta.style.marginBottom = "0";
+            
+            setTimeout(function() {
+                alerta.remove();
+            }, 600);
+        }, 5000); // 5 segundos de visibilidad
+    });
+
     // --- Lógica para reabrir modal con errores de Laravel ---
     @if ($errors->any())
         @if(old('id_paciente')) 
@@ -970,28 +1005,52 @@ function validarMotivo(input) {
 }
 
 function gestionarAtributosTutor(esRequerido) {
-    // Asegúrate de que estos IDs coincidan EXACTAMENTE con los que pusiste en el HTML
+    // 1. Referencias a contenedores (para mostrar/ocultar)
+    const seccionTutor = document.getElementById('seccion_tutor');
+    const contEmail = document.getElementById('contenedor_email');
+    const contTel = document.getElementById('contenedor_telefono');
+    const contOcupacion = document.getElementById('contenedor_ocupacion');
+    const contGrado = document.getElementById('contenedor_grado');
+
+    // 2. Manejo de visibilidad (Display)
+    if (seccionTutor) seccionTutor.style.display = esRequerido ? 'block' : 'none';
+    if (contEmail)    contEmail.style.display    = esRequerido ? 'none'  : 'block';
+    if (contTel)      contTel.style.display      = esRequerido ? 'none'  : 'block';
+    if (contOcupacion) contOcupacion.style.display = esRequerido ? 'none'  : 'block';
+    if (contGrado)     contGrado.style.display     = esRequerido ? 'block' : 'none';
+
+    // 3. Campos del Tutor (Obligatorios si es menor, se limpian si es adulto)
     const camposTutor = [
-        { id: 'input_nombre_tutor', name: 'nombre_tutor' },
-        { id: 'select_parentesco', name: 'parentesco' },
-        { id: 'input_tel_tutor', name: 'telefono_tutor' }
+        'input_nombre_tutor',
+        'select_parentesco',
+        'input_tel_tutor',
+        'input_email_tutor'
     ];
 
-    camposTutor.forEach(campo => {
-        const el = document.getElementById(campo.id);
+    camposTutor.forEach(id => {
+        const el = document.getElementById(id);
         if (el) {
             el.required = esRequerido;
-            // Si es adulto (no requerido), limpiamos el valor para que no mande basura
             if (!esRequerido) el.value = ""; 
         }
     });
 
-    // El teléfono del paciente es obligatorio SOLO para adultos
-    // Verifica si el ID es 'tel_paciente' o 'telefono'
-    const telPaciente = document.querySelector('input[name="tel_paciente"]'); 
-    if (telPaciente) {
-        telPaciente.required = !esRequerido;
+    // 4. Campo Grado de Estudio (Obligatorio si es menor, se limpia si es adulto)
+    const inputGrado = document.getElementsByName('grado_estudio')[0];
+    if (inputGrado) {
+        inputGrado.required = esRequerido;
+        if (!esRequerido) inputGrado.value = "";
     }
+
+    // 5. Campos de Adulto (Obligatorios si NO es menor)
+    // Usamos el "name" para asegurar coincidencia con el Controller
+    const emailPaciente = document.getElementsByName('email')[0];
+    const telPaciente = document.getElementsByName('telefono')[0];
+    const ocupacionPaciente = document.getElementsByName('ocupacion')[0];
+
+    if (emailPaciente)     emailPaciente.required = !esRequerido;
+    if (telPaciente)       telPaciente.required   = !esRequerido;
+    if (ocupacionPaciente) ocupacionPaciente.required = !esRequerido;
 }
 
 // 1. Evita que el usuario escriba dos espacios seguidos mientras teclea
@@ -1038,5 +1097,29 @@ document.addEventListener('change', function(e) {
         }
     }
 });
+
+function toggleAlergias(mostrar) {
+    const contenedor = document.getElementById('contenedor_alergias_detalle');
+    const input = document.getElementById('input_alergias');
+
+    if (mostrar) {
+        // --- CUANDO ELIGE SI ---
+        contenedor.style.display = 'block';
+        input.required = true;
+        
+        // Si el valor actual es "Ninguna", lo limpiamos para que el usuario escriba
+        if (input.value === "Ninguna") {
+            input.value = "";
+        }
+        input.focus(); 
+    } else {
+        // --- CUANDO ELIGE NO ---
+        contenedor.style.display = 'none';
+        input.required = false;
+        
+        // Asignamos "Ninguna" para que se envíe eso a la base de datos
+        input.value = "Ninguna";
+    }
+}
 </script>
 @endsection

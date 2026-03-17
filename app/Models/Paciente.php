@@ -35,7 +35,9 @@ class Paciente extends Model
         'estatus',
         'nombre_tutor',
         'parentesco_tutor',
-        'telefono_tutor'
+        'telefono_tutor',
+        'grado_estudio',
+        'email_tutor'
     ];
     //Relaciones
 
