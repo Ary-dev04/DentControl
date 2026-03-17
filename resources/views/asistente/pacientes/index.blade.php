@@ -132,11 +132,13 @@
     </div>
     <div class="form-group" id="contenedor_grado" style="display: none;">
         <label>Grado de estudio *</label>
-        <input type="text" name="grado_estudio" value="{{ old('grado_estudio') }}" placeholder="Ej. 2do de Primaria">
+        <input type="text" name="grado_estudio" value="{{ old('grado_estudio') }}" placeholder="Ej. 2do de Primaria" oninput="validarCampoRealTime(this); controlarEspacios(this)"
+           onblur="limpiarEspacios(this)">
+        <span id="error_grado_estudio" class="error-msg" style="color: #ef4444; font-size: 0.8rem; display: none;"></span>
     </div>
     <div class="form-group">
         <label>CURP</label>
-        <input type="text" name="curp" maxlength="18" style="text-transform: uppercase;" oninput="this.value = this.value.toUpperCase()" value="{{ old('curp') }}">
+        <input type="text" name="curp" maxlength="18" style="text-transform: uppercase;" oninput="this.value = this.value.toUpperCase()" value="{{ old('curp') }}" required>
     </div>
     <div class="form-group">
         <label>Fecha de Nacimiento</label>
@@ -155,17 +157,18 @@
     </div>
     <div class="form-group" id="contenedor_ocupacion">
         <label>Ocupación *</label>
-        <input type="text" name="ocupacion" value="{{ old('ocupacion') }}">
+        <input type="text" name="ocupacion" value="{{ old('ocupacion') }}" placeholder="Ej. Empleado, Estudiante, Ama de casa" oninput="controlarEspacios(this)" onblur="limpiarEspacios(this)" maxlength="30">
+        <span class="error-message" style="color: #ef4444; font-size: 0.8rem; display: none;"></span>
     </div>
     <div class="form-group">
         <label>Peso (kg)</label>
-        <input type="number" step="0.01" name="peso" value="{{ old('peso') }}">
+        <input type="number" step="0.01" name="peso" value="{{ old('peso') }}" required>
     </div>
     <div class="form-group" style="flex: 2;">
     <label style="display: block; margin-bottom: 8px; font-weight: bold;">¿Presenta alergias? *</label>
     <div style="display: flex; gap: 20px; align-items: center; height: 40px;">
         <label style="font-weight: normal; cursor: pointer;">
-            <input type="radio" name="tiene_alergias" value="no" onclick="toggleAlergias(false)" required> No
+            <input type="radio" name="tiene_alergias" value="no" onclick="toggleAlergias(false)" checked required> No
         </label>
         <label style="font-weight: normal; cursor: pointer;">
             <input type="radio" name="tiene_alergias" value="si" onclick="toggleAlergias(true)"> Sí
@@ -176,9 +179,10 @@
 <div class="form-group" id="contenedor_alergias_detalle" style="display: none; flex: 2;">
     <label>Especifique las alergias *</label>
     <input type="text" name="alergias" id="input_alergias" 
-           placeholder="Ej: Penicilina, Látex..." 
-           oninput="controlarEspacios(this)" 
+           placeholder="Ej: Penicilina, Látex..."
+           oninput="validarCampoRealTime(this); controlarEspacios(this)"
            onblur="limpiarEspacios(this)">
+    <span class="error-message" style="color: #ef4444; font-size: 0.8rem; display: none;"></span>
 </div>
 </div>
             <h4 style="margin-top:15px; border-bottom: 1px solid #eee;">Dirección</h4>
@@ -450,7 +454,19 @@ const validaciones = {
     ciudad: (v) => v.trim() !== "" || "Campo obligatorio",
     estado: (v) => v.trim() !== "" || "Campo obligatorio",
     calle: (v) => v.trim() !== "" || "Campo obligatorio",
-    alergias: (v) => v.trim() !== "" || "Especifique alergias o escriba 'Ninguna'",
+    alergias: (v) => {
+        const tieneAlergiasSi = document.querySelector('input[name="tiene_alergias"][value="si"]');
+        const esRequerido = tieneAlergiasSi && tieneAlergiasSi.checked;
+
+        if (esRequerido) {
+            if (!v || v.trim().length < 3) return "Especifique qué alergias presenta";
+            if (v.toLowerCase() === "ninguna") return "Si marcó 'Sí', debe detallar la alergia";
+            
+            const regexValida = /^[a-zA-ZáéíóúÁÉÍÓÚñÑ ,]+$/;
+            if (!regexValida.test(v)) return "Solo letras y comas";
+        }
+        return true;
+    },
     motivo_consulta: (v) => {
         if (v.trim().length < 4) return "Especifique el motivo";
         const regexValida = /^[a-zA-Z0-9áéíóúÁÉÍÓÚñÑ .,]+$/;
@@ -487,7 +503,51 @@ const validaciones = {
         if (v.trim() === "") return "El correo es obligatorio";
         if (!regex.test(v)) return "Formato de correo inválido";
         return true;
-    }
+    }, grado_estudio: (v) => {
+        const seccionTutor = document.getElementById('seccion_tutor');
+        const esMenor = seccionTutor && seccionTutor.style.display === 'block';
+        
+        if (esMenor) {
+            if (!v || v.trim().length < 3) return "Especifique el grado (ej. 2do Primaria)";
+            const regexValida = /^[a-zA-Z0-9áéíóúÁÉÍÓÚñÑ. ]+$/;
+            if (!regexValida.test(v)) return "No se permiten caracteres especiales";
+        }
+        return true;
+    },
+    ocupacion: (v) => {
+        const seccionTutor = document.getElementById('seccion_tutor');
+        const esMenor = seccionTutor && seccionTutor.style.display === 'block';
+
+        // Si NO es menor (es adulto), la ocupación es obligatoria
+        if (!esMenor) {
+            if (!v || v.trim().length < 3) return "La ocupación es obligatoria para adultos";
+            
+            const regexValida = /^[a-zA-ZáéíóúÁÉÍÓÚñÑ ]+$/;
+            if (!regexValida.test(v)) return "Solo se permiten letras";
+        }
+        return true;
+    },
+    fecha_nacimiento: (v) => {
+        if (!v) return "La fecha de nacimiento es obligatoria";
+        
+        const fechaSeleccionada = new Date(v);
+        const hoy = new Date();
+        
+        // Ajustamos hoy a medianoche para comparar solo fechas
+        hoy.setHours(0, 0, 0, 0);
+        
+        if (fechaSeleccionada >= hoy) {
+            return "La fecha debe ser anterior al día de hoy";
+        }
+
+        // Validación opcional: No más de 120 años
+        const anioMinimo = hoy.getFullYear() - 120;
+        if (fechaSeleccionada.getFullYear() < anioMinimo) {
+            return "Ingrese una fecha válida";
+        }
+
+        return true;
+    },  
 };
 
 function initRealTimeValidation() {
@@ -764,74 +824,6 @@ function soloLetras(e) {
     return true;
 }
 
-// --- INICIALIZACIÓN FINAL ---
-// --- INICIALIZACIÓN FINAL ACTUALIZADA ---
-document.addEventListener('DOMContentLoaded', function() {
-    initRealTimeValidation();
-    
-    // Filtro de solo letras
-    ['nombre', 'apellido_paterno', 'apellido_materno'].forEach(n => {
-        const input = document.getElementsByName(n)[0];
-        if(input) input.onkeypress = soloLetras;
-    });
-
-    const alertasGlobales = document.querySelectorAll('div[style*="background: #d4edda"], div[style*="background: #f8d7da"]');
-    alertasGlobales.forEach(function(alerta) {
-        setTimeout(function() {
-            alerta.style.transition = "opacity 0.6s ease, margin 0.6s ease";
-            alerta.style.opacity = "0";
-            alerta.style.marginBottom = "0";
-            
-            setTimeout(function() {
-                alerta.remove();
-            }, 600);
-        }, 5000); // 5 segundos de visibilidad
-    });
-
-    // --- Lógica para reabrir modal con errores de Laravel ---
-    @if ($errors->any())
-        @if(old('id_paciente')) 
-            abrirModal('modalExistente');
-            // Si el usuario ya había seleccionado un tipo, lo mostramos
-            @if(old('tipo_atencion'))
-                setTimeout(() => mostrarOpcionesExistente('{{ old("tipo_atencion") }}'), 300);
-            @endif
-        @else 
-            abrirModal('modalNuevo');
-            // Si el usuario ya había seleccionado un tipo, lo mostramos
-            @if(old('tipo_atencion'))
-                setTimeout(() => mostrarOpcionesAtencion('{{ old("tipo_atencion") }}'), 300);
-            @endif
-        @endif
-        setTimeout(() => {
-        document.querySelectorAll('.alert-danger').forEach(el => el.remove());
-    }, 5000);
-    @endif
-
-    const camposTexto = ['nombre', 'apellido_paterno', 'apellido_materno', 'nombre_tutor'];
-    
-    camposTexto.forEach(nombreCampo => {
-        const input = document.getElementsByName(nombreCampo)[0];
-        if (input) {
-            // Aplicar control de espacios en tiempo real
-            input.addEventListener('input', function() {
-                controlarEspacios(this);
-            });
-            // Aplicar limpieza final al salir
-            input.addEventListener('blur', function() {
-                limpiarEspacios(this);
-            });
-        }
-    });
-
-   // Seleccionamos específicamente el select que está dentro del modal de Paciente Existente
-const selectPacienteEx = document.querySelector('#modalExistente select[name="id_paciente"]');
-if (selectPacienteEx) {
-    selectPacienteEx.addEventListener('change', function() {
-        actualizarTratamientosAlCambiarPaciente();
-    });
-}
-});
 
 // Función para cargar tratamientos (tu original)
 function mostrarOpcionesExistente(tipo) {
@@ -912,39 +904,46 @@ document.addEventListener('input', function (event) {
 
 function abrirRegistroAdulto() {
     document.querySelectorAll('.alert-danger').forEach(a => a.remove());
-    const form = document.getElementById('formNuevo'); // 1. Primero obtener el elemento
-    //if (!form) return;
+    const form = document.getElementById('formNuevo');
 
-    prepararFormulario(form); // 2. Ahora sí, limpiar
-    cambiarModal('modalSeleccion', 'modalNuevo'); // 3. Cambiar el modal
+    // SOLO limpiar el formulario si NO hay errores de validación de Laravel
+    @if (!$errors->any())
+        prepararFormulario(form);
+    @endif
+
+    cambiarModal('modalSeleccion', 'modalNuevo');
     
-    // 4. Configurar Fechas
+    // Configuración de fechas
     const hoy = new Date();
     const hace18Anios = new Date(hoy.getFullYear() - 18, hoy.getMonth(), hoy.getDate()).toISOString().split('T')[0];
-    
     const inputFecha = form.querySelector('input[name="fecha_nacimiento"]');
     if (inputFecha) {
         inputFecha.max = hace18Anios;
         inputFecha.min = "1920-01-01";
     }
 
-    // 5. Tutor
     const seccionTutor = document.getElementById('seccion_tutor');
     if (seccionTutor) {
         seccionTutor.style.display = 'none';
         gestionarAtributosTutor(false);
     }
+
+    // Solo forzar "No" en alergias si no venimos de un error
+    @if (!$errors->any())
+        toggleAlergias(false);
+    @endif
 }
 
 function abrirRegistroMenor() {
     document.querySelectorAll('.alert-danger').forEach(a => a.remove());
-    const form = document.getElementById('formNuevo'); // 1. Primero obtener el elemento
-    //if (!form) return;
+    const form = document.getElementById('formNuevo');
 
-    prepararFormulario(form); // 2. Ahora sí, limpiar
-    cambiarModal('modalSeleccion', 'modalNuevo'); // 3. Cambiar el modal
+    @if (!$errors->any())
+        prepararFormulario(form);
+    @endif
 
-    // 4. Configurar Fechas
+    cambiarModal('modalSeleccion', 'modalNuevo');
+
     const hoy = new Date();
     const hace18Anios = new Date(hoy.getFullYear() - 18, hoy.getMonth(), hoy.getDate()).toISOString().split('T')[0];
     const fechaHoy = hoy.toISOString().split('T')[0];
@@ -955,12 +954,15 @@ function abrirRegistroMenor() {
         inputFecha.max = fechaHoy;
     }
 
-    // 5. Tutor
     const seccionTutor = document.getElementById('seccion_tutor');
     if (seccionTutor) {
         seccionTutor.style.display = 'block';
         gestionarAtributosTutor(true);
     }
+
+    @if (!$errors->any())
+        toggleAlergias(false);
+    @endif
 }
 
 // --- FUNCIONES AUXILIARES PARA EVITAR REPETIR CÓDIGO ---
@@ -992,6 +994,7 @@ function prepararFormulario(form) {
     // 4. Eliminar alertas de Laravel (tu lógica original)
     const erroresLaravel = form.querySelectorAll('.invalid-feedback, .text-danger, .alert-danger');
     erroresLaravel.forEach(e => e.remove());
+    toggleAlergias(false);
 }
 
 function validarMotivo(input) {
@@ -1051,7 +1054,16 @@ function gestionarAtributosTutor(esRequerido) {
     if (emailPaciente)     emailPaciente.required = !esRequerido;
     if (telPaciente)       telPaciente.required   = !esRequerido;
     if (ocupacionPaciente) ocupacionPaciente.required = !esRequerido;
+
+    if (esRequerido && ocupacionPaciente) {
+        // Si ahora es MENOR, reseteamos el campo de ocupación (que es para adultos)
+        ocupacionPaciente.value = "";
+        ocupacionPaciente.classList.remove('input-error', 'input-success');
+        const errOcup = ocupacionPaciente.parentNode.querySelector('.error-message');
+        if (errOcup) errOcup.style.display = 'none';
+    }
 }
+
 
 // 1. Evita que el usuario escriba dos espacios seguidos mientras teclea
 function controlarEspacios(input) {
@@ -1101,6 +1113,7 @@ document.addEventListener('change', function(e) {
 function toggleAlergias(mostrar) {
     const contenedor = document.getElementById('contenedor_alergias_detalle');
     const input = document.getElementById('input_alergias');
+    const errorSpan = contenedor.querySelector('.error-message');
 
     if (mostrar) {
         // --- CUANDO ELIGE SI ---
@@ -1119,7 +1132,37 @@ function toggleAlergias(mostrar) {
         
         // Asignamos "Ninguna" para que se envíe eso a la base de datos
         input.value = "Ninguna";
+        input.classList.remove('input-error');
+        input.classList.add('input-success');
+        if (errorSpan) errorSpan.style.display = 'none';
     }
 }
+
+ddocument.addEventListener('DOMContentLoaded', function() {
+    // Si Laravel detecta errores de validación
+    @if ($errors->any())
+        // 1. Corregido: Abrir 'modalNuevo' que es el ID real en tu HTML
+        abrirModal('modalNuevo');
+
+        // 2. Determinar si era menor o adulto para configurar campos
+        @if (old('nombre_tutor') || old('grado_estudio'))
+            // Si hay datos de tutor o grado, configuramos como menor
+            abrirRegistroMenor();
+            
+            // Re-aplicamos los valores de radio buttons de alergias si es necesario
+            @if(old('tiene_alergias') == 'si')
+                toggleAlergias(true);
+            @endif
+        @else
+            // Si no, configuramos como adulto
+            abrirRegistroAdulto();
+        @endif
+
+        // 3. Re-mostrar secciones de tratamiento/servicio si ya estaban seleccionadas
+        @if(old('tipo_atencion'))
+            mostrarOpcionesAtencion('{{ old("tipo_atencion") }}');
+        @endif
+    @endif
+});
 </script>
 @endsection
