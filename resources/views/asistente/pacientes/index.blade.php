@@ -902,16 +902,18 @@ document.addEventListener('input', function (event) {
 
 // --- FUNCIONES DE APERTURA DE REGISTRO CORREGIDAS ---
 
-function abrirRegistroAdulto() {
+function abrirRegistroAdulto(esError = false) {
     document.querySelectorAll('.alert-danger').forEach(a => a.remove());
     const form = document.getElementById('formNuevo');
 
     // SOLO limpiar el formulario si NO hay errores de validación de Laravel
     @if (!$errors->any())
         prepararFormulario(form);
+        cambiarModal('modalSeleccion', 'modalNuevo');
+        toggleAlergias(false);
     @endif
 
-    cambiarModal('modalSeleccion', 'modalNuevo');
+    //cambiarModal('modalSeleccion', 'modalNuevo');
     
     // Configuración de fechas
     const hoy = new Date();
@@ -929,20 +931,22 @@ function abrirRegistroAdulto() {
     }
 
     // Solo forzar "No" en alergias si no venimos de un error
-    @if (!$errors->any())
-        toggleAlergias(false);
-    @endif
+    //@if (!$errors->any())
+      //  toggleAlergias(false);
+    //@endif
 }
 
-function abrirRegistroMenor() {
+function abrirRegistroMenor(esError = false) {
     document.querySelectorAll('.alert-danger').forEach(a => a.remove());
     const form = document.getElementById('formNuevo');
 
     @if (!$errors->any())
         prepararFormulario(form);
+        cambiarModal('modalSeleccion', 'modalNuevo');
+        toggleAlergias(false);
     @endif
 
-    cambiarModal('modalSeleccion', 'modalNuevo');
+    //cambiarModal('modalSeleccion', 'modalNuevo');
 
     const hoy = new Date();
     const hace18Anios = new Date(hoy.getFullYear() - 18, hoy.getMonth(), hoy.getDate()).toISOString().split('T')[0];
@@ -960,9 +964,9 @@ function abrirRegistroMenor() {
         gestionarAtributosTutor(true);
     }
 
-    @if (!$errors->any())
-        toggleAlergias(false);
-    @endif
+    //@if (!$errors->any())
+      //  toggleAlergias(false);
+    //@endif
 }
 
 // --- FUNCIONES AUXILIARES PARA EVITAR REPETIR CÓDIGO ---
@@ -1138,27 +1142,24 @@ function toggleAlergias(mostrar) {
     }
 }
 
-ddocument.addEventListener('DOMContentLoaded', function() {
-    // Si Laravel detecta errores de validación
+document.addEventListener('DOMContentLoaded', function() {
     @if ($errors->any())
-        // 1. Corregido: Abrir 'modalNuevo' que es el ID real en tu HTML
+        // 1. Abrimos el modal directamente
         abrirModal('modalNuevo');
 
-        // 2. Determinar si era menor o adulto para configurar campos
+        // 2. Configuramos la vista según los datos viejos SIN resetear el form
         @if (old('nombre_tutor') || old('grado_estudio'))
-            // Si hay datos de tutor o grado, configuramos como menor
-            abrirRegistroMenor();
-            
-            // Re-aplicamos los valores de radio buttons de alergias si es necesario
-            @if(old('tiene_alergias') == 'si')
-                toggleAlergias(true);
-            @endif
+            abrirRegistroMenor(true); // Pasamos true para indicar que es por error
         @else
-            // Si no, configuramos como adulto
-            abrirRegistroAdulto();
+            abrirRegistroAdulto(true);
         @endif
 
-        // 3. Re-mostrar secciones de tratamiento/servicio si ya estaban seleccionadas
+        // 3. Mantener estado de alergias
+        @if(old('tiene_alergias') == 'si')
+            toggleAlergias(true);
+        @endif
+
+        // 4. Mantener tipo de atención
         @if(old('tipo_atencion'))
             mostrarOpcionesAtencion('{{ old("tipo_atencion") }}');
         @endif
