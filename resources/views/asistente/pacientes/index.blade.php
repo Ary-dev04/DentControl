@@ -308,13 +308,13 @@
                 </div>
             </div>
 
-            <div class="form-row">
-                <div class="form-group full-width">
-                    <label style="font-weight: bold;">Seleccionar fecha y hora de la cita *</label>
-                    <div id="calendarNuevo" style="min-height: 400px; border: 1px solid #ccc; margin-top: 10px; background: white;"></div>
-                    <input type="hidden" name="fecha_cita" id="fechaCitaNuevo" required>
-                </div>
-            </div>
+            <input type="hidden" name="fecha_cita" id="fechaCitaNuevo" value="{{ old('fecha_cita') }}">
+@error('fecha_cita')
+    <div class="text-danger" style="font-size: 0.8rem; margin-top: 5px;">
+        <i class="fa-solid fa-circle-exclamation"></i> {{ $message }}
+    </div>
+    <script>document.getElementById('calendarNuevo').style.border = "2px solid #dc3545";</script>
+@enderror
 
             <div class="form-row">
                 <div class="form-group">
@@ -420,12 +420,13 @@
         </select>
     </div>
 </div>
-            <div class="form-row">
-                <div class="form-group full-width">
-                    <div id="calendarExistente" style="min-height: 400px; border: 1px solid #ccc; background: white;"></div>
-                    <input type="hidden" name="fecha_cita" id="fechaCitaExistente" required>
-                </div>
-            </div>
+            <input type="hidden" name="fecha_cita" id="fechaCitaExistente" value="{{ old('fecha_cita') }}">
+@error('fecha_cita')
+    <div class="text-danger" style="font-size: 0.8rem; margin-top: 5px;">
+        <i class="fa-solid fa-circle-exclamation"></i> {{ $message }}
+    </div>
+    <script>document.getElementById('calendarExistente').style.border = "2px solid #dc3545";</script>
+@enderror
             <div class="form-row">
                 <div class="form-group">
         <label>Duración sugerida (minutos)</label>
@@ -1137,45 +1138,55 @@ document.addEventListener('DOMContentLoaded', function() {
     initRealTimeValidation();
 
     @if ($errors->any())
-        // 1. Abrir el modal automáticamente
-        abrirModal('modalNuevo');
-
-        // 2. Configurar si era Menor o Adulto para mostrar/ocultar tutor
-        @if (old('nombre_tutor') || old('grado_estudio'))
-            abrirRegistroMenor(true);
-        @else
-            abrirRegistroAdulto(true);
-        @endif
-
-        // 3. RECUPERAR TIPO DE ATENCIÓN Y SUS MINUTOS
-        @if(old('tipo_atencion'))
-            const tipo = "{{ old('tipo_atencion') }}";
-            mostrarOpcionesAtencion(tipo);
+        // DETERMINAR A QUÉ MODAL REGRESAR
+        // Si existe 'id_paciente' en los datos viejos, el error viene del Modal Existente
+        @if (old('id_paciente'))
+            abrirModal('modalExistente');
             
-            // Forzar que se vean los minutos que ya había puesto
-            const sug = document.getElementById('duracion_sugerida');
-            const real = document.querySelector('input[name="duracion"]');
-            if(sug) sug.value = "{{ old('duracion_sugerida') }}";
-            if(real) real.value = "{{ old('duracion') }}";
+            // Re-hidratar opciones de tratamiento/servicio para el existente
+            @if(old('tipo_atencion_ex'))
+                mostrarOpcionesExistente('{{ old("tipo_atencion_ex") }}');
+            @endif
+
+            // Recuperar feedback visual de la fecha en el modal existente
+            @if(old('fecha_cita'))
+                const fechaEx = "{{ old('fecha_cita') }}";
+                document.getElementById('fechaCitaExistente').value = fechaEx;
+                const labelEx = document.getElementById('info-fecha-calendarExistente');
+                if(labelEx) {
+                    const dateObj = new Date(fechaEx);
+                    labelEx.style.color = "#0d6efd";
+                    labelEx.innerHTML = "📅 Seleccionado: " + dateObj.toLocaleString('es-MX');
+                }
+            @endif
+
+        @else
+            // Si no hay id_paciente, el error viene del Modal Nuevo
+            abrirModal('modalNuevo');
+
+            @if (old('nombre_tutor') || old('grado_estudio'))
+                abrirRegistroMenor(true);
+            @else
+                abrirRegistroAdulto(true);
+            @endif
+
+            @if(old('tipo_atencion'))
+                mostrarOpcionesAtencion('{{ old("tipo_atencion") }}');
+            @endif
+            
+            // Recuperar feedback visual de la fecha en el modal nuevo
+            @if(old('fecha_cita'))
+                const fechaNu = "{{ old('fecha_cita') }}";
+                document.getElementById('fechaCitaNuevo').value = fechaNu;
+                const labelNu = document.getElementById('info-fecha-calendarNuevo');
+                if(labelNu) {
+                    const dateObj = new Date(fechaNu);
+                    labelNu.style.color = "#0d6efd";
+                    labelNu.innerHTML = "📅 Seleccionado: " + dateObj.toLocaleString('es-MX');
+                }
+            @endif
         @endif
 
-        // 4. RECUPERAR FECHA DE CITA Y FEEDBACK VISUAL
-        @if(old('fecha_cita'))
-            const fechaVieja = "{{ old('fecha_cita') }}";
-            const inputFechaCita = document.getElementById('fechaCitaNuevo');
-            if(inputFechaCita) inputFechaCita.value = fechaVieja;
-
-            // Re-generar el texto azul de "Seleccionado: Lunes 15..."
-            const infoLabel = document.getElementById('info-fecha-calendarNuevo');
-            if(infoLabel && fechaVieja) {
-                const dateObj = new Date(fechaVieja);
-                const opciones = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' };
-                infoLabel.style.color = "#0d6efd";
-                infoLabel.innerHTML = "📅 Seleccionado: " + dateObj.toLocaleString('es-MX', opciones);
-            }
-        @endif
-
-        // 5. Mantener estado de alergias
         @if(old('tiene_alergias') == 'si')
             toggleAlergias(true);
         @endif
