@@ -109,15 +109,15 @@
             <div class="form-row">
     <div class="form-group">
         <label>Nombre(s) *</label>
-        <input type="text" name="nombre" maxlength="50" required value="{{ old('nombre') }}">
+        <input type="text" name="nombre" maxlength="15" onkeypress="return soloLetras(event)" required value="{{ old('nombre') }}">
     </div>
     <div class="form-group">
         <label>Apellido Paterno *</label>
-        <input type="text" name="apellido_paterno" maxlength="50" required value="{{ old('apellido_paterno') }}">
+        <input type="text" name="apellido_paterno" maxlength="15" onkeypress="return soloLetras(event)" required value="{{ old('apellido_paterno') }}">
     </div>
     <div class="form-group">
         <label>Apellido Materno *</label>
-        <input type="text" name="apellido_materno" maxlength="50" value="{{ old('apellido_materno') }}">
+        <input type="text" name="apellido_materno" maxlength="15" onkeypress="return soloLetras(event)" required value="{{ old('apellido_materno') }}">
     </div>
 </div>
 
@@ -192,7 +192,7 @@
 </div>
             <h4 style="margin-top:15px; border-bottom: 1px solid #eee;">Dirección</h4>
             <div class="form-row">
-                <div class="form-group"><label>Código Postal *</label><input type="text" name="codigo_postal" maxlength="5" required value="{{ old('codigo_postal') }}"></div>
+                <div class="form-group"><label>Código Postal *</label><input type="text" name="codigo_postal" maxlength="5" required  onkeypress="return event.charCode >= 48 && event.charCode <= 57" value="{{ old('codigo_postal') }}"></div>
                 <div class="form-group"><label>Colonia *</label><input type="text" name="colonia" required value="{{ old('colonia') }}"></div>
                 <div class="form-group"><label>Ciudad *</label><input type="text" name="ciudad" required value="{{ old('ciudad') }}"></div>
             </div>
@@ -350,102 +350,96 @@
     <div class="custom-modal-content large">
         <span class="close-btn" onclick="cerrarModal('modalExistente')">&times;</span>
         <h3>Registrar cita – Paciente existente</h3>
+
         @if ($errors->any())
-    <div style="background: #fee2e2; color: #991b1b; padding: 12px; border-radius: 6px; margin-bottom: 15px; border: 1px solid #f87171;">
-        <p style="margin: 0; font-weight: bold;">Por favor, corrige los siguientes errores:</p>
-        <ul style="margin: 5px 0 0 20px; font-size: 0.9em;">
-            @foreach ($errors->all() as $error)
-                <li>{{ $error }}</li>
-            @endforeach
-        </ul>
-    </div>
-@endif
+            <div style="background: #fee2e2; color: #991b1b; padding: 12px; border-radius: 6px; margin-bottom: 15px; border: 1px solid #f87171;">
+                <p style="margin: 0; font-weight: bold;">Por favor, corrige los siguientes errores:</p>
+                <ul style="margin: 5px 0 0 20px; font-size: 0.9em;">
+                    @foreach ($errors->all() as $error)
+                        <li>{{ $error }}</li>
+                    @endforeach
+                </ul>
+            </div>
+        @endif
+
         <form action="{{ route('pacientes.store_cita_existente') }}" method="POST" id="formExistente">
             @csrf
+            
             <div class="form-row">
                 <div class="form-group full-width">
                     <label>Buscar paciente *</label>
                     <select name="id_paciente" class="form-control" required style="width: 100%" onchange="actualizarTratamientosAlCambiarPaciente()">
-    <option value="">-- Seleccione --</option>
-    @foreach($pacientes as $p)
-        <option value="{{ $p->id_paciente }}" {{ old('id_paciente') == $p->id_paciente ? 'selected' : '' }}>
-            {{ $p->nombre }} {{ $p->apellido_paterno }}
-        </option>
-    @endforeach
-</select>
+                        <option value="">-- Seleccione --</option>
+                        @foreach($pacientes as $p)
+                            <option value="{{ $p->id_paciente }}" {{ old('id_paciente') == $p->id_paciente ? 'selected' : '' }}>
+                                {{ $p->nombre }} {{ $p->apellido_paterno }}
+                            </option>
+                        @endforeach
+                    </select>
                 </div>
             </div>
-            <div class="atencion-selector" style="margin: 20px 0; padding: 15px; background: #f0fdf4; border-radius: 8px; border: 1px solid #bbf7d0;">
-    <label style="font-weight: bold; display: block; margin-bottom: 10px;">Tipo de atención *</label>
-    <div style="display: flex; gap: 20px;">
-        <label>
-            <input type="radio" name="tipo_atencion_ex" value="seguimiento" onclick="mostrarOpcionesExistente('seguimiento')" required> Seguimiento
-        </label>
-        <label>
-            <input type="radio" name="tipo_atencion_ex" value="nuevo_tratamiento" onclick="mostrarOpcionesExistente('nuevo_tratamiento')"> Nuevo Tratamiento
-        </label>
-        <label>
-            <input type="radio" name="tipo_atencion_ex" value="servicio" onclick="mostrarOpcionesExistente('servicio')"> Servicio Rápido
-        </label>
-    </div>
 
-    <div id="contenedor_seguimiento_ex" style="display: none; margin-top: 15px;">
-        <label>Seleccione el tratamiento actual:</label>
-        <select name="id_tratamiento_existente" id="select_tratamiento_ex" class="form-control">
-            <option value="">-- Seleccionar --</option>
-        </select>
-    </div>
+            <div class="atencion-selector" style="margin: 20px 0; padding: 15px; background: #f0fdf4; border-radius: 8px; border: {{ $errors->has('tipo_atencion_ex') ? '2px solid #dc3545' : '1px solid #bbf7d0' }};">
+                <label style="font-weight: bold; display: block; margin-bottom: 10px;">Tipo de atención *</label>
+                <div style="display: flex; gap: 20px;">
+                    <label><input type="radio" name="tipo_atencion_ex" value="seguimiento" onclick="mostrarOpcionesExistente('seguimiento')" {{ old('tipo_atencion_ex') == 'seguimiento' ? 'checked' : '' }} required> Seguimiento</label>
+                    <label><input type="radio" name="tipo_atencion_ex" value="nuevo_tratamiento" onclick="mostrarOpcionesExistente('nuevo_tratamiento')" {{ old('tipo_atencion_ex') == 'nuevo_tratamiento' ? 'checked' : '' }}> Nuevo Tratamiento</label>
+                    <label><input type="radio" name="tipo_atencion_ex" value="servicio" onclick="mostrarOpcionesExistente('servicio')" {{ old('tipo_atencion_ex') == 'servicio' ? 'checked' : '' }}> Servicio Rápido</label>
+                </div>
+            </div>
 
-    <div id="contenedor_nuevo_plan_ex" style="display: none; margin-top: 15px;">
-        <label>Seleccione el Nuevo Tratamiento:</label>
-        <select name="id_cat_tratamiento_nuevo" class="form-control" onchange="consultarDuracionDB('tratamiento', this.value)">
-            <option value="">-- Seleccionar del catálogo --</option>
-            @foreach($catTratamientos as $t)
-                <option value="{{ $t->id_cat_tratamientos }}">{{ $t->nombre }}</option>
-            @endforeach
-        </select>
-        
-        <div class="form-group" style="margin-top: 10px;">
-            <label>Precio Estimado (Opcional)</label>
-            <input type="number" name="precio_estimado_nuevo" step="0.01" class="form-control" placeholder="0.00">
-        </div>
-        
-        <div class="form-group" style="margin-top: 10px;">
-            <label>Diagnóstico Inicial (Opcional)</label>
-            <textarea name="diagnostico_nuevo" class="form-control" rows="2" placeholder="Notas sobre este nuevo problema..."></textarea>
-        </div>
-    </div>
+            <div id="contenedor_seguimiento_ex" style="display: none; margin-bottom: 15px;">
+                <label>Seleccione el tratamiento actual:</label>
+                <select name="id_tratamiento_existente" id="select_tratamiento_ex" class="form-control">
+                    <option value="">-- Seleccionar --</option>
+                </select>
+            </div>
 
-    <div id="contenedor_servicio_ex" style="display: none; margin-top: 15px;">
-        <select name="id_cat_servicio" class="form-control" onchange="consultarDuracionDB('servicio', this.value)">
-            <option value="">-- Seleccionar Servicio --</option>
-            @foreach($catServicios as $s) 
-                <option value="{{ $s->id_cat_servicio }}">{{ $s->nombre }}</option> 
-            @endforeach
-        </select>
-    </div>
-</div>
-            <div class="form-row">
+            <div id="contenedor_nuevo_plan_ex" style="display: none; margin-bottom: 15px;">
+                <label>Seleccione el Nuevo Tratamiento:</label>
+                <select name="id_cat_tratamiento_nuevo" class="form-control" onchange="consultarDuracionDB('tratamiento', this.value)">
+                    <option value="">-- Seleccionar del catálogo --</option>
+                    @foreach($catTratamientos as $t)
+                        <option value="{{ $t->id_cat_tratamientos }}">{{ $t->nombre }}</option>
+                    @endforeach
+                </select>
+            </div>
+
+            <div id="contenedor_servicio_ex" style="display: none; margin-bottom: 15px;">
+                <label>Seleccione el Servicio:</label>
+                <select name="id_cat_servicio" class="form-control" onchange="consultarDuracionDB('servicio', this.value)">
+                    <option value="">-- Seleccionar Servicio --</option>
+                    @foreach($catServicios as $s) 
+                        <option value="{{ $s->id_cat_servicio }}">{{ $s->nombre }}</option> 
+                    @endforeach
+                </select>
+            </div>
+
+            <div class="form-row" style="display: block; clear: both; margin-top: 20px;">
                 <div class="form-group full-width">
-                    <div id="calendarExistente" style="min-height: 400px; border: 1px solid #ccc; background: white;"></div>
+                    <label style="font-weight: bold;">Seleccionar fecha y hora de la cita *</label>
+                    <div id="calendarExistente" style="min-height: 450px; border: 1px solid #ccc; background: white; width: 100%;"></div>
                     <input type="hidden" name="fecha_cita" id="fechaCitaExistente" required>
-                    @if($errors->has('fecha_cita') && !old('id_paciente'))
-        <span class="text-danger" style="font-size: 0.8rem; display: block; margin-top: 5px;">
-            <strong><i class="fa-solid fa-circle-exclamation"></i> {{ $errors->first('fecha_cita') }}</strong>
-        </span>
-    @endif
+                    <div id="info-fecha-calendarExistente" style="margin-top: 10px; font-weight: bold; color: #0d6efd;"></div>
                 </div>
             </div>
+
             <div class="form-row">
                 <div class="form-group">
-        <label>Duración sugerida (minutos)</label>
-        <input type="number" id="duracion_sugerida_ex" value="" readonly style="background-color: #f8f9fa; cursor: not-allowed; border: 1px solid #dee2e6;">
-        <small style="color: #6c757d;">* Según catálogo</small>
+                    <label>Duración sugerida (minutos)</label>
+                    <input type="number" id="duracion_sugerida_ex" readonly style="background-color: #f8f9fa; border: 1px solid #dee2e6;">
                 </div>
-                <div class="form-group"><label>Duración real de la cita (min) *</label><input type="number" name="duracion" id="duracion_real_ex" required><small style="color: #6c757d;">* Tiempo que se bloqueará en la agenda</small></div>
-                <div class="form-group"><label>Motivo *</label><input type="text" name="motivo_consulta" value="{{ old('motivo_consulta') }}" oninput="validarMotivo(this)" required></div>
+                <div class="form-group">
+                    <label>Duración real (min) *</label>
+                    <input type="number" name="duracion" id="duracion_real_ex" required>
+                </div>
+                <div class="form-group">
+                    <label>Motivo *</label>
+                    <input type="text" name="motivo_consulta" required oninput="validarMotivo(this)">
+                </div>
             </div>
-            <button type="submit" class="btn-primary" style="width: 100%;">Guardar Cita</button>
+
+            <button type="submit" class="btn-primary" style="width: 100%; margin-top: 20px;">Guardar Cita</button>
         </form>
     </div>
 </div>
@@ -453,9 +447,21 @@
 <script>
 // --- LÓGICA DE VALIDACIÓN EN TIEMPO REAL ---
 const validaciones = {
-    nombre: (v) => v.trim().length >= 2 || "El nombre es obligatorio (min 2 letras)",
-    apellido_paterno: (v) => v.trim().length >= 2 || "El apellido es obligatorio",
-    apellido_materno: (v) => v.trim().length >= 2 || "El apellido es obligatorio",
+    nombre: (v) => {
+        if (!/^[a-zA-ZáéíóúÁÉÍÓÚñÑ ]+$/.test(v)) return "Solo se permiten letras";
+        if (v.trim().length < 2 || v.trim().length > 15) return "Debe tener entre 2 y 15 caracteres";
+        return true;
+    },
+    apellido_paterno: (v) => {
+        if (!/^[a-zA-ZáéíóúÁÉÍÓÚñÑ ]+$/.test(v)) return "Solo se permiten letras";
+        if (v.trim().length < 2 || v.trim().length > 15) return "Debe tener entre 2 y 15 caracteres";
+        return true;
+    },
+    apellido_materno: (v) => {
+        if (!/^[a-zA-ZáéíóúÁÉÍÓÚñÑ ]+$/.test(v)) return "Solo se permiten letras";
+        if (v.trim().length < 2 || v.trim().length > 15) return "Debe tener entre 2 y 15 caracteres";
+        return true;
+    },
     curp: (v) => v === "" || /^[A-Z]{4}[0-9]{6}[H,M][A-Z]{5}[0-9,A-Z][0-9]$/.test(v) || "Formato de CURP inválido (18 caracteres)",
     codigo_postal: (v) => v === "" || /^[0-9]{5}$/.test(v) || "El CP debe tener 5 dígitos",
     peso: (v) => {
@@ -469,7 +475,7 @@ const validaciones = {
     ciudad: (v) => v.trim() !== "" || "Campo obligatorio",
     estado: (v) => v.trim() !== "" || "Campo obligatorio",
     calle: (v) => v.trim() !== "" || "Campo obligatorio",
-    alergias: (v) => {
+    alergias: (v) =>  {
         const tieneAlergiasSi = document.querySelector('input[name="tiene_alergias"][value="si"]');
         const esRequerido = tieneAlergiasSi && tieneAlergiasSi.checked;
 
@@ -620,8 +626,32 @@ function abrirModal(id) {
     const modal = document.getElementById(id);
     if(modal) {
         modal.style.display = 'flex';
-        if (id === 'modalNuevo') setTimeout(() => inicializarCalendario('calendarNuevo', 'fechaCitaNuevo'), 150);
-        if (id === 'modalExistente') setTimeout(() => inicializarCalendario('calendarExistente', 'fechaCitaExistente'), 150);
+        
+        // Si es el existente, esperamos 350ms para que el modal y el buscador se estabilicen
+        const delay = (id === 'modalExistente') ? 350 : 150;
+
+        setTimeout(() => {
+            if (id === 'modalNuevo') {
+                inicializarCalendario('calendarNuevo', 'fechaCitaNuevo');
+            }
+            
+            if (id === 'modalExistente') {
+                // Limpiar contenido previo para evitar duplicados
+                const elEx = document.getElementById('calendarExistente');
+                elEx.innerHTML = ''; 
+
+                // Inicializar
+                inicializarCalendario('calendarExistente', 'fechaCitaExistente');
+                
+                // REFRESCAR EL TAMAÑO (Esto quita lo amontonado)
+                const calInst = FullCalendar.getCalendar(elEx);
+                if (calInst) {
+                    calInst.updateSize(); 
+                    // Un segundo ajuste rápido para asegurar el 100%
+                    setTimeout(() => calInst.updateSize(), 100);
+                }
+            }
+        }, delay);
     }
 }
 
@@ -738,6 +768,20 @@ function inicializarCalendario(idDiv, idInput) {
                 if (info.date < ahora) {
         alert("No puedes seleccionar una hora que ya pasó.");
         return;
+    }
+
+    // --- NUEVO: VALIDAR CHOQUE POR DURACIÓN ---
+    // Buscamos la duración según el modal (Nuevo o Existente)
+    const inputDuracion = idDiv === 'calendarNuevo' 
+        ? document.querySelector('input[name="duracion"]') 
+        : document.getElementById('duracion_real_ex');
+    
+    const duracion = parseInt(inputDuracion?.value) || 30;
+
+    if (verificarChoqueHorario(info.dateStr, duracion, cal)) {
+        alert("⚠️ Conflicto de horario: La duración de esta cita ( " + duracion + " min) invade el tiempo de otra cita ya programada.");
+        input.value = ""; // Vaciamos el input
+        return; // Detenemos la ejecución
     }
 
     // --- NUEVA LÓGICA DE VALIDACIÓN DE DUPLICADOS ---
@@ -1113,6 +1157,36 @@ document.addEventListener('change', function(e) {
             mostrarOpcionesExistente('seguimiento');
         }
     }
+
+    // 2. NUEVA LÓGICA: Validación de choque por cambio de duración
+    else if (e.target.name === 'duracion' || e.target.id === 'duracion_real_ex') {
+        const esNuevo = e.target.name === 'duracion';
+        const idInputFecha = esNuevo ? 'fechaCitaNuevo' : 'fechaCitaExistente';
+        const idCal = esNuevo ? 'calendarNuevo' : 'calendarExistente';
+        
+        const fechaSeleccionada = document.getElementById(idInputFecha).value;
+        const nuevaDuracion = parseInt(e.target.value);
+
+        if (fechaSeleccionada) {
+            const elCal = document.getElementById(idCal);
+            const calendarInstance = FullCalendar.getCalendar(elCal);
+
+            if (verificarChoqueHorario(fechaSeleccionada, nuevaDuracion, calendarInstance)) {
+                alert("⚠️ Error: Al aumentar la duración a " + nuevaDuracion + " minutos, la cita choca con otra ya existente. Por favor, elige otra hora o reduce la duración.");
+                
+                // Resetear duración a un valor base (ej. 15 o 30) para evitar el conflicto
+                e.target.value = 15; 
+                
+                // Opcional: Limpiar el input de fecha para forzar a re-seleccionar
+                document.getElementById(idInputFecha).value = "";
+                const label = document.getElementById('info-fecha-' + idCal);
+                if(label) {
+                    label.style.color = "#dc3545";
+                    label.innerHTML = "❌ Conflicto de horario. Seleccione otra hora.";
+                }
+            }
+        }
+    }
 });
 
 function toggleAlergias(mostrar) {
@@ -1154,7 +1228,14 @@ document.addEventListener('DOMContentLoaded', function() {
             
             // Re-hidratar opciones de tratamiento/servicio para el existente
             @if(old('tipo_atencion_ex'))
+                const tipoEx = "{{ old('tipo_atencion_ex') }}";
                 mostrarOpcionesExistente('{{ old("tipo_atencion_ex") }}');
+
+                // Si era seguimiento, los minutos sugeridos/reales se mantienen por el 'value' del HTML
+                // pero si necesitas forzar la carga de la duración sugerida:
+                @if(old('duracion_sugerida_ex'))
+                    document.getElementById('duracion_sugerida_ex').value = "{{ old('duracion_sugerida_ex') }}";
+                @endif
             @endif
 
             // Recuperar feedback visual de la fecha en el modal existente
@@ -1201,5 +1282,24 @@ document.addEventListener('DOMContentLoaded', function() {
         @endif
     @endif
 });
+
+function verificarChoqueHorario(fechaHoraInicio, duracionMinutos, calendar) {
+    const inicioNuevaCita = new Date(fechaHoraInicio);
+    const finNuevaCita = new Date(inicioNuevaCita.getTime() + duracionMinutos * 60000);
+
+    // Obtener todas las citas ya renderizadas en el calendario
+    const citasExistentes = calendar.getEvents();
+
+    for (let cita of citasExistentes) {
+        const inicioCitaExistente = cita.start;
+        const finCitaExistente = cita.end || new Date(inicioCitaExistente.getTime() + 30 * 60000); // Si no tiene fin, asumimos 30min
+
+        // Lógica de traslape: (InicioA < FinB) y (FinA > InicioB)
+        if (inicioNuevaCita < finCitaExistente && finNuevaCita > inicioCitaExistente) {
+            return true; // ¡Hay choque!
+        }
+    }
+    return false; // Está libre
+}
 </script>
 @endsection

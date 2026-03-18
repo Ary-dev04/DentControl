@@ -346,3 +346,20 @@
         flex-direction: column;
     }
 }
+
+/* Esto corrige los botones amontonados de la parte superior del calendario */
+#calendarExistente .fc-toolbar {
+    display: flex !important;
+    flex-wrap: wrap !important;
+    width: 100% !important;
+}
+
+/* Esto corrige el cuerpo del calendario que se ve pequeño */
+#calendarExistente .fc-view-harness {
+    width: 100% !important;
+    display: block !important;
+}
+
+#calendarExistente .fc-scrollgrid {
+    width: 100% !important;
+}
