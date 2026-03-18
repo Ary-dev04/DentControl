@@ -149,11 +149,16 @@
 <div class="form-row">
     <div class="form-group">
         <label>Sexo</label>
-        <select name="sexo">
+        <select name="sexo" class="form-control @error('sexo') is-invalid @enderror" required>
             <option value="" disabled {{ old('sexo') ? '' : 'selected' }}>-- Seleccione --</option>
             <option value="hombre" {{ old('sexo') == 'hombre' ? 'selected' : '' }}>Hombre</option>
             <option value="mujer" {{ old('sexo') == 'mujer' ? 'selected' : '' }}>Mujer</option>
         </select>
+        @error('sexo')
+        <span class="invalid-feedback" style="color: #ef4444; font-size: 0.8rem; display: block; margin-top: 5px;">
+            <strong>{{ $message }}</strong>
+        </span>
+    @enderror
     </div>
     <div class="form-group" id="contenedor_ocupacion">
         <label>Ocupación *</label>
@@ -1132,24 +1137,47 @@ document.addEventListener('DOMContentLoaded', function() {
     initRealTimeValidation();
 
     @if ($errors->any())
-        // 1. Abrimos el modal directamente
+        // 1. Abrir el modal automáticamente
         abrirModal('modalNuevo');
 
-        // 2. Configuramos la vista según los datos viejos SIN resetear el form
+        // 2. Configurar si era Menor o Adulto para mostrar/ocultar tutor
         @if (old('nombre_tutor') || old('grado_estudio'))
-            abrirRegistroMenor(true); // Pasamos true para indicar que es por error
+            abrirRegistroMenor(true);
         @else
             abrirRegistroAdulto(true);
         @endif
 
-        // 3. Mantener estado de alergias
-        @if(old('tiene_alergias') == 'si')
-            toggleAlergias(true);
+        // 3. RECUPERAR TIPO DE ATENCIÓN Y SUS MINUTOS
+        @if(old('tipo_atencion'))
+            const tipo = "{{ old('tipo_atencion') }}";
+            mostrarOpcionesAtencion(tipo);
+            
+            // Forzar que se vean los minutos que ya había puesto
+            const sug = document.getElementById('duracion_sugerida');
+            const real = document.querySelector('input[name="duracion"]');
+            if(sug) sug.value = "{{ old('duracion_sugerida') }}";
+            if(real) real.value = "{{ old('duracion') }}";
         @endif
 
-        // 4. Mantener tipo de atención
-        @if(old('tipo_atencion'))
-            mostrarOpcionesAtencion('{{ old("tipo_atencion") }}');
+        // 4. RECUPERAR FECHA DE CITA Y FEEDBACK VISUAL
+        @if(old('fecha_cita'))
+            const fechaVieja = "{{ old('fecha_cita') }}";
+            const inputFechaCita = document.getElementById('fechaCitaNuevo');
+            if(inputFechaCita) inputFechaCita.value = fechaVieja;
+
+            // Re-generar el texto azul de "Seleccionado: Lunes 15..."
+            const infoLabel = document.getElementById('info-fecha-calendarNuevo');
+            if(infoLabel && fechaVieja) {
+                const dateObj = new Date(fechaVieja);
+                const opciones = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' };
+                infoLabel.style.color = "#0d6efd";
+                infoLabel.innerHTML = "📅 Seleccionado: " + dateObj.toLocaleString('es-MX', opciones);
+            }
+        @endif
+
+        // 5. Mantener estado de alergias
+        @if(old('tiene_alergias') == 'si')
+            toggleAlergias(true);
         @endif
     @endif
 });
