@@ -530,7 +530,8 @@ const validaciones = {
     fecha_nacimiento: (v) => {
         if (!v) return "La fecha de nacimiento es obligatoria";
         
-        const fechaSeleccionada = new Date(v);
+        //const fechaSeleccionada = new Date(v);
+        const fechaSeleccionada = new Date(v + "T00:00:00");
         const hoy = new Date();
         
         // Ajustamos hoy a medianoche para comparar solo fechas
@@ -901,21 +902,17 @@ document.addEventListener('input', function (event) {
 // --- FUNCIONES DE APERTURA DE REGISTRO ---
 
 // --- FUNCIONES DE APERTURA DE REGISTRO CORREGIDAS ---
-
 function abrirRegistroAdulto(esError = false) {
     document.querySelectorAll('.alert-danger').forEach(a => a.remove());
     const form = document.getElementById('formNuevo');
 
-    // SOLO limpiar el formulario si NO hay errores de validación de Laravel
-    @if (!$errors->any())
+    // Solo limpiar y mover modales si NO es un error de validación
+    if (esError === false) {
         prepararFormulario(form);
         cambiarModal('modalSeleccion', 'modalNuevo');
         toggleAlergias(false);
-    @endif
+    }
 
-    //cambiarModal('modalSeleccion', 'modalNuevo');
-    
-    // Configuración de fechas
     const hoy = new Date();
     const hace18Anios = new Date(hoy.getFullYear() - 18, hoy.getMonth(), hoy.getDate()).toISOString().split('T')[0];
     const inputFecha = form.querySelector('input[name="fecha_nacimiento"]');
@@ -929,24 +926,17 @@ function abrirRegistroAdulto(esError = false) {
         seccionTutor.style.display = 'none';
         gestionarAtributosTutor(false);
     }
-
-    // Solo forzar "No" en alergias si no venimos de un error
-    //@if (!$errors->any())
-      //  toggleAlergias(false);
-    //@endif
 }
 
 function abrirRegistroMenor(esError = false) {
     document.querySelectorAll('.alert-danger').forEach(a => a.remove());
     const form = document.getElementById('formNuevo');
 
-    @if (!$errors->any())
+    if (esError === false) {
         prepararFormulario(form);
         cambiarModal('modalSeleccion', 'modalNuevo');
         toggleAlergias(false);
-    @endif
-
-    //cambiarModal('modalSeleccion', 'modalNuevo');
+    }
 
     const hoy = new Date();
     const hace18Anios = new Date(hoy.getFullYear() - 18, hoy.getMonth(), hoy.getDate()).toISOString().split('T')[0];
@@ -963,10 +953,6 @@ function abrirRegistroMenor(esError = false) {
         seccionTutor.style.display = 'block';
         gestionarAtributosTutor(true);
     }
-
-    //@if (!$errors->any())
-      //  toggleAlergias(false);
-    //@endif
 }
 
 // --- FUNCIONES AUXILIARES PARA EVITAR REPETIR CÓDIGO ---
@@ -1143,6 +1129,8 @@ function toggleAlergias(mostrar) {
 }
 
 document.addEventListener('DOMContentLoaded', function() {
+    initRealTimeValidation();
+
     @if ($errors->any())
         // 1. Abrimos el modal directamente
         abrirModal('modalNuevo');
