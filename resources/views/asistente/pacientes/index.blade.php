@@ -308,13 +308,18 @@
                 </div>
             </div>
 
-            <input type="hidden" name="fecha_cita" id="fechaCitaNuevo" value="{{ old('fecha_cita') }}">
-@error('fecha_cita')
-    <div class="text-danger" style="font-size: 0.8rem; margin-top: 5px;">
-        <i class="fa-solid fa-circle-exclamation"></i> {{ $message }}
-    </div>
-    <script>document.getElementById('calendarNuevo').style.border = "2px solid #dc3545";</script>
-@enderror
+            <div class="form-row">
+                <div class="form-group full-width">
+                    <label style="font-weight: bold;">Seleccionar fecha y hora de la cita *</label>
+                    <div id="calendarNuevo" style="min-height: 400px; border: 1px solid #ccc; margin-top: 10px; background: white;"></div>
+                    <input type="hidden" name="fecha_cita" id="fechaCitaNuevo" required>
+                    @if($errors->has('fecha_cita') && !old('id_paciente'))
+        <span class="text-danger" style="font-size: 0.8rem; display: block; margin-top: 5px;">
+            <strong><i class="fa-solid fa-circle-exclamation"></i> {{ $errors->first('fecha_cita') }}</strong>
+        </span>
+    @endif
+                </div>
+            </div>
 
             <div class="form-row">
                 <div class="form-group">
@@ -420,13 +425,17 @@
         </select>
     </div>
 </div>
-            <input type="hidden" name="fecha_cita" id="fechaCitaExistente" value="{{ old('fecha_cita') }}">
-@error('fecha_cita')
-    <div class="text-danger" style="font-size: 0.8rem; margin-top: 5px;">
-        <i class="fa-solid fa-circle-exclamation"></i> {{ $message }}
-    </div>
-    <script>document.getElementById('calendarExistente').style.border = "2px solid #dc3545";</script>
-@enderror
+            <div class="form-row">
+                <div class="form-group full-width">
+                    <div id="calendarExistente" style="min-height: 400px; border: 1px solid #ccc; background: white;"></div>
+                    <input type="hidden" name="fecha_cita" id="fechaCitaExistente" required>
+                    @if($errors->has('fecha_cita') && !old('id_paciente'))
+        <span class="text-danger" style="font-size: 0.8rem; display: block; margin-top: 5px;">
+            <strong><i class="fa-solid fa-circle-exclamation"></i> {{ $errors->first('fecha_cita') }}</strong>
+        </span>
+    @endif
+                </div>
+            </div>
             <div class="form-row">
                 <div class="form-group">
         <label>Duración sugerida (minutos)</label>
