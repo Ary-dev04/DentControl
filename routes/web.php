@@ -8,7 +8,7 @@ use App\Http\Controllers\Admin\UsuarioController;
 use App\Http\Controllers\Clinica\DashboardController;
 use App\Http\Controllers\Clinica\CatalogoController;
 use App\Http\Controllers\Clinica\PacienteController;
-
+use App\Http\Controllers\Clinica\HistorialController;
 // --- RUTAS PÚBLICAS ---
 Route::get('/', [AuthController::class, 'showLogin'])->name('login');
 Route::post('/login', [AuthController::class, 'login'])->name('login.post');
@@ -76,4 +76,16 @@ Route::middleware(['auth', 'can:asistente-only'])->group(function () {
     Route::get('/pacientes/{id}/tratamientos-activos', [PacienteController::class, 'tratamientosActivos']);
     Route::get('/api/citas-ocupadas', [PacienteController::class, 'getCitasOcupadas'])->name('citas.ocupadas');
     Route::get('/validar-cita-duplicada', [App\Http\Controllers\Clinica\PacienteController::class, 'validarCitaDuplicada']);
+
+    // 1. Ruta para el menú (entrada general)
+    Route::get('/asistente/historial', [HistorialController::class, 'index'])->name('asistente.historial');
+
+    // 2. Ruta para ver un paciente específico (desde la tabla)
+    Route::get('/asistente/historial/{id}', [HistorialController::class, 'verHistorial'])->name('paciente.historial');
+
+    // Ruta para procesar el guardado del expediente
+    Route::post('/asistente/historial/guardar/{id}', [HistorialController::class, 'guardar'])->name('paciente.historial.guardar');
+
+    // Ruta para el buscador en tiempo real (AJAX)
+Route::get('/asistente/buscar-paciente-ajax', [HistorialController::class, 'buscar'])->name('pacientes.buscar_ajax');
 });

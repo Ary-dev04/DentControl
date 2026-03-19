@@ -30,12 +30,11 @@
             </div>
         @endif
 
-        <div class="search-wrapper" style="margin-bottom: 20px; position: relative; width: 400px;">
-    <i class="fa-solid fa-magnifying-glass search-icon" style="position: absolute; left: 10px; top: 50%; transform: translateY(-50%); color: #9ca3af;"></i>
+        <div class="search-wrapper">
+    <i class="fa-solid fa-magnifying-glass search-icon"></i>
     <input type="text" 
            id="patientSearch" 
            class="search-input" 
-           style="padding: 10px 10px 10px 35px; border: 1px solid #d1d5db; border-radius: 8px; width: 100%; box-shadow: 0 1px 2px rgba(0,0,0,0.05);"
            placeholder="Buscar por nombre, CURP o tutor..." 
            onkeyup="filterPatients()">
 </div>
@@ -109,11 +108,19 @@
                 <td style="padding: 20px 15px; text-align: center; vertical-align: middle;">
                     <button class="btn-ver" onclick="verPaciente({{ $p->id_paciente }})" 
                             style="background: #2563eb; color: #ffffff; border: none; padding: 10px 20px; border-radius: 8px; font-weight: 600; cursor: pointer; transition: all 0.3s; display: inline-flex; align-items: center; gap: 8px; box-shadow: 0 2px 4px rgba(37, 99, 235, 0.2);">
-                        <i class="fa-solid fa-file-medical"></i> VER HISTORIAL CLINICO
+                        <i class="fa-solid fa-file-medical"></i> VER EXPEDIENTE CLINICO
                     </button>
                 </td>
             </tr>
             @endforeach
+            <tr id="noResultsRow" style="display: none;">
+            <td colspan="5" style="text-align: center; padding: 40px; color: #64748b;">
+                <div style="display: flex; flex-direction: column; align-items: center; gap: 10px;">
+                    <i class="fa-solid fa-user-slash" style="font-size: 2rem; color: #cbd5e1;"></i>
+                    <span style="font-size: 1rem; font-weight: 500;">No se encontraron pacientes que coincidan con la búsqueda.</span>
+                </div>
+            </td>
+        </tr>
         </tbody>
     </table>
 </section>
@@ -236,7 +243,7 @@
                 </div>
                 <div class="form-group" id="contenedor_alergias_detalle" style="display: none; flex: 2;">
                     <label>Especifique las alergias *</label>
-                    <input type="text" name="alergias" id="input_alergias" placeholder="Ej: Penicilina...">
+                    <input type="text" name="alergias" id="input_alergias" placeholder="Ej: Penicilina..." value="{{ old('alergias') }}">
                 </div>
             </div>
 
@@ -463,7 +470,11 @@ const validaciones = {
         const p = parseFloat(v);
         return (p >= 0.5 && p <= 500) || "Ingrese un peso válido (0.5 - 500 kg)";
     },
-    duracion: (v) => (parseInt(v) >= 5 && parseInt(v) <= 480) || "La duración debe ser entre 5 y 480 min",
+    duracion: (v) => {
+        const d = parseInt(v);
+        if (isNaN(d)) return "Ingrese un número válido";
+        return (d >= 5 && d <= 480) || "La duración debe ser entre 5 y 480 min";
+    },
     num_ext: (v) => v.trim() !== "" || "El número exterior es obligatorio",
     colonia: (v) => v.trim() !== "" || "Campo obligatorio",
     ciudad: (v) => v.trim() !== "" || "Campo obligatorio",
@@ -512,6 +523,11 @@ const validaciones = {
             return /^[0-9]{10}$/.test(v) || "El teléfono del tutor es obligatorio (10 dígitos)";
         }
         return true; 
+    },email_tutor: (v) => {
+        if (v.trim() === "") return true; 
+        // Esta regex es más estricta para asegurar el punto y la extensión (min 2 letras)
+        const regex = /^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+        return regex.test(v) || "Formato inválido (ej: usuario@dominio.com)";
     },
     email: (v) => {
         const regex = /^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,6}$/;
@@ -545,25 +561,27 @@ const validaciones = {
     fecha_nacimiento: (v) => {
         if (!v) return "La fecha de nacimiento es obligatoria";
         
-        //const fechaSeleccionada = new Date(v);
         const fechaSeleccionada = new Date(v + "T00:00:00");
         const hoy = new Date();
-        
-        // Ajustamos hoy a medianoche para comparar solo fechas
         hoy.setHours(0, 0, 0, 0);
         
-        if (fechaSeleccionada >= hoy) {
-            return "La fecha debe ser anterior al día de hoy";
+        if (fechaSeleccionada > hoy) {
+            return "La fecha de nacimiento no puede ser futura";
         }
 
-        // Validación opcional: No más de 120 años
-        const anioMinimo = hoy.getFullYear() - 120;
-        if (fechaSeleccionada.getFullYear() < anioMinimo) {
-            return "Ingrese una fecha válida";
+        // Calcular edad (Ahora sí está dentro de la función)
+        let edad = hoy.getFullYear() - fechaSeleccionada.getFullYear();
+        const m = hoy.getMonth() - fechaSeleccionada.getMonth();
+        if (m < 0 || (m === 0 && hoy.getDate() < fechaSeleccionada.getDate())) {
+            edad--;
+        }
+
+        if (edad < 1) {
+            console.warn("Paciente menor de 1 año detectado.");
         }
 
         return true;
-    },  
+    },
 };
 
 function initRealTimeValidation() {
@@ -1140,48 +1158,6 @@ function limpiarEmailFinal(input) {
     input.value = input.value.trim().toLowerCase(); // Los correos siempre se guardan mejor en minúsculas
 }
 
-// Detectar cambio de paciente para actualizar tratamientos automáticamente
-document.addEventListener('change', function(e) {
-    // Verificamos si el cambio fue en el select de paciente
-    if (e.target.name === 'id_paciente') {
-        // Buscamos el radio con el nombre correcto: tipo_atencion_ex
-        const radioSeguimiento = document.querySelector('input[name="tipo_atencion_ex"][value="seguimiento"]');
-        
-        if (radioSeguimiento && radioSeguimiento.checked) {
-            mostrarOpcionesExistente('seguimiento');
-        }
-    }
-
-    // 2. NUEVA LÓGICA: Validación de choque por cambio de duración
-    else if (e.target.name === 'duracion' || e.target.id === 'duracion_real_ex') {
-        const esNuevo = e.target.name === 'duracion';
-        const idInputFecha = esNuevo ? 'fechaCitaNuevo' : 'fechaCitaExistente';
-        const idCal = esNuevo ? 'calendarNuevo' : 'calendarExistente';
-        
-        const fechaSeleccionada = document.getElementById(idInputFecha).value;
-        const nuevaDuracion = parseInt(e.target.value);
-
-        if (fechaSeleccionada) {
-            const elCal = document.getElementById(idCal);
-            const calendarInstance = FullCalendar.getCalendar(elCal);
-
-            if (verificarChoqueHorario(fechaSeleccionada, nuevaDuracion, calendarInstance)) {
-                alert("⚠️ Error: Al aumentar la duración a " + nuevaDuracion + " minutos, la cita choca con otra ya existente. Por favor, elige otra hora o reduce la duración.");
-                
-                // Resetear duración a un valor base (ej. 15 o 30) para evitar el conflicto
-                e.target.value = 15; 
-                
-                // Opcional: Limpiar el input de fecha para forzar a re-seleccionar
-                document.getElementById(idInputFecha).value = "";
-                const label = document.getElementById('info-fecha-' + idCal);
-                if(label) {
-                    label.style.color = "#dc3545";
-                    label.innerHTML = "❌ Conflicto de horario. Seleccione otra hora.";
-                }
-            }
-        }
-    }
-});
 
 function toggleAlergias(mostrar) {
     const contenedor = document.getElementById('contenedor_alergias_detalle');
@@ -1211,9 +1187,26 @@ function toggleAlergias(mostrar) {
     }
 }
 
+
 document.addEventListener('DOMContentLoaded', function() {
     // 1. Inicializar validaciones básicas
     if (typeof initRealTimeValidation === 'function') initRealTimeValidation();
+
+    // --- CORRECCIÓN PUNTO 6: Validación de Edad 0 o futura ---
+    document.querySelectorAll('input[name="fecha_nacimiento"]').forEach(input => {
+        input.addEventListener('change', function() {
+            const fechaNac = new Date(this.value + "T00:00:00");
+            const hoy = new Date();
+            hoy.setHours(0,0,0,0);
+
+            if (fechaNac > hoy) {
+                alert("⚠️ Error: La fecha de nacimiento no puede ser futura.");
+                this.value = "";
+            } else if (fechaNac.toDateString() === hoy.toDateString()) {
+                alert("⚠️ Nota: Registrando paciente con fecha de nacimiento de hoy (menor de 1 año).");
+            }
+        });
+    });
 
     @if ($errors->any())
         // DETERMINAR A QUÉ MODAL REGRESAR
@@ -1222,111 +1215,93 @@ document.addEventListener('DOMContentLoaded', function() {
             abrirModal('modalExistente');
             
             @if(old('tipo_atencion_ex'))
-                // Usamos un pequeño delay para asegurar que el modal ya cambió a display: flex
                 setTimeout(() => {
                     mostrarOpcionesExistente('{{ old("tipo_atencion_ex") }}');
-                    
-                    @if(old('id_tratamiento_existente'))
+                    if(document.getElementById('select_tratamiento_ex')) 
                         document.getElementById('select_tratamiento_ex').value = "{{ old('id_tratamiento_existente') }}";
-                    @endif
-
-                    @if(old('duracion_sugerida_ex'))
-                        document.getElementById('duracion_sugerida_ex').value = "{{ old('duracion_sugerida_ex') }}";
-                    @endif
-                    
-                    @if(old('duracion'))
+                    if(document.getElementById('duracion_real_ex'))
                         document.getElementById('duracion_real_ex').value = "{{ old('duracion') }}";
-                    @endif
                 }, 400);
             @endif
-
-            // Feedback visual de la fecha
-            @if(old('fecha_cita'))
-                const fechaEx = "{{ old('fecha_cita') }}";
-                document.getElementById('fechaCitaExistente').value = fechaEx;
-                const labelEx = document.getElementById('info-fecha-calendarExistente');
-                if(labelEx) {
-                    const dateObj = new Date(fechaEx);
-                    labelEx.style.color = "#0d6efd";
-                    labelEx.innerHTML = "📅 Seleccionado: " + dateObj.toLocaleString('es-MX');
-                }
-            @endif
-
         @else
-            /* --- MODAL PACIENTE NUEVO (Adulto o Menor) --- */
+            /* --- MODAL PACIENTE NUEVO --- */
             abrirModal('modalNuevo');
-
-            // PUNTO 1 CORRECCIÓN: Si hay datos de tutor, abrir como menor
             @if (old('nombre_tutor'))
                 abrirRegistroMenor(true);
-                // Forzamos que la sección sea visible aunque el radio no se haya "clicado"
                 document.getElementById('seccion_tutor').style.display = 'block';
-            @else
-                @if(old('grado_estudio'))
-                    abrirRegistroAdulto(true);
-                @endif
-            @endif
-
-            // PUNTO 2 CORRECCIÓN: Mantener visible servicio y duración
-            @if(old('tipo_atencion'))
-                setTimeout(() => {
-                    mostrarOpcionesAtencion('{{ old("tipo_atencion") }}');
-                    
-                    @if(old('duracion'))
-                        document.getElementById('duracion_real').value = "{{ old('duracion') }}";
-                    @endif
-                }, 400);
-            @endif
-            
-            @if(old('fecha_cita'))
-                const fechaNu = "{{ old('fecha_cita') }}";
-                document.getElementById('fechaCitaNuevo').value = fechaNu;
-                const labelNu = document.getElementById('info-fecha-calendarNuevo');
-                if(labelNu) {
-                    const dateObj = new Date(fechaNu);
-                    labelNu.style.color = "#0d6efd";
-                    labelNu.innerHTML = "📅 Seleccionado: " + dateObj.toLocaleString('es-MX');
-                }
+            @elseif(old('grado_estudio'))
+                abrirRegistroAdulto(true);
             @endif
         @endif
 
+        // --- CORRECCIÓN PUNTO 4: Persistencia de Alergias ---
         @if(old('tiene_alergias') == 'si')
             toggleAlergias(true);
+            const inputAlergias = document.getElementById('input_alergias');
+            if(inputAlergias) {
+                inputAlergias.value = "{!! addslashes(old('alergias')) !!}";
+            }
         @endif
     @endif
 
-    // 1. Bloqueo para Formulario de Paciente Nuevo
+    // --- CORRECCIÓN PUNTO 1 Y 2: Validación de Choque por Duración ---
+    // Escuchamos 'change' en los inputs de duración específicamente
+    document.querySelectorAll('#duracion_real, #duracion_real_ex').forEach(input => {
+        input.addEventListener('change', function() {
+            const esNuevo = this.id === 'duracion_real';
+            const fecha = document.getElementById(esNuevo ? 'fechaCitaNuevo' : 'fechaCitaExistente').value;
+            const elCal = document.getElementById(esNuevo ? 'calendarNuevo' : 'calendarExistente');
+            
+            if (fecha && elCal) {
+                const calendarInstance = FullCalendar.getCalendar(elCal);
+                if (calendarInstance && verificarChoqueHorario(fecha, parseInt(this.value), calendarInstance)) {
+                    alert("⚠️ La cita se empalma con otra ya programada. Por favor, reduzca la duración o elija otra hora.");
+                    this.style.border = "2px solid red";
+                } else {
+                    this.style.border = "";
+                }
+            }
+        });
+    });
+
+    // --- CORRECCIÓN PUNTO 5: Validación de Correo del Tutor en Submit ---
     const formNuevo = document.getElementById('formNuevo');
     if (formNuevo) {
         formNuevo.addEventListener('submit', function(e) {
-            const fecha = document.getElementById('fechaCitaNuevo').value;
-            const duracion = parseInt(document.getElementById('duracion_real')?.value) || 30;
-            const elCal = document.getElementById('calendarNuevo');
-            const calendarInstance = FullCalendar.getCalendar(elCal);
-
-            if (fecha && calendarInstance) {
-                if (verificarChoqueHorario(fecha, duracion, calendarInstance)) {
-                    e.preventDefault(); // DETIENE EL ENVÍO
-                    alert("⚠️ ERROR: El horario seleccionado choca con otra cita. Por favor, elige otra hora en el calendario.");
+            const emailTutor = document.querySelector('input[name="email_tutor"]');
+            if (emailTutor && emailTutor.value.trim() !== "") {
+                const regex = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
+                if (!regex.test(emailTutor.value)) {
+                    e.preventDefault();
+                    alert("❌ Formato de correo del tutor inválido (ej: usuario@dominio.com)");
                     return false;
                 }
+            }
+            
+            // Re-validar choque antes de enviar
+            const fecha = document.getElementById('fechaCitaNuevo').value;
+            const dur = parseInt(document.getElementById('duracion_real')?.value) || 30;
+            const cal = FullCalendar.getCalendar(document.getElementById('calendarNuevo'));
+            if (fecha && cal && verificarChoqueHorario(fecha, dur, cal)) {
+                e.preventDefault();
+                alert("⚠️ Error: No se puede guardar, la cita se empalma con otra.");
+                return false;
             }
         });
     }
 
-    // 2. Bloqueo para Formulario de Paciente Existente
     const formExistente = document.getElementById('formExistente');
     if (formExistente) {
         formExistente.addEventListener('submit', function(e) {
             const fecha = document.getElementById('fechaCitaExistente').value;
-            const duracion = parseInt(document.getElementById('duracion_real_ex')?.value) || 30;
-            const elCal = document.getElementById('calendarExistente');
-            const calendarInstance = FullCalendar.getCalendar(elCal);
-
-            if (fecha && calendarInstance) {
-                if (verificarChoqueHorario(fecha, duracion, calendarInstance)) {
-                    e.preventDefault(); // DETIENE EL ENVÍO
-                    alert("⚠️ ERROR: Esta cita se empalma con otra ya programada.");
+            const dur = parseInt(document.getElementById('duracion_real_ex')?.value) || 30;
+            const calElement = document.getElementById('calendarExistente');
+            
+            if (fecha && calElement) {
+                const cal = FullCalendar.getCalendar(calElement);
+                if (cal && verificarChoqueHorario(fecha, dur, cal)) {
+                    e.preventDefault();
+                    alert("⚠️ Error: Esta cita se empalma con otra ya programada.");
                     return false;
                 }
             }
@@ -1334,50 +1309,75 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 });
 
-function verificarChoqueHorario(fechaHoraInicio, duracionMinutos, calendar) {
+function verificarChoqueHorario(fechaHoraInicio, duracionMinutos, calendar, idCitaActual = null) {
     const inicioNuevaCita = new Date(fechaHoraInicio);
+    // Limpiamos milisegundos para evitar errores de precisión
+    inicioNuevaCita.setSeconds(0, 0); 
+    
     const finNuevaCita = new Date(inicioNuevaCita.getTime() + duracionMinutos * 60000);
 
-    // Obtener todas las citas ya renderizadas en el calendario
+    // Obtener citas del calendario
     const citasExistentes = calendar.getEvents();
 
     for (let cita of citasExistentes) {
-        const inicioCitaExistente = cita.start;
-        const finCitaExistente = cita.end || new Date(inicioCitaExistente.getTime() + 30 * 60000); // Si no tiene fin, asumimos 30min
+        // Si estamos editando una cita, no debe chocar con su propia versión previa en el calendario
+        if (idCitaActual && cita.id == idCitaActual) continue;
 
-        // Lógica de traslape: (InicioA < FinB) y (FinA > InicioB)
+        const inicioCitaExistente = new Date(cita.start);
+        inicioCitaExistente.setSeconds(0, 0);
+
+        // Si la cita existente no tiene fin definido por FullCalendar, usamos su duración real o 30 min
+        const finCitaExistente = cita.end 
+            ? new Date(cita.end) 
+            : new Date(inicioCitaExistente.getTime() + (cita.extendedProps.duracion || 30) * 60000);
+        
+        finCitaExistente.setSeconds(0, 0);
+
+        // LÓGICA DE TRASLAPE ESTRICTA
+        // (Inicio A < Fin B) && (Fin A > Inicio B)
         if (inicioNuevaCita < finCitaExistente && finNuevaCita > inicioCitaExistente) {
-            return true; // ¡Hay choque!
+            console.warn("Conflicto detectado con cita:", cita.title, "Inicia:", inicioCitaExistente, "Termina:", finCitaExistente);
+            return true; 
         }
     }
-    return false; // Está libre
+    return false; 
 }
 
 function filterPatients() {
-    // 1. Obtener el texto del buscador y convertirlo a minúsculas
-    let input = document.getElementById("patientSearch");
-    let filter = input.value.toLowerCase();
+    const input = document.getElementById("patientSearch");
+    const filter = input.value.toLowerCase();
+    const table = document.querySelector(".data-table");
+    const tr = table.getElementsByTagName("tr");
+    const noResultsRow = document.getElementById("noResultsRow");
     
-    // 2. Obtener todas las filas del cuerpo de la tabla
-    let table = document.querySelector(".data-table");
-    let tr = table.getElementsByTagName("tr");
+    let visibleCount = 0;
 
-    // 3. Recorrer todas las filas (empezando desde 1 para saltar el encabezado)
-    for (let i = 1; i < tr.length; i++) {
+    // Empezamos en 1 para saltar el encabezado, y terminamos antes de la fila de "No hay resultados"
+    // (tr.length - 1) porque la última fila es la de 'noResultsRow'
+    for (let i = 1; i < tr.length - 1; i++) {
         let row = tr[i];
-        
-        // Obtenemos el contenido de las columnas clave (Paciente y Contacto)
-        // Usamos innerText para obtener todo el texto visible en la fila
         let textContent = row.innerText.toLowerCase();
 
         if (textContent.indexOf(filter) > -1) {
-            // Si coincide, mostramos la fila
             row.style.display = "";
+            visibleCount++;
         } else {
-            // Si no coincide, ocultamos la fila
             row.style.display = "none";
         }
     }
+
+    // Mostrar u ocultar el mensaje de "No se encontraron resultados"
+    if (visibleCount === 0) {
+        noResultsRow.style.display = "";
+    } else {
+        noResultsRow.style.display = "none";
+    }
+}
+
+function verPaciente(id) {
+    // Redirige al historial usando el ID del paciente
+    // La URL quedará algo como: /asistente/historial/5
+    window.location.href = "{{ url('/asistente/historial') }}/" + id;
 }
 </script>
 @endsection

@@ -43,8 +43,8 @@
         <a href="{{ route('pacientes.index') }}">
             <i class="fa-solid fa-user"></i> Pacientes
         </a>
-        <a href="#">
-            <i class="fa-solid fa-folder-open"></i> Historial clínico
+        <a href="{{ route('asistente.historial') }}">
+            <i class="fa-solid fa-folder-open"></i>Historial clínico
         </a>
         <a href="#">
             <i class="fa-solid fa-mobile-screen-button"></i> Acceso App Móvil

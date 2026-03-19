@@ -1,0 +1,134 @@
+/* ================= TARJETAS GENERALES ================= */
+.card,
+.card-section {
+  background: #ffffff;
+  padding: 25px;
+  border-radius: 14px;
+  margin-bottom: 25px;
+  box-shadow: 0 6px 15px rgba(0,0,0,0.08);
+}
+
+.card h3,
+.card-section h3 {
+  margin-top: 0;
+  margin-bottom: 20px;
+  color: #0d6efd;
+  font-size: 18px;
+}
+
+/* ================= BUSCAR PACIENTE ================= */
+.card-section .form-row {
+  align-items: flex-end;
+}
+
+.card-section .form-group button {
+  height: 42px;
+  white-space: nowrap;
+}
+
+/* ================= TEXTAREA ================= */
+textarea {
+  width: 100%;
+  padding: 10px;
+  border-radius: 8px;
+  border: 1px solid #ced4da;
+  font-size: 14px;
+  resize: vertical;
+}
+
+textarea:focus {
+  outline: none;
+  border-color: #0d6efd;
+}
+
+/* ================= INPUTS DESHABILITADOS ================= */
+input[disabled] {
+  background: #e9ecef;
+  color: #495057;
+  cursor: not-allowed;
+}
+
+/* ================= BOTONES DE ACCIÓN ================= */
+.form-actions {
+  margin-top: 25px;
+  display: flex;
+  gap: 12px;
+}
+
+/* ================= RESPONSIVE ================= */
+@media (max-width: 768px) {
+  .form-actions {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .card-section .form-row {
+    align-items: stretch;
+  }
+}
+/* BOTÓN VER HISTORIALES */
+.btn-history{
+background:#2563eb;
+color:white;
+border:none;
+padding:10px 18px;
+border-radius:8px;
+cursor:pointer;
+font-weight:500;
+font-size:14px;
+}
+.btn-history:hover{
+opacity:0.9;
+}
+
+/* MODAL */
+.modal{
+display:none;
+position:fixed;
+inset:0;
+background:rgba(0,0,0,0.5);
+justify-content:center;
+align-items:center;
+z-index:999;
+}
+.modal:target{
+display:flex;
+}
+
+.modal-content{
+background:white;
+width:90%;
+max-width:800px;
+border-radius:14px;
+padding:25px;
+position:relative;
+box-shadow:0 10px 30px rgba(0,0,0,0.15);
+max-height:80vh;
+overflow-y:auto;
+}
+.close-btn{
+position:absolute;
+right:20px;
+top:15px;
+font-size:18px;
+color:#6b7280;
+text-decoration:none;
+}
+
+.history-item{
+border:1px solid #e5e7eb;
+border-radius:10px;
+padding:15px;
+margin-bottom:15px;
+background:#f9fafb;
+}
+.history-item h4{
+margin-bottom:8px;
+color:#2563eb;
+}
+
+.history-item p{
+margin:4px 0;
+font-size:14px;
+color:#374151;
+}
