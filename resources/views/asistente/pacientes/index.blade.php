@@ -1246,19 +1246,37 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // --- CORRECCIÓN PUNTO 1 Y 2: Validación de Choque por Duración ---
     // Escuchamos 'change' en los inputs de duración específicamente
-    document.querySelectorAll('#duracion_real, #duracion_real_ex').forEach(input => {
+    // --- CORRECCIÓN PUNTO 1 Y 2: Validación de Choque (Independiente del orden) ---
+    // Escuchamos 'change' tanto en DURACIÓN como en FECHA/HORA
+    const camposCita = '#duracion_real, #duracion_real_ex, #fechaCitaNuevo, #fechaCitaExistente';
+    
+    document.querySelectorAll(camposCita).forEach(input => {
         input.addEventListener('change', function() {
-            const esNuevo = this.id === 'duracion_real';
-            const fecha = document.getElementById(esNuevo ? 'fechaCitaNuevo' : 'fechaCitaExistente').value;
-            const elCal = document.getElementById(esNuevo ? 'calendarNuevo' : 'calendarExistente');
+            // Determinamos si estamos en el modal de Nuevo o Existente
+            const esNuevo = (this.id.includes('Nuevo') || this.id === 'duracion_real');
             
-            if (fecha && elCal) {
+            const idInputFecha = esNuevo ? 'fechaCitaNuevo' : 'fechaCitaExistente';
+            const idInputDur = esNuevo ? 'duracion_real' : 'duracion_real_ex';
+            const idCal = esNuevo ? 'calendarNuevo' : 'calendarExistente';
+            
+            const fechaVal = document.getElementById(idInputFecha).value;
+            const duracionVal = parseInt(document.getElementById(idInputDur).value);
+            const elCal = document.getElementById(idCal);
+            
+            // Solo validamos si ambos campos tienen datos
+            if (fechaVal && duracionVal > 0 && elCal) {
                 const calendarInstance = FullCalendar.getCalendar(elCal);
-                if (calendarInstance && verificarChoqueHorario(fecha, parseInt(this.value), calendarInstance)) {
-                    alert("⚠️ La cita se empalma con otra ya programada. Por favor, reduzca la duración o elija otra hora.");
-                    this.style.border = "2px solid red";
+                
+                if (calendarInstance && verificarChoqueHorario(fechaVal, duracionVal, calendarInstance)) {
+                    // RESULTADO ESPERADO PUNTO 2: Advertencia clara
+                    alert("⚠️ LA CITA SE EMPALMA: Con esta hora y duración, la cita invade el horario de otra ya programada.");
+                    
+                    // Feedback visual
+                    document.getElementById(idInputDur).style.border = "2px solid red";
+                    document.getElementById(idInputDur).style.backgroundColor = "#fee2e2";
                 } else {
-                    this.style.border = "";
+                    document.getElementById(idInputDur).style.border = "";
+                    document.getElementById(idInputDur).style.backgroundColor = "";
                 }
             }
         });
