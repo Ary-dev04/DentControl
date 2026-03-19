@@ -1324,33 +1324,34 @@ document.addEventListener('DOMContentLoaded', function() {
 }); // AQUÍ termina correctamente el DOMContentLoaded
 
 function verificarChoqueHorario(fechaHoraInicio, duracionMinutos, calendar, idCitaActual = null) {
-    const inicioNuevaCita = new Date(fechaHoraInicio);
-    // Limpiamos milisegundos para evitar errores de precisión
-    inicioNuevaCita.setSeconds(0, 0); 
-    
-    const finNuevaCita = new Date(inicioNuevaCita.getTime() + duracionMinutos * 60000);
+    // 1. Convertir la nueva cita a tiempos (milisegundos)
+    const inicioNueva = new Date(fechaHoraInicio).getTime();
+    const finNueva = inicioNueva + (duracionMinutos * 60000);
 
-    // Obtener citas del calendario
+    // 2. Obtener todos los eventos cargados en el calendario
     const citasExistentes = calendar.getEvents();
 
     for (let cita of citasExistentes) {
-        // Si estamos editando una cita, no debe chocar con su propia versión previa en el calendario
-        if (idCitaActual && cita.id == idCitaActual) continue;
+        // Ignorar la misma cita si estamos editando
+        if (idCitaActual && String(cita.id) === String(idCitaActual)) continue;
 
-        const inicioCitaExistente = new Date(cita.start);
-        inicioCitaExistente.setSeconds(0, 0);
-
-        // Si la cita existente no tiene fin definido por FullCalendar, usamos su duración real o 30 min
-        const finCitaExistente = cita.end 
-            ? new Date(cita.end) 
-            : new Date(inicioCitaExistente.getTime() + (cita.extendedProps.duracion || 30) * 60000);
+        // 3. Obtener tiempos de la cita que ya está en el calendario
+        const inicioExistente = new Date(cita.start).getTime();
         
-        finCitaExistente.setSeconds(0, 0);
+        // Si la cita no tiene 'end' definido, usamos su duración guardada o 30 min por defecto
+        let finExistente;
+        if (cita.end) {
+            finExistente = new Date(cita.end).getTime();
+        } else {
+            const dur = cita.extendedProps.duracion || 30;
+            finExistente = inicioExistente + (dur * 60000);
+        }
 
-        // LÓGICA DE TRASLAPE ESTRICTA
-        // (Inicio A < Fin B) && (Fin A > Inicio B)
-        if (inicioNuevaCita < finCitaExistente && finNuevaCita > inicioCitaExistente) {
-            console.warn("Conflicto detectado con cita:", cita.title, "Inicia:", inicioCitaExistente, "Termina:", finCitaExistente);
+        // 4. LÓGICA DE TRASLAPE (EL CORAZÓN DEL PROBLEMA)
+        // Hay choque si: El inicio de la nueva es antes del fin de la existente
+        // Y el fin de la nueva es después del inicio de la existente.
+        if (inicioNueva < finExistente && finNueva > inicioExistente) {
+            console.warn("¡CHOQUE DETECTADO!");
             return true; 
         }
     }
