@@ -30,30 +30,93 @@
             </div>
         @endif
 
-        <section class="table-section">
-            <table class="data-table">
-                <thead>
-                    <tr>
-                        <th>Paciente</th>
-                        <th>Teléfono</th>
-                        <th>Email</th>
-                        <th>Acciones</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @foreach($pacientes as $p)
-                    <tr>
-                        <td>{{ $p->nombre }} {{ $p->apellido_paterno }}</td>
-                        <td>{{ $p->telefono ?? 'N/A' }}</td>
-                        <td>{{ $p->email }}</td>
-                        <td>
-                            <button class="btn-secondary" onclick="verPaciente({{ $p->id_paciente }})">Ver</button>
-                        </td>
-                    </tr>
-                    @endforeach
-                </tbody>
-            </table>
-        </section>
+        <div class="search-wrapper" style="margin-bottom: 20px; position: relative; width: 400px;">
+    <i class="fa-solid fa-magnifying-glass search-icon" style="position: absolute; left: 10px; top: 50%; transform: translateY(-50%); color: #9ca3af;"></i>
+    <input type="text" 
+           id="patientSearch" 
+           class="search-input" 
+           style="padding: 10px 10px 10px 35px; border: 1px solid #d1d5db; border-radius: 8px; width: 100%; box-shadow: 0 1px 2px rgba(0,0,0,0.05);"
+           placeholder="Buscar por nombre, CURP o tutor..." 
+           onkeyup="filterPatients()">
+</div>
+
+        <section class="table-section" style="width: 100%; background: #fff; border-radius: 10px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); overflow: hidden; margin-top: 20px;">
+    <table class="data-table" style="width: 100%; border-collapse: collapse; min-width: 900px;">
+        <thead>
+            <tr style="background-color: #2563eb; color: #ffffff;">
+                <th style="padding: 18px 15px; width: 90px; text-align: center; font-size: 0.85rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; border: none;">Perfil</th>
+                <th style="padding: 18px 15px; text-align: left; font-size: 0.85rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; border: none;">Paciente / Identificación</th>
+                <th style="padding: 18px 15px; width: 110px; text-align: center; font-size: 0.85rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; border: none;">Edad</th>
+                <th style="padding: 18px 15px; text-align: left; font-size: 0.85rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; border: none;">Información de Contacto</th>
+                <th style="padding: 18px 15px; width: 140px; text-align: center; font-size: 0.85rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; border: none;">Acciones</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach($pacientes as $p)
+            <tr style="border-bottom: 1px solid #e2e8f0; transition: background 0.2s;">
+                <td style="padding: 20px 15px; text-align: center; vertical-align: middle;">
+                    @if($p->nombre_tutor)
+                        <div style="background: #e0f2fe; color: #0369a1; padding: 6px; border-radius: 8px; font-size: 10px; font-weight: 800; border: 1px solid #bae6fd;">
+                            <i class="fa-solid fa-child" style="font-size: 1.2rem;"></i><br>MENOR
+                        </div>
+                    @else
+                        <div style="background: #f1f5f9; color: #475569; padding: 6px; border-radius: 8px; font-size: 10px; font-weight: 800; border: 1px solid #e2e8f0;">
+                            <i class="fa-solid fa-user" style="font-size: 1.2rem;"></i><br>ADULTO
+                        </div>
+                    @endif
+                </td>
+
+                <td style="padding: 20px 15px; vertical-align: middle;">
+                    <div style="font-size: 1.05rem; font-weight: 700; color: #1e293b; margin-bottom: 4px;">
+                        {{ $p->nombre }} {{ $p->apellido_paterno }} {{ $p->apellido_materno }}
+                    </div>
+                    <div style="display: flex; align-items: center; gap: 8px;">
+                        <span style="font-family: 'Courier New', monospace; background: #f8fafc; color: #64748b; padding: 2px 6px; border-radius: 4px; font-size: 0.85rem; border: 1px solid #e2e8f0;">
+                            {{ $p->curp }}
+                        </span>
+                    </div>
+                </td>
+
+                <td style="padding: 20px 15px; text-align: center; vertical-align: middle;">
+                    <div style="background: #f0fdf4; color: #16a34a; border: 1px solid #bbf7d0; padding: 8px 12px; border-radius: 8px; font-weight: 700; font-size: 1rem;">
+                        {{ \Carbon\Carbon::parse($p->fecha_nacimiento)->age }} 
+                        <span style="font-size: 0.75rem; font-weight: 400; display: block;">años</span>
+                    </div>
+                </td>
+
+                <td style="padding: 20px 15px; vertical-align: middle;">
+                    @if($p->nombre_tutor)
+                        <div style="margin-bottom: 5px;">
+                            <span style="color: #2563eb; font-weight: 700; font-size: 0.95rem;">
+                                <i class="fa-solid fa-phone"></i> {{ $p->telefono_tutor }}
+                            </span>
+                        </div>
+                        <div style="font-size: 0.85rem; color: #64748b; display: flex; align-items: center; gap: 5px;">
+                            <i class="fa-solid fa-user-shield"></i> {{ $p->nombre_tutor }}
+                        </div>
+                    @else
+                        <div style="margin-bottom: 5px;">
+                            <span style="color: #16a34a; font-weight: 700; font-size: 0.95rem;">
+                                <i class="fa-solid fa-phone"></i> {{ $p->telefono ?? 'S/N' }}
+                            </span>
+                        </div>
+                        <div style="font-size: 0.85rem; color: #64748b; word-break: break-all;">
+                            <i class="fa-solid fa-envelope"></i> {{ $p->email }}
+                        </div>
+                    @endif
+                </td>
+
+                <td style="padding: 20px 15px; text-align: center; vertical-align: middle;">
+                    <button class="btn-ver" onclick="verPaciente({{ $p->id_paciente }})" 
+                            style="background: #2563eb; color: #ffffff; border: none; padding: 10px 20px; border-radius: 8px; font-weight: 600; cursor: pointer; transition: all 0.3s; display: inline-flex; align-items: center; gap: 8px; box-shadow: 0 2px 4px rgba(37, 99, 235, 0.2);">
+                        <i class="fa-solid fa-file-medical"></i> VER HISTORIAL CLINICO
+                    </button>
+                </td>
+            </tr>
+            @endforeach
+        </tbody>
+    </table>
+</section>
     </main>
 </div>
 
@@ -93,209 +156,147 @@
     <div class="custom-modal-content large">
         <span class="close-btn" onclick="cerrarModal('modalNuevo')">&times;</span>
         <h3>Registrar paciente y cita</h3>
+
         @if ($errors->any())
-    <div style="background: #fee2e2; color: #991b1b; padding: 12px; border-radius: 6px; margin-bottom: 15px; border: 1px solid #f87171;">
-        <p style="margin: 0; font-weight: bold;">Por favor, corrige los siguientes errores:</p>
-        <ul style="margin: 5px 0 0 20px; font-size: 0.9em;">
-            @foreach ($errors->all() as $error)
-                <li>{{ $error }}</li>
-            @endforeach
-        </ul>
-    </div>
-@endif
-        
+            <div style="background: #fee2e2; color: #991b1b; padding: 12px; border-radius: 6px; margin-bottom: 15px; border: 1px solid #f87171;">
+                <p style="margin: 0; font-weight: bold;">Por favor, corrige los siguientes errores:</p>
+                <ul style="margin: 5px 0 0 20px; font-size: 0.9em;">
+                    @foreach ($errors->all() as $error)
+                        <li>{{ $error }}</li>
+                    @endforeach
+                </ul>
+            </div>
+        @endif
+
         <form action="{{ route('pacientes.store') }}" method="POST" id="formNuevo">
             @csrf
+            
             <div class="form-row">
-    <div class="form-group">
-        <label>Nombre(s) *</label>
-        <input type="text" name="nombre" maxlength="15" onkeypress="return soloLetras(event)" required value="{{ old('nombre') }}">
-    </div>
-    <div class="form-group">
-        <label>Apellido Paterno *</label>
-        <input type="text" name="apellido_paterno" maxlength="15" onkeypress="return soloLetras(event)" required value="{{ old('apellido_paterno') }}">
-    </div>
-    <div class="form-group">
-        <label>Apellido Materno *</label>
-        <input type="text" name="apellido_materno" maxlength="15" onkeypress="return soloLetras(event)" required value="{{ old('apellido_materno') }}">
-    </div>
-</div>
+                <div class="form-group">
+                    <label>Nombre(s) *</label>
+                    <input type="text" name="nombre" maxlength="15" onkeypress="return soloLetras(event)" required value="{{ old('nombre') }}">
+                </div>
+                <div class="form-group">
+                    <label>Apellido Paterno *</label>
+                    <input type="text" name="apellido_paterno" maxlength="15" onkeypress="return soloLetras(event)" required value="{{ old('apellido_paterno') }}">
+                </div>
+                <div class="form-group">
+                    <label>Apellido Materno *</label>
+                    <input type="text" name="apellido_materno" maxlength="15" onkeypress="return soloLetras(event)" required value="{{ old('apellido_materno') }}">
+                </div>
+            </div>
 
-<div class="form-row">
-    <div class="form-group" id="contenedor_email">
-        <label>Email *</label>
-        <input type="email" name="email" maxlength="100" value="{{ old('email') }}" oninput="validarEmailInput(this)" onblur="limpiarEmailFinal(this)">
-    </div>
-    <div class="form-group" id="contenedor_telefono">
-        <label>Teléfono (Paciente) *</label>
-        <input type="text" name="telefono" id="tel_paciente" maxlength="10" oninput="this.value = this.value.replace(/[^0-9]/g, '')" value="{{ old('telefono') }}">
-    </div>
-    <div class="form-group" id="contenedor_grado" style="display: none;">
-        <label>Grado de estudio *</label>
-        <input type="text" name="grado_estudio" value="{{ old('grado_estudio') }}" placeholder="Ej. 2do de Primaria" oninput="validarCampoRealTime(this); controlarEspacios(this)"
-           onblur="limpiarEspacios(this)">
-        <span id="error_grado_estudio" class="error-msg" style="color: #ef4444; font-size: 0.8rem; display: none;"></span>
-    </div>
-    <div class="form-group">
-        <label>CURP</label>
-        <input type="text" name="curp" maxlength="18" style="text-transform: uppercase;" oninput="this.value = this.value.toUpperCase()" value="{{ old('curp') }}" required>
-    </div>
-    <div class="form-group">
-        <label>Fecha de Nacimiento</label>
-        <input type="date" name="fecha_nacimiento" min="1920-01-01" max="{{ date('Y-m-d') }}" value="{{ old('fecha_nacimiento') }}" oninput="controlarEspacios(this)" onblur="limpiarEspacios(this)">
-    </div>
-</div>
+            <div class="form-row">
+                <div class="form-group" id="contenedor_email">
+                    <label>Email *</label>
+                    <input type="email" name="email" maxlength="100" value="{{ old('email') }}" oninput="validarEmailInput(this)" onblur="limpiarEmailFinal(this)">
+                </div>
+                <div class="form-group" id="contenedor_telefono">
+                    <label>Teléfono (Paciente) *</label>
+                    <input type="text" name="telefono" id="tel_paciente" maxlength="10" oninput="this.value = this.value.replace(/[^0-9]/g, '')" value="{{ old('telefono') }}">
+                </div>
+                <div class="form-group" id="contenedor_grado" style="display: none;">
+                    <label>Grado de estudio *</label>
+                    <input type="text" name="grado_estudio" value="{{ old('grado_estudio') }}" placeholder="Ej. 2do de Primaria" oninput="validarCampoRealTime(this); controlarEspacios(this)" onblur="limpiarEspacios(this)">
+                    <span id="error_grado_estudio" class="error-msg" style="color: #ef4444; font-size: 0.8rem; display: none;"></span>
+                </div>
+                <div class="form-group">
+                    <label>CURP</label>
+                    <input type="text" name="curp" maxlength="18" style="text-transform: uppercase;" oninput="this.value = this.value.toUpperCase()" value="{{ old('curp') }}" required>
+                </div>
+                <div class="form-group">
+                    <label>Fecha de Nacimiento</label>
+                    <input type="date" name="fecha_nacimiento" min="1920-01-01" max="{{ date('Y-m-d') }}" value="{{ old('fecha_nacimiento') }}" oninput="controlarEspacios(this)" onblur="limpiarEspacios(this)">
+                </div>
+            </div>
 
-<div class="form-row">
-    <div class="form-group">
-        <label>Sexo</label>
-        <select name="sexo" class="form-control @error('sexo') is-invalid @enderror" required>
-            <option value="" disabled {{ old('sexo') ? '' : 'selected' }}>-- Seleccione --</option>
-            <option value="hombre" {{ old('sexo') == 'hombre' ? 'selected' : '' }}>Hombre</option>
-            <option value="mujer" {{ old('sexo') == 'mujer' ? 'selected' : '' }}>Mujer</option>
-        </select>
-        @error('sexo')
-        <span class="invalid-feedback" style="color: #ef4444; font-size: 0.8rem; display: block; margin-top: 5px;">
-            <strong>{{ $message }}</strong>
-        </span>
-    @enderror
-    </div>
-    <div class="form-group" id="contenedor_ocupacion">
-        <label>Ocupación *</label>
-        <input type="text" name="ocupacion" value="{{ old('ocupacion') }}" placeholder="Ej. Empleado, Estudiante, Ama de casa" oninput="controlarEspacios(this)" onblur="limpiarEspacios(this)" maxlength="30">
-        <span class="error-message" style="color: #ef4444; font-size: 0.8rem; display: none;"></span>
-    </div>
-    <div class="form-group">
-        <label>Peso (kg)</label>
-        <input type="number" step="0.01" name="peso" value="{{ old('peso') }}" required>
-    </div>
-    <div class="form-group" style="flex: 2;">
-    <label style="display: block; margin-bottom: 8px; font-weight: bold;">¿Presenta alergias? *</label>
-    <div style="display: flex; gap: 20px; align-items: center; height: 40px;">
-        <label style="font-weight: normal; cursor: pointer;">
-            <input type="radio" name="tiene_alergias" value="no" onclick="toggleAlergias(false)" checked required> No
-        </label>
-        <label style="font-weight: normal; cursor: pointer;">
-            <input type="radio" name="tiene_alergias" value="si" onclick="toggleAlergias(true)"> Sí
-        </label>
-    </div>
-</div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Sexo</label>
+                    <select name="sexo" class="form-control" required>
+                        <option value="" disabled {{ old('sexo') ? '' : 'selected' }}>-- Seleccione --</option>
+                        <option value="hombre" {{ old('sexo') == 'hombre' ? 'selected' : '' }}>Hombre</option>
+                        <option value="mujer" {{ old('sexo') == 'mujer' ? 'selected' : '' }}>Mujer</option>
+                    </select>
+                </div>
+                <div class="form-group" id="contenedor_ocupacion">
+                    <label>Ocupación *</label>
+                    <input type="text" name="ocupacion" value="{{ old('ocupacion') }}" placeholder="Ej. Empleado" maxlength="30">
+                </div>
+                <div class="form-group">
+                    <label>Peso (kg)</label>
+                    <input type="number" step="0.01" name="peso" value="{{ old('peso') }}" required>
+                </div>
+                <div class="form-group" style="flex: 2;">
+                    <label style="display: block; margin-bottom: 8px; font-weight: bold;">¿Presenta alergias? *</label>
+                    <div style="display: flex; gap: 20px; align-items: center; height: 40px;">
+                        <label><input type="radio" name="tiene_alergias" value="no" onclick="toggleAlergias(false)" checked required> No</label>
+                        <label><input type="radio" name="tiene_alergias" value="si" onclick="toggleAlergias(true)"> Sí</label>
+                    </div>
+                </div>
+                <div class="form-group" id="contenedor_alergias_detalle" style="display: none; flex: 2;">
+                    <label>Especifique las alergias *</label>
+                    <input type="text" name="alergias" id="input_alergias" placeholder="Ej: Penicilina...">
+                </div>
+            </div>
 
-<div class="form-group" id="contenedor_alergias_detalle" style="display: none; flex: 2;">
-    <label>Especifique las alergias *</label>
-    <input type="text" name="alergias" id="input_alergias" 
-           placeholder="Ej: Penicilina, Látex..."
-           oninput="validarCampoRealTime(this); controlarEspacios(this)"
-           onblur="limpiarEspacios(this)">
-    <span class="error-message" style="color: #ef4444; font-size: 0.8rem; display: none;"></span>
-</div>
-</div>
             <h4 style="margin-top:15px; border-bottom: 1px solid #eee;">Dirección</h4>
             <div class="form-row">
-                <div class="form-group"><label>Código Postal *</label><input type="text" name="codigo_postal" maxlength="5" required  onkeypress="return event.charCode >= 48 && event.charCode <= 57" value="{{ old('codigo_postal') }}"></div>
+                <div class="form-group"><label>C.P. *</label><input type="text" name="codigo_postal" maxlength="5" required value="{{ old('codigo_postal') }}"></div>
                 <div class="form-group"><label>Colonia *</label><input type="text" name="colonia" required value="{{ old('colonia') }}"></div>
                 <div class="form-group"><label>Ciudad *</label><input type="text" name="ciudad" required value="{{ old('ciudad') }}"></div>
-            </div>
-
-            <div class="form-row">
                 <div class="form-group"><label>Estado *</label><input type="text" name="estado" required value="{{ old('estado') }}"></div>
-                <div class="form-group">
-        <label>No. Exterior *</label>
-        <input type="text" name="num_ext" required 
-               value="{{ old('num_ext') }}"
-               oninput="this.value = this.value.replace(/[^a-zA-Z0-9 ]/g, ''); controlarEspacios(this)"
-               onblur="limpiarEspacios(this)">
-    </div>
-    <div class="form-group">
-        <label>No. Interior</label>
-        <input type="text" name="num_int" 
-               value="{{ old('num_int') }}"
-               oninput="this.value = this.value.replace(/[^a-zA-Z0-9 ]/g, ''); controlarEspacios(this)"
-               onblur="limpiarEspacios(this)">
-    </div>
-    <div class="form-group">
-        <label>Calle *</label>
-        <input type="text" name="calle" required 
-               value="{{ old('calle') }}"
-               oninput="this.value = this.value.replace(/[^a-zA-Z0-9áéíóúÁÉÍÓÚñÑ ]/g, ''); controlarEspacios(this)"
-               onblur="limpiarEspacios(this)">
-    </div>
             </div>
-            
-        <div id="seccion_tutor" style="display: none; background: #fffcf0; border: 1px dashed #eab308; padding: 15px; border-radius: 8px; margin: 20px 0;">
-            <h4 style="margin-top: 0; color: #854d0e; font-size: 1rem;">
-            <i class="fa-solid fa-person-breastfeeding"></i> Datos del Padre o Tutor
-            </h4>
             <div class="form-row">
-                <div class="form-group" style="flex: 2;">
-                <label>Nombre Completo *</label>
-                <input type="text" name="nombre_tutor" id="input_nombre_tutor" 
-                placeholder="Ej. María Pérez García"
-                onkeypress="return soloLetras(event)"
-                oninput="controlarEspacios(this); this.value = this.value.replace(/[0-9]/g, '')"
-                onblur="limpiarEspacios(this)">
+                <div class="form-group"><label>No. Ext *</label><input type="text" name="num_ext" required value="{{ old('num_ext') }}"></div>
+                <div class="form-group"><label>No. Int</label><input type="text" name="num_int" value="{{ old('num_int') }}"></div>
+                <div class="form-group" style="flex: 2;"><label>Calle *</label><input type="text" name="calle" required value="{{ old('calle') }}"></div>
             </div>
-            <div class="form-group">
-                <label>Parentesco *</label>
-                <select name="parentesco_tutor" id="select_parentesco">
-                <option value="">-- Seleccione --</option>
-                <option value="Madre">Madre</option>
-                <option value="Padre">Padre</option>
-                <option value="Tutor Legal">Tutor Legal</option>
-                <option value="Otro">Otro familiar</option>
-                </select>
-            </div>
-            <div class="form-group">
-                <label>Teléfono Tutor *</label>
-                <input type="text" name="telefono_tutor" id="input_tel_tutor" 
-                maxlength="10" 
-                oninput="this.value = this.value.replace(/[^0-9]/g, '')">
-            </div>
-                <div class="form-group">
-                <label>Email del Tutor *</label>
-                <input type="email" name="email_tutor" id="input_email_tutor" class="form-control" oninput="validarEmailInput(this)" onblur="limpiarEmailFinal(this)">
-            </div>
-        </div>
-    </div>
 
-            <div class="atencion-selector" style="margin: 20px 0; padding: 15px; background: #f8fafc; border-radius: 8px; border: 1px solid #e2e8f0;">
+            <div id="seccion_tutor" style="display: none; background: #fffcf0; border: 1px dashed #eab308; padding: 15px; border-radius: 8px; margin: 20px 0;">
+                <h4 style="margin-top: 0; color: #854d0e; font-size: 1rem;">
+                    <i class="fa-solid fa-person-breastfeeding"></i> Datos del Padre o Tutor
+                </h4>
+                <div class="form-row">
+                    <div class="form-group" style="flex: 2;">
+                        <label>Nombre Completo *</label>
+                        <input type="text" name="nombre_tutor" value="{{ old('nombre_tutor') }}">
+                    </div>
+                    <div class="form-group">
+                        <label>Parentesco *</label>
+                        <select name="parentesco_tutor">
+                            <option value="">-- Seleccione --</option>
+                            <option value="Madre">Madre</option>
+                            <option value="Padre">Padre</option>
+                            <option value="Tutor Legal">Tutor Legal</option>
+                            <option value="Otro">Otro familiar</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Teléfono Tutor *</label>
+                        <input type="text" name="telefono_tutor" value="{{ old('telefono_tutor') }}">
+                    </div>
+                    <div class="form-group">
+                        <label>Email Tutor *</label>
+                        <input type="email" name="email_tutor" value="{{ old('email_tutor') }}">
+                    </div>
+                </div>
+            </div> <div class="atencion-selector" style="margin: 20px 0; padding: 15px; background: #f8fafc; border-radius: 8px; border: 1px solid #e2e8f0;">
                 <label style="font-weight: bold; display: block; margin-bottom: 10px;">¿A qué viene hoy? *</label>
                 <div style="display: flex; gap: 20px; margin-bottom: 15px;">
-                    <label>
-    <input type="radio" name="tipo_atencion" value="tratamiento" 
-    onclick="mostrarOpcionesAtencion('tratamiento')" required
-    {{ old('tipo_atencion') == 'tratamiento' ? 'checked' : '' }}> Nuevo Plan
-</label>
-<label>
-    <input type="radio" name="tipo_atencion" value="servicio" 
-    onclick="mostrarOpcionesAtencion('servicio')"
-    {{ old('tipo_atencion') == 'servicio' ? 'checked' : '' }}> Servicio Rápido
-</label>
+                    <label><input type="radio" name="tipo_atencion" value="tratamiento" onclick="mostrarOpcionesAtencion('tratamiento')" required {{ old('tipo_atencion') == 'tratamiento' ? 'checked' : '' }}> Nuevo Plan</label>
+                    <label><input type="radio" name="tipo_atencion" value="servicio" onclick="mostrarOpcionesAtencion('servicio')" {{ old('tipo_atencion') == 'servicio' ? 'checked' : '' }}> Servicio Rápido</label>
                 </div>
 
                 <div id="contenedor_tratamiento" style="display: none;">
-    <label>Seleccione el Tratamiento:</label>
-    <select name="id_cat_tratamiento" id="select_tratamiento" class="form-control" onchange="consultarDuracionDB('tratamiento', this.value)">
-        <option value="">-- Seleccionar --</option>
-        @foreach($catTratamientos as $t)
-            <option value="{{ $t->id_cat_tratamientos }}">{{ $t->nombre }}</option>
-        @endforeach
-    </select>
-
-    <div class="form-group" style="margin-top: 12px;">
-        <label>Precio Estimado (Opcional)</label>
-        <div style="display: flex; align-items: center; gap: 5px;">
-            <span style="font-weight: bold;">$</span>
-            <input type="number" name="precio_estimado" id="precio_estimado_input" step="0.01" class="form-control" placeholder="0.00">
-        </div>
-        <small style="color: #6c757d;">Presupuesto global aproximado.</small>
-    </div>
-
-    <div class="form-group" style="margin-top: 12px;">
-        <label>Diagnóstico Inicial / Notas del Plan (Opcional)</label>
-        <textarea name="diagnostico_inicial" class="form-control" rows="2" placeholder="Ej: Paciente requiere ortodoncia por apiñamiento severo..."></textarea>
-    </div>
-</div>
+                    <label>Seleccione el Tratamiento:</label>
+                    <select name="id_cat_tratamiento" id="select_tratamiento" class="form-control" onchange="consultarDuracionDB('tratamiento', this.value)">
+                        <option value="">-- Seleccionar --</option>
+                        @foreach($catTratamientos as $t)
+                            <option value="{{ $t->id_cat_tratamientos }}">{{ $t->nombre }}</option>
+                        @endforeach
+                    </select>
+                </div>
 
                 <div id="contenedor_servicio" style="display: none;">
                     <label>Seleccione el Servicio:</label>
@@ -313,31 +314,24 @@
                     <label style="font-weight: bold;">Seleccionar fecha y hora de la cita *</label>
                     <div id="calendarNuevo" style="min-height: 400px; border: 1px solid #ccc; margin-top: 10px; background: white;"></div>
                     <input type="hidden" name="fecha_cita" id="fechaCitaNuevo" required>
-                    @if($errors->has('fecha_cita') && !old('id_paciente'))
-        <span class="text-danger" style="font-size: 0.8rem; display: block; margin-top: 5px;">
-            <strong><i class="fa-solid fa-circle-exclamation"></i> {{ $errors->first('fecha_cita') }}</strong>
-        </span>
-    @endif
                 </div>
             </div>
 
             <div class="form-row">
                 <div class="form-group">
                     <label>Duración sugerida (min)</label>
-                    <input type="number" id="duracion_sugerida" value="0" readonly style="background-color: #f8f9fa; cursor: not-allowed;">
-                    <small style="color: #6c757d;">* Según catálogo</small>
+                    <input type="number" id="duracion_sugerida" value="0" readonly style="background-color: #f8f9fa;">
                 </div>
                 <div class="form-group">
                     <label>Duración real de la cita (min) *</label>
                     <input type="number" name="duracion" id="duracion_real" required>
-                    <small style="color: #6c757d;">* Tiempo que se bloqueará en la agenda</small>
                 </div>
             </div>
 
             <div class="form-row">
                 <div class="form-group full-width">
                     <label>Motivo de la cita *</label>
-                    <input type="text" name="motivo_consulta" required value="{{ old('motivo_consulta') }}" oninput="validarMotivo(this)">
+                    <input type="text" name="motivo_consulta" required value="{{ old('motivo_consulta') }}">
                 </div>
             </div>
 
@@ -1218,27 +1212,35 @@ function toggleAlergias(mostrar) {
 }
 
 document.addEventListener('DOMContentLoaded', function() {
-    initRealTimeValidation();
+    // 1. Inicializar validaciones básicas
+    if (typeof initRealTimeValidation === 'function') initRealTimeValidation();
 
     @if ($errors->any())
         // DETERMINAR A QUÉ MODAL REGRESAR
-        // Si existe 'id_paciente' en los datos viejos, el error viene del Modal Existente
         @if (old('id_paciente'))
+            /* --- MODAL PACIENTE EXISTENTE --- */
             abrirModal('modalExistente');
             
-            // Re-hidratar opciones de tratamiento/servicio para el existente
             @if(old('tipo_atencion_ex'))
-                const tipoEx = "{{ old('tipo_atencion_ex') }}";
-                mostrarOpcionesExistente('{{ old("tipo_atencion_ex") }}');
+                // Usamos un pequeño delay para asegurar que el modal ya cambió a display: flex
+                setTimeout(() => {
+                    mostrarOpcionesExistente('{{ old("tipo_atencion_ex") }}');
+                    
+                    @if(old('id_tratamiento_existente'))
+                        document.getElementById('select_tratamiento_ex').value = "{{ old('id_tratamiento_existente') }}";
+                    @endif
 
-                // Si era seguimiento, los minutos sugeridos/reales se mantienen por el 'value' del HTML
-                // pero si necesitas forzar la carga de la duración sugerida:
-                @if(old('duracion_sugerida_ex'))
-                    document.getElementById('duracion_sugerida_ex').value = "{{ old('duracion_sugerida_ex') }}";
-                @endif
+                    @if(old('duracion_sugerida_ex'))
+                        document.getElementById('duracion_sugerida_ex').value = "{{ old('duracion_sugerida_ex') }}";
+                    @endif
+                    
+                    @if(old('duracion'))
+                        document.getElementById('duracion_real_ex').value = "{{ old('duracion') }}";
+                    @endif
+                }, 400);
             @endif
 
-            // Recuperar feedback visual de la fecha en el modal existente
+            // Feedback visual de la fecha
             @if(old('fecha_cita'))
                 const fechaEx = "{{ old('fecha_cita') }}";
                 document.getElementById('fechaCitaExistente').value = fechaEx;
@@ -1251,20 +1253,31 @@ document.addEventListener('DOMContentLoaded', function() {
             @endif
 
         @else
-            // Si no hay id_paciente, el error viene del Modal Nuevo
+            /* --- MODAL PACIENTE NUEVO (Adulto o Menor) --- */
             abrirModal('modalNuevo');
 
-            @if (old('nombre_tutor') || old('grado_estudio'))
+            // PUNTO 1 CORRECCIÓN: Si hay datos de tutor, abrir como menor
+            @if (old('nombre_tutor'))
                 abrirRegistroMenor(true);
+                // Forzamos que la sección sea visible aunque el radio no se haya "clicado"
+                document.getElementById('seccion_tutor').style.display = 'block';
             @else
-                abrirRegistroAdulto(true);
+                @if(old('grado_estudio'))
+                    abrirRegistroAdulto(true);
+                @endif
             @endif
 
+            // PUNTO 2 CORRECCIÓN: Mantener visible servicio y duración
             @if(old('tipo_atencion'))
-                mostrarOpcionesAtencion('{{ old("tipo_atencion") }}');
+                setTimeout(() => {
+                    mostrarOpcionesAtencion('{{ old("tipo_atencion") }}');
+                    
+                    @if(old('duracion'))
+                        document.getElementById('duracion_real').value = "{{ old('duracion') }}";
+                    @endif
+                }, 400);
             @endif
             
-            // Recuperar feedback visual de la fecha en el modal nuevo
             @if(old('fecha_cita'))
                 const fechaNu = "{{ old('fecha_cita') }}";
                 document.getElementById('fechaCitaNuevo').value = fechaNu;
@@ -1281,6 +1294,44 @@ document.addEventListener('DOMContentLoaded', function() {
             toggleAlergias(true);
         @endif
     @endif
+
+    // 1. Bloqueo para Formulario de Paciente Nuevo
+    const formNuevo = document.getElementById('formNuevo');
+    if (formNuevo) {
+        formNuevo.addEventListener('submit', function(e) {
+            const fecha = document.getElementById('fechaCitaNuevo').value;
+            const duracion = parseInt(document.getElementById('duracion_real')?.value) || 30;
+            const elCal = document.getElementById('calendarNuevo');
+            const calendarInstance = FullCalendar.getCalendar(elCal);
+
+            if (fecha && calendarInstance) {
+                if (verificarChoqueHorario(fecha, duracion, calendarInstance)) {
+                    e.preventDefault(); // DETIENE EL ENVÍO
+                    alert("⚠️ ERROR: El horario seleccionado choca con otra cita. Por favor, elige otra hora en el calendario.");
+                    return false;
+                }
+            }
+        });
+    }
+
+    // 2. Bloqueo para Formulario de Paciente Existente
+    const formExistente = document.getElementById('formExistente');
+    if (formExistente) {
+        formExistente.addEventListener('submit', function(e) {
+            const fecha = document.getElementById('fechaCitaExistente').value;
+            const duracion = parseInt(document.getElementById('duracion_real_ex')?.value) || 30;
+            const elCal = document.getElementById('calendarExistente');
+            const calendarInstance = FullCalendar.getCalendar(elCal);
+
+            if (fecha && calendarInstance) {
+                if (verificarChoqueHorario(fecha, duracion, calendarInstance)) {
+                    e.preventDefault(); // DETIENE EL ENVÍO
+                    alert("⚠️ ERROR: Esta cita se empalma con otra ya programada.");
+                    return false;
+                }
+            }
+        });
+    }
 });
 
 function verificarChoqueHorario(fechaHoraInicio, duracionMinutos, calendar) {
@@ -1300,6 +1351,33 @@ function verificarChoqueHorario(fechaHoraInicio, duracionMinutos, calendar) {
         }
     }
     return false; // Está libre
+}
+
+function filterPatients() {
+    // 1. Obtener el texto del buscador y convertirlo a minúsculas
+    let input = document.getElementById("patientSearch");
+    let filter = input.value.toLowerCase();
+    
+    // 2. Obtener todas las filas del cuerpo de la tabla
+    let table = document.querySelector(".data-table");
+    let tr = table.getElementsByTagName("tr");
+
+    // 3. Recorrer todas las filas (empezando desde 1 para saltar el encabezado)
+    for (let i = 1; i < tr.length; i++) {
+        let row = tr[i];
+        
+        // Obtenemos el contenido de las columnas clave (Paciente y Contacto)
+        // Usamos innerText para obtener todo el texto visible en la fila
+        let textContent = row.innerText.toLowerCase();
+
+        if (textContent.indexOf(filter) > -1) {
+            // Si coincide, mostramos la fila
+            row.style.display = "";
+        } else {
+            // Si no coincide, ocultamos la fila
+            row.style.display = "none";
+        }
+    }
 }
 </script>
 @endsection

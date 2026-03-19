@@ -363,3 +363,32 @@
 #calendarExistente .fc-scrollgrid {
     width: 100% !important;
 }
+
+
+.badge-perfil {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 3px 10px;
+    border-radius: 15px;
+    font-size: 11px;
+    font-weight: bold;
+    text-transform: uppercase;
+}
+
+.badge-perfil.menor {
+    background-color: #e0f2fe;
+    color: #0369a1;
+    border: 1px solid #bae6fd;
+}
+
+.badge-perfil.adulto {
+    background-color: #f1f5f9;
+    color: #475569;
+    border: 1px solid #e2e8f0;
+}
+
+.data-table td {
+    vertical-align: middle;
+    padding: 12px 8px;
+}

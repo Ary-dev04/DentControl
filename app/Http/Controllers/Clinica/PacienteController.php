@@ -19,9 +19,17 @@ class PacienteController extends Controller
     {
         $id_clinica = Auth::user()->id_clinica;
 
-        $pacientes = Paciente::where('id_clinica', $id_clinica)
-            ->where('estatus', 'activo')
-            ->get();
+        //$pacientes = Paciente::where('id_clinica', $id_clinica)
+          //  ->where('estatus', 'activo')
+            //->get();
+
+        // Traemos pacientes activos con su última cita (ordenadas por fecha y hora)
+    $pacientes = Paciente::where('id_clinica', $id_clinica)
+        ->where('estatus', 'activo')
+        ->with(['citas' => function($query) {
+            $query->orderBy('fecha', 'desc')->orderBy('hora', 'desc');
+        }])
+        ->get();
 
         $catServicios = CatalogoServicio::where('id_clinica', $id_clinica)->where('estatus', 'activo')->get();
         $catTratamientos = CatalogoTratamiento::where('id_clinica', $id_clinica)->where('estatus', 'activo')->get();
