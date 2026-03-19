@@ -1244,17 +1244,12 @@ document.addEventListener('DOMContentLoaded', function() {
         @endif
     @endif
 
-    // --- CORRECCIÓN PUNTO 1 Y 2: Validación de Choque por Duración ---
-    // Escuchamos 'change' en los inputs de duración específicamente
-    // --- CORRECCIÓN PUNTO 1 Y 2: Validación de Choque (Independiente del orden) ---
-    // Escuchamos 'change' tanto en DURACIÓN como en FECHA/HORA
+    // --- CORRECCIÓN PUNTOS 1, 2 Y AUDITORÍA: Cambio en tiempo real ---
     const camposCita = '#duracion_real, #duracion_real_ex, #fechaCitaNuevo, #fechaCitaExistente';
     
     document.querySelectorAll(camposCita).forEach(input => {
         input.addEventListener('change', function() {
-            // Determinamos si estamos en el modal de Nuevo o Existente
             const esNuevo = (this.id.includes('Nuevo') || this.id === 'duracion_real');
-            
             const idInputFecha = esNuevo ? 'fechaCitaNuevo' : 'fechaCitaExistente';
             const idInputDur = esNuevo ? 'duracion_real' : 'duracion_real_ex';
             const idCal = esNuevo ? 'calendarNuevo' : 'calendarExistente';
@@ -1263,47 +1258,48 @@ document.addEventListener('DOMContentLoaded', function() {
             const duracionVal = parseInt(document.getElementById(idInputDur).value);
             const elCal = document.getElementById(idCal);
             
-            // Solo validamos si ambos campos tienen datos
             if (fechaVal && duracionVal > 0 && elCal) {
                 const calendarInstance = FullCalendar.getCalendar(elCal);
-                
                 if (calendarInstance && verificarChoqueHorario(fechaVal, duracionVal, calendarInstance)) {
-                    // RESULTADO ESPERADO PUNTO 2: Advertencia clara
-                    alert("⚠️ LA CITA SE EMPALMA: Con esta hora y duración, la cita invade el horario de otra ya programada.");
-                    
-                    // Feedback visual
-                    document.getElementById(idInputDur).style.border = "2px solid red";
-                    document.getElementById(idInputDur).style.backgroundColor = "#fee2e2";
+                    alert("⚠️ ERROR DE HORARIO: La cita se empalma con otra ya programada.");
+                    const inputError = document.getElementById(idInputDur);
+                    inputError.style.border = "2px solid red";
+                    inputError.style.backgroundColor = "#fee2e2";
                 } else {
-                    document.getElementById(idInputDur).style.border = "";
-                    document.getElementById(idInputDur).style.backgroundColor = "";
+                    const inputOk = document.getElementById(idInputDur);
+                    inputOk.style.border = "";
+                    inputOk.style.backgroundColor = "";
                 }
             }
         });
     });
 
-    // --- CORRECCIÓN PUNTO 5: Validación de Correo del Tutor en Submit ---
+    // --- BLOQUEO DEFINITIVO EN EL SUBMIT ---
     const formNuevo = document.getElementById('formNuevo');
     if (formNuevo) {
         formNuevo.addEventListener('submit', function(e) {
+            // 1. Validar correo tutor
             const emailTutor = document.querySelector('input[name="email_tutor"]');
             if (emailTutor && emailTutor.value.trim() !== "") {
                 const regex = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
                 if (!regex.test(emailTutor.value)) {
                     e.preventDefault();
-                    alert("❌ Formato de correo del tutor inválido (ej: usuario@dominio.com)");
+                    alert("❌ Formato de correo del tutor inválido.");
                     return false;
                 }
             }
             
-            // Re-validar choque antes de enviar
+            // 2. Validar choque horario
             const fecha = document.getElementById('fechaCitaNuevo').value;
             const dur = parseInt(document.getElementById('duracion_real')?.value) || 30;
-            const cal = FullCalendar.getCalendar(document.getElementById('calendarNuevo'));
-            if (fecha && cal && verificarChoqueHorario(fecha, dur, cal)) {
-                e.preventDefault();
-                alert("⚠️ Error: No se puede guardar, la cita se empalma con otra.");
-                return false;
+            const elCal = document.getElementById('calendarNuevo');
+            if (fecha && elCal) {
+                const cal = FullCalendar.getCalendar(elCal);
+                if (cal && verificarChoqueHorario(fecha, dur, cal)) {
+                    e.preventDefault();
+                    alert("⚠️ Error: No se puede guardar, la cita se empalma.");
+                    return false;
+                }
             }
         });
     }
@@ -1319,13 +1315,13 @@ document.addEventListener('DOMContentLoaded', function() {
                 const cal = FullCalendar.getCalendar(calElement);
                 if (cal && verificarChoqueHorario(fecha, dur, cal)) {
                     e.preventDefault();
-                    alert("⚠️ Error: Esta cita se empalma con otra ya programada.");
+                    alert("⚠️ Error: Esta cita se empalma con otra.");
                     return false;
                 }
             }
         });
     }
-});
+}); // AQUÍ termina correctamente el DOMContentLoaded
 
 function verificarChoqueHorario(fechaHoraInicio, duracionMinutos, calendar, idCitaActual = null) {
     const inicioNuevaCita = new Date(fechaHoraInicio);
