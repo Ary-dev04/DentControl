@@ -146,25 +146,26 @@
 
         {{-- ACCIONES DEL FORMULARIO --}}
         <div class="form-actions" style="display: flex; justify-content: space-between; align-items: center; margin-top: 25px;">
-            <div style="display: flex; gap: 10px;">
-                <button type="submit" id="btnGuardar" class="btn-primary" style="display: none; background: #16a34a;">
-                    <i class="fa-solid fa-floppy-disk"></i> GUARDAR CAMBIOS
-                </button>
+    <div style="display: flex; gap: 10px; align-items: center;">
+        <button type="submit" id="btnGuardar" class="btn-primary" style="display: none; background: #16a34a;">
+            <i class="fa-solid fa-floppy-disk"></i> GUARDAR CAMBIOS
+        </button>
 
-                <button type="button" id="btnCancelarEdicion" class="btn-cancel" style="display: none; background: #ef4444; color:white; border:none; padding:10px 20px; border-radius:8px; cursor:pointer;">
-                    <i class="fa-solid fa-xmark"></i> CANCELAR
-                </button>
-                
-                <a href="{{ route('pacientes.index') }}" id="btnRegresar" class="btn-cancel" style="background: #f1f5f9; color: #475569; padding: 10px 20px; border-radius: 8px; text-decoration: none; display: flex; align-items: center;">
-                    <i class="fa-solid fa-arrow-left" style="margin-right: 8px;"></i> VOLVER
-                </a>
+        <button type="button" id="btnCancelarEdicion" class="btn-cancel" style="display: none; background: #ef4444; color:white; border:none; padding:10px 20px; border-radius:8px; cursor:pointer;">
+            <i class="fa-solid fa-xmark"></i> CANCELAR
+        </button>
 
-                <button type="button" onclick="document.getElementById('modalVersiones').style.display='block'" 
-        style="background: #64748b; color: white; padding: 8px 15px; border-radius: 6px; border: none; cursor: pointer; font-weight: bold;">
-    <i class="fa-solid fa-clock-rotate-left"></i> Ver Historial de Cambios
-</button>
-            </div>
-        </div>
+        <button type="button" onclick="document.getElementById('modalVersiones').style.display='block'" 
+                style="background: #64748b; color: white; padding: 10px 20px; border-radius: 8px; border: none; cursor: pointer; font-weight: bold; display: flex; align-items: center;">
+            <i class="fa-solid fa-clock-rotate-left" style="margin-right: 8px;"></i> Ver Historial de Cambios
+        </button>
+    </div>
+
+    <a href="{{ route('pacientes.index') }}" id="btnRegresar" class="btn-cancel" 
+       style="background: #f1f5f9; color: #475569; padding: 10px 20px; border-radius: 8px; text-decoration: none; display: flex; align-items: center;">
+        <i class="fa-solid fa-arrow-left" style="margin-right: 8px;"></i> VOLVER
+    </a>
+</div>
     </form>
 
 
@@ -308,8 +309,11 @@
     });
 
 
-    function validarFormatoClinico(el) {
-        // La expresión regular debe ser idéntica a la del servidor
+  function validarFormatoClinico(el) {
+        // 1. LIMPIEZA DE ESPACIOS MÚLTIPLES (Agregado aquí)
+        // Reemplaza 2 o más espacios por uno solo en tiempo real
+        el.value = el.value.replace(/\s{2,}/g, ' ');
+
         const regex = /^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s\-\(\)\.,]*$/;
         if (el && el.value !== "" && !regex.test(el.value)) {
             el.setCustomValidity("Caracteres no permitidos (solo letras, espacios, paréntesis, guiones, puntos y comas).");
@@ -323,43 +327,42 @@
     // IDs de todos los campos que queremos validar
     const idsAValidar = ['hereditarios', 'patologicos', 'observaciones', 'alergias'];
 
-    // Validación en tiempo real para limpiar la burbuja mientras escriben
+    // Validación en tiempo real para limpiar la burbuja y ESPACIOS mientras escriben
     idsAValidar.forEach(id => {
         const elemento = document.getElementById(id);
         if (elemento) {
             elemento.addEventListener('input', function() {
-                validarFormatoClinico(this);
+                validarFormatoClinico(this); // Aquí se ejecuta la limpieza y la validación
             });
         }
     });
 
-    // Validación al enviar
+    // Validación al enviar (Se mantiene igual)
     document.getElementById('formHistorial').addEventListener('submit', function(e) {
         let hayError = false;
 
-        // Validar primero el peso (nativo por el min/max del HTML)
         const pesoInput = this.querySelector('input[name="peso"]');
-        if (!pesoInput.checkValidity()) {
+        if (pesoInput && !pesoInput.checkValidity()) {
             pesoInput.reportValidity();
             hayError = true;
         }
 
-        // Validar campos de texto si el peso está bien
         if (!hayError) {
             for (let id of idsAValidar) {
                 const el = document.getElementById(id);
                 if (el) {
+                    // Al llamar a validarFormatoClinico aquí, también hacemos una última limpieza de espacios
                     if (!validarFormatoClinico(el) || !el.checkValidity()) {
-                        el.reportValidity(); // Muestra la burbuja naranja
+                        el.reportValidity(); 
                         hayError = true;
-                        break; // Detener en el primer error encontrado
+                        break; 
                     }
                 }
             }
         }
 
         if (hayError) {
-            e.preventDefault(); // Evita que se cierre el modo edición o se envíe
+            e.preventDefault(); 
         }
     });
 </script>
