@@ -44,7 +44,7 @@
             <i class="fa-solid fa-user"></i> Pacientes
         </a>
         <a href="{{ route('asistente.historial') }}">
-            <i class="fa-solid fa-folder-open"></i>Historial clínico
+            <i class="fa-solid fa-folder-open"></i>Expediente clínico
         </a>
         <a href="{{ route('asistente.appmovil') }}">
             <i class="fa-solid fa-mobile-screen-button"></i>Acceso App Móvil

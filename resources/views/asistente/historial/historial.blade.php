@@ -115,23 +115,32 @@
             <div class="form-row">
                 <div class="form-group">
                     <label>Peso Actual (kg) <span style="color:red">*</span></label>
-                    <input type="number" step="0.1" name="peso" value="{{ $paciente->peso }}" class="campo-editable" disabled required style="font-weight: bold;">
+                    <input type="number" step="0.1" name="peso" value="{{ $paciente->peso }}" class="campo-editable" disabled required min="5" max="250" style="font-weight: bold;">
                 </div>
                 <div class="form-group full-width">
                     <label>Alergias</label>
-                    <input type="text" name="alergias" class="campo-editable" value="{{ old('alergias', $expediente->alergias) }}" disabled>
+                    <input type="text" name="alergias" id="alergias" class="campo-editable" 
+               value="{{ old('alergias', $expediente->alergias ?? 'Ninguna') }}" disabled 
+               pattern="^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s\-\(\)\.,]+$" 
+               title="Solo letras, espacios, guiones y paréntesis">
                 </div>
             </div>
 
             <div class="form-row">
                 <div class="form-group">
                     <label>Antecedentes Hereditarios</label>
-                    <textarea name="antecedentes_hereditarios" class="campo-editable" rows="3" disabled>{{ old('antecedentes_hereditarios', $expediente->antecedentes_hereditarios) }}</textarea>
+                    <textarea name="antecedentes_hereditarios" id="hereditarios" class="campo-editable" rows="3" disabled>{{ old('antecedentes_hereditarios', $expediente->antecedentes_hereditarios) }}</textarea>
                 </div>
                 <div class="form-group">
                     <label>Antecedentes Patológicos</label>
-                    <textarea name="antecedentes_patologicos" class="campo-editable" rows="3" disabled>{{ old('antecedentes_patologicos', $expediente->antecedentes_patologicos) }}</textarea>
+                    
+                    <textarea name="antecedentes_patologicos" id="patologicos" class="campo-editable" rows="3" disabled>{{ old('antecedentes_patologicos', $expediente->antecedentes_patologicos) }}</textarea>
                 </div>
+
+                <div class="form-group full-width" style="margin-top: 15px;">
+                <label>Observaciones Generales</label>
+                <textarea name="observaciones_generales" id="observaciones" class="campo-editable" rows="3" disabled>{{ old('observaciones_generales', $expediente->observaciones_generales) }}</textarea>
+            </div>
             </div>
         </section>
 
@@ -175,9 +184,10 @@
                     </div>
                     <div style="padding:15px; font-size:0.9rem; color:#475569;">
                         <p style="margin:0 0 8px 0;"><strong>Alergias:</strong> {{ $v->alergias ?? 'Ninguna' }}</p>
-                        <p style="margin:0 0 8px 0;"><strong>Antecedentes:</strong> {{ Str::limit($v->antecedentes_patologicos, 100) }}</p>
+                        <p style="margin:0 0 8px 0;"><strong>Antecedentes Hereditarios:</strong> {{ Str::limit($v->antecedentes_hereditarios, 100) }}</p>
+                        <p style="margin:0 0 8px 0;"><strong>Antecedentes Patológicos:</strong> {{ Str::limit($v->antecedentes_patologicos, 100) }}</p>
                         <p style="margin:0; font-style:italic; border-top:1px dashed #eee; padding-top:8px;">
-                            <strong>Nota:</strong> {{ $v->observaciones_generales ?? 'Sin notas' }}
+                            <strong>Observaciones:</strong> {{ $v->observaciones_generales ?? 'Sin notas' }}
                         </p>
                     </div>
                 </div>
@@ -294,6 +304,62 @@
     document.addEventListener('click', function(e) {
         if (e.target.id !== 'inputBuscarPaciente') {
             document.getElementById('listaSugerencias').style.display = "none";
+        }
+    });
+
+
+    function validarFormatoClinico(el) {
+        // La expresión regular debe ser idéntica a la del servidor
+        const regex = /^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s\-\(\)\.,]*$/;
+        if (el && el.value !== "" && !regex.test(el.value)) {
+            el.setCustomValidity("Caracteres no permitidos (solo letras, espacios, paréntesis, guiones, puntos y comas).");
+            return false;
+        } else {
+            el.setCustomValidity(""); 
+            return true;
+        }
+    }
+
+    // IDs de todos los campos que queremos validar
+    const idsAValidar = ['hereditarios', 'patologicos', 'observaciones', 'alergias'];
+
+    // Validación en tiempo real para limpiar la burbuja mientras escriben
+    idsAValidar.forEach(id => {
+        const elemento = document.getElementById(id);
+        if (elemento) {
+            elemento.addEventListener('input', function() {
+                validarFormatoClinico(this);
+            });
+        }
+    });
+
+    // Validación al enviar
+    document.getElementById('formHistorial').addEventListener('submit', function(e) {
+        let hayError = false;
+
+        // Validar primero el peso (nativo por el min/max del HTML)
+        const pesoInput = this.querySelector('input[name="peso"]');
+        if (!pesoInput.checkValidity()) {
+            pesoInput.reportValidity();
+            hayError = true;
+        }
+
+        // Validar campos de texto si el peso está bien
+        if (!hayError) {
+            for (let id of idsAValidar) {
+                const el = document.getElementById(id);
+                if (el) {
+                    if (!validarFormatoClinico(el) || !el.checkValidity()) {
+                        el.reportValidity(); // Muestra la burbuja naranja
+                        hayError = true;
+                        break; // Detener en el primer error encontrado
+                    }
+                }
+            }
+        }
+
+        if (hayError) {
+            e.preventDefault(); // Evita que se cierre el modo edición o se envíe
         }
     });
 </script>
