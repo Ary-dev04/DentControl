@@ -438,3 +438,13 @@
     color: #94a3b8;
     font-weight: 400;
 }
+
+.fc-event-title {
+        font-size: 0.85em !important;
+        font-weight: 500 !important;
+        white-space: normal !important; /* Permite que el nombre use dos renglones si es necesario */
+    }
+    .fc-event {
+        cursor: pointer;
+        border-radius: 4px !important;
+    }

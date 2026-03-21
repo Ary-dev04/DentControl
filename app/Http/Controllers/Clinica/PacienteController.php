@@ -299,29 +299,44 @@ class PacienteController extends Controller
 {
     $id_clinica = Auth::user()->id_clinica;
 
+    // Traemos las citas incluyendo el nombre del paciente para que no diga solo "OCUPADO"
     $citas = DB::table('citas')
-        ->where('id_clinica', $id_clinica)
-        ->whereIn('estatus_cita', ['programada', 'confirmada'])
+        ->join('paciente', 'citas.id_paciente', '=', 'paciente.id_paciente')
+        ->select('citas.*', 'paciente.nombre as nombre_paciente')
+        ->where('citas.id_clinica', $id_clinica)
+        ->whereIn('citas.estatus_cita', ['programada', 'confirmada'])
         ->get();
 
     $eventos = [];
 
-    foreach ($citas as $cita) {
-    $inicio = \Carbon\Carbon::parse($cita->fecha . ' ' . $cita->hora);
-    $fin = (clone $inicio)->addMinutes($cita->duracion);
+    // Paleta de colores profesionales (Azul, Verde, Amarillo, Morado, Naranja, Teal)
+    $paleta = ['#2C7BE5', '#00A86B', '#F4B400', '#6F42C1', '#E5533D', '#17A2B8'];
 
-    $eventos[] = [
-        'id'    => $cita->id_cita,
-        'title' => 'OCUPADO', 
-        // Cambiamos toIso8601String() por format('Y-m-d\TH:i:s')
-        'start' => $inicio->format('Y-m-d\TH:i:s'), 
-        'end'   => $fin->format('Y-m-d\TH:i:s'),   
-        'backgroundColor' => '#f87171', 
-        'borderColor' => '#ef4444',
-        'textColor' => '#ffffff',
-        'display' => 'block'
-    ];
-}
+    foreach ($citas as $cita) {
+        $inicio = \Carbon\Carbon::parse($cita->fecha . ' ' . $cita->hora);
+        $fin = (clone $inicio)->addMinutes($cita->duracion);
+
+        // ASIGNACIÓN DE COLOR: 
+        // Usamos el id_servicio para que todas las citas del mismo tipo de servicio tengan el mismo color
+        // Si prefieres que cada cita tenga un color distinto, usa $cita->id_cita
+        $colorIndex = $cita->id_cita % count($paleta);
+        $colorElegido = $paleta[$colorIndex];
+
+        $eventos[] = [
+            'id'    => $cita->id_cita,
+            'title' => $cita->nombre_paciente, // <--- CAMBIO: Ahora muestra el nombre del paciente
+            'start' => $inicio->format('Y-m-d\TH:i:s'), 
+            'end'   => $fin->format('Y-m-d\TH:i:s'),   
+            'backgroundColor' => $colorElegido, 
+            'borderColor' => $colorElegido,
+            'textColor' => '#ffffff',
+            'display' => 'block',
+            // Pasamos datos extra por si quieres usarlos en JS
+            'extendedProps' => [
+                'duracion' => $cita->duracion
+            ]
+        ];
+    }
 
     return response()->json($eventos);
 }

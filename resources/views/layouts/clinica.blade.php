@@ -46,8 +46,8 @@
         <a href="{{ route('asistente.historial') }}">
             <i class="fa-solid fa-folder-open"></i>Historial clínico
         </a>
-        <a href="#">
-            <i class="fa-solid fa-mobile-screen-button"></i> Acceso App Móvil
+        <a href="{{ route('asistente.appmovil') }}">
+            <i class="fa-solid fa-mobile-screen-button"></i>Acceso App Móvil
         </a>
         <a href="#">
             <i class="fa-solid fa-gears"></i> Gestión de App

@@ -9,6 +9,7 @@ use App\Http\Controllers\Clinica\DashboardController;
 use App\Http\Controllers\Clinica\CatalogoController;
 use App\Http\Controllers\Clinica\PacienteController;
 use App\Http\Controllers\Clinica\HistorialController;
+use App\Http\Controllers\Clinica\AppMovilController;
 // --- RUTAS PÚBLICAS ---
 Route::get('/', [AuthController::class, 'showLogin'])->name('login');
 Route::post('/login', [AuthController::class, 'login'])->name('login.post');
@@ -88,4 +89,7 @@ Route::middleware(['auth', 'can:asistente-only'])->group(function () {
 
     // Ruta para el buscador en tiempo real (AJAX)
 Route::get('/asistente/buscar-paciente-ajax', [HistorialController::class, 'buscar'])->name('pacientes.buscar_ajax');
+
+   // Route::post('/asistente/historial/guardar/{id}', [App\Http\Controllers\Clinica\HistorialController::class, 'guardar'])->name('paciente.historial.guardar');
+    Route::get('/asistente/appmovil', [AppMovilController::class, 'acceso'])->name('asistente.appmovil');
 });
