@@ -88,8 +88,10 @@ Route::middleware(['auth', 'can:asistente-only'])->group(function () {
     Route::post('/asistente/historial/guardar/{id}', [HistorialController::class, 'guardar'])->name('paciente.historial.guardar');
 
     // Ruta para el buscador en tiempo real (AJAX)
-Route::get('/asistente/buscar-paciente-ajax', [HistorialController::class, 'buscar'])->name('pacientes.buscar_ajax');
+//Route::get('/asistente/buscar-paciente-ajax', [HistorialController::class, 'buscar'])->name('pacientes.buscar_ajax');
+Route::get('/pacientes/buscar-ajax', [HistorialController::class, 'buscar'])->name('pacientes.buscar_ajax');
 
    // Route::post('/asistente/historial/guardar/{id}', [App\Http\Controllers\Clinica\HistorialController::class, 'guardar'])->name('paciente.historial.guardar');
     Route::get('/asistente/appmovil', [AppMovilController::class, 'acceso'])->name('asistente.appmovil');
+
 });

@@ -149,7 +149,7 @@
                 <a href="{{ route('pacientes.index') }}" id="btnRegresar" class="btn-cancel" style="background: #f1f5f9; color: #475569; padding: 10px 20px; border-radius: 8px; text-decoration: none; display: flex; align-items: center;">
                     <i class="fa-solid fa-arrow-left" style="margin-right: 8px;"></i> VOLVER
                 </a>
-                
+
                 <button type="button" onclick="document.getElementById('modalVersiones').style.display='block'" 
         style="background: #64748b; color: white; padding: 8px 15px; border-radius: 6px; border: none; cursor: pointer; font-weight: bold;">
     <i class="fa-solid fa-clock-rotate-left"></i> Ver Historial de Cambios
@@ -252,5 +252,49 @@
         <a href="{{ route('pacientes.index') }}" class="btn-primary" style="text-decoration: none; padding: 12px 25px; border-radius: 8px;">Ir a Lista General</a>
     </div>
 @endif
+<script>
+    document.getElementById('inputBuscarPaciente').addEventListener('input', function() {
+        let query = this.value;
+        let lista = document.getElementById('listaSugerencias');
 
+        if (query.length > 2) {
+            fetch("{{ route('pacientes.buscar_ajax') }}?q=" + query)
+                .then(response => response.json())
+                .then(data => {
+                    lista.innerHTML = "";
+                    if (data.length > 0) {
+                        lista.style.display = "block";
+                        data.forEach(p => {
+                            let div = document.createElement('div');
+                            div.style.padding = "12px 15px";
+                            div.style.cursor = "pointer";
+                            div.style.borderBottom = "1px solid #f1f5f9";
+                            div.innerHTML = `
+                                <div style="font-weight: bold; color: #1e293b;">
+                                    <i class="fa-solid fa-user" style="margin-right: 8px; color: #64748b;"></i>
+                                    ${p.nombre} ${p.apellido_paterno}
+                                </div>
+                                <small style="color: #94a3b8; margin-left: 22px;">CURP: ${p.curp}</small>
+                            `;
+                            div.onclick = () => {
+                                window.location.href = "{{ url('/asistente/historial') }}/" + p.id_paciente;
+                            };
+                            lista.appendChild(div);
+                        });
+                    } else {
+                        lista.innerHTML = "<div style='padding:10px; color:#94a3b8;'>No se encontraron resultados</div>";
+                        lista.style.display = "block";
+                    }
+                });
+        } else {
+            lista.style.display = "none";
+        }
+    });
+
+    document.addEventListener('click', function(e) {
+        if (e.target.id !== 'inputBuscarPaciente') {
+            document.getElementById('listaSugerencias').style.display = "none";
+        }
+    });
+</script>
 @endsection
