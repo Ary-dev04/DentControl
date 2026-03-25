@@ -46,7 +46,7 @@
         <a href="{{ route('asistente.historial') }}">
             <i class="fa-solid fa-folder-open"></i>Expediente clínico
         </a>
-        <a href="{{ route('asistente.appmovil') }}">
+        <a href="{{ route('acceso.index') }}">
             <i class="fa-solid fa-mobile-screen-button"></i>Acceso App Móvil
         </a>
         <a href="#">

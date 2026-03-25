@@ -9,7 +9,7 @@ use App\Http\Controllers\Clinica\DashboardController;
 use App\Http\Controllers\Clinica\CatalogoController;
 use App\Http\Controllers\Clinica\PacienteController;
 use App\Http\Controllers\Clinica\HistorialController;
-use App\Http\Controllers\Clinica\AppMovilController;
+use App\Http\Controllers\Clinica\AccesoMovilController;
 // --- RUTAS PÚBLICAS ---
 Route::get('/', [AuthController::class, 'showLogin'])->name('login');
 Route::post('/login', [AuthController::class, 'login'])->name('login.post');
@@ -92,6 +92,10 @@ Route::middleware(['auth', 'can:asistente-only'])->group(function () {
 Route::get('/pacientes/buscar-ajax', [HistorialController::class, 'buscar'])->name('pacientes.buscar_ajax');
 
    // Route::post('/asistente/historial/guardar/{id}', [App\Http\Controllers\Clinica\HistorialController::class, 'guardar'])->name('paciente.historial.guardar');
-    Route::get('/asistente/appmovil', [AppMovilController::class, 'acceso'])->name('asistente.appmovil');
+    //Route::get('/asistente/appmovil', [AppMovilController::class, 'acceso'])->name('asistente.appmovil');
+
+Route::get('/asistente/buscar-paciente-acceso', [AccesoMovilController::class, 'buscarPacientesAcceso'])->name('pacientes.buscar_acceso_ajax');
+    Route::get('/asistente/acceso-movil', [AccesoMovilController::class, 'index'])->name('acceso.index');
+Route::post('/asistente/acceso-movil/habilitar', [AccesoMovilController::class, 'habilitarAcceso'])->name('acceso.habilitar');
 
 });

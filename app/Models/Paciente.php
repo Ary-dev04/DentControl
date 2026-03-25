@@ -64,4 +64,10 @@ class Paciente extends Model
     {
         return $this->hasOne(AccesoMovil::class, 'id_paciente', 'id_paciente');
     }
+
+    public function tratamientos()
+{
+    // Ajusta 'id_paciente' según el nombre de tu llave foránea en la tabla tratamientos
+    return $this->hasMany(Tratamiento::class, 'id_paciente', 'id_paciente');
+}
 }

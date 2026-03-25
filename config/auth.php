@@ -64,11 +64,11 @@ return [
             'driver' => 'eloquent',
             'model' => env('AUTH_MODEL', App\Models\Usuario::class),
         ],
-
-        // 'users' => [
-        //     'driver' => 'database',
-        //     'table' => 'users',
-        // ],
+        // Añadimos este:
+    'pacientes_movil' => [
+        'driver' => 'eloquent',
+        'model' => App\Models\AccesoMovil::class,
+    ],
     ],
 
     /*
