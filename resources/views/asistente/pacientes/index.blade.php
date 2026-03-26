@@ -317,14 +317,6 @@
             </div>
 
             <div class="form-row">
-                <div class="form-group full-width">
-                    <label style="font-weight: bold;">Seleccionar fecha y hora de la cita *</label>
-                    <div id="calendarNuevo" style="min-height: 400px; border: 1px solid #ccc; margin-top: 10px; background: white;"></div>
-                    <input type="hidden" name="fecha_cita" id="fechaCitaNuevo" required>
-                </div>
-            </div>
-
-            <div class="form-row">
                 <div class="form-group">
                     <label>Duración sugerida (min)</label>
                     <input type="number" id="duracion_sugerida" value="0" readonly style="background-color: #f8f9fa;">
@@ -339,6 +331,14 @@
                 <div class="form-group full-width">
                     <label>Motivo de la cita *</label>
                     <input type="text" name="motivo_consulta" required value="{{ old('motivo_consulta') }}">
+                </div>
+            </div>
+
+            <div class="form-row">
+                <div class="form-group full-width">
+                    <label style="font-weight: bold;">Seleccionar fecha y hora de la cita *</label>
+                    <div id="calendarNuevo" style="min-height: 400px; border: 1px solid #ccc; margin-top: 10px; background: white;"></div>
+                    <input type="hidden" name="fecha_cita" id="fechaCitaNuevo" required>
                 </div>
             </div>
 
@@ -416,15 +416,6 @@
                 </select>
             </div>
 
-            <div class="form-row" style="display: block; clear: both; margin-top: 20px;">
-                <div class="form-group full-width">
-                    <label style="font-weight: bold;">Seleccionar fecha y hora de la cita *</label>
-                    <div id="calendarExistente" style="min-height: 450px; border: 1px solid #ccc; background: white; width: 100%;"></div>
-                    <input type="hidden" name="fecha_cita" id="fechaCitaExistente" required>
-                    <div id="info-fecha-calendarExistente" style="margin-top: 10px; font-weight: bold; color: #0d6efd;"></div>
-                </div>
-            </div>
-
             <div class="form-row">
                 <div class="form-group">
                     <label>Duración sugerida (minutos)</label>
@@ -437,6 +428,15 @@
                 <div class="form-group">
                     <label>Motivo *</label>
                     <input type="text" name="motivo_consulta" required oninput="validarMotivo(this)">
+                </div>
+            </div>
+
+            <div class="form-row" style="display: block; clear: both; margin-top: 20px;">
+                <div class="form-group full-width">
+                    <label style="font-weight: bold;">Seleccionar fecha y hora de la cita *</label>
+                    <div id="calendarExistente" style="min-height: 450px; border: 1px solid #ccc; background: white; width: 100%;"></div>
+                    <input type="hidden" name="fecha_cita" id="fechaCitaExistente" required>
+                    <div id="info-fecha-calendarExistente" style="margin-top: 10px; font-weight: bold; color: #0d6efd;"></div>
                 </div>
             </div>
 
@@ -903,7 +903,6 @@ function mostrarOpcionesExistente(tipo) {
     const divNuevoPlan = document.getElementById('contenedor_nuevo_plan_ex');
     const divServicio = document.getElementById('contenedor_servicio_ex');
     
-    // Usamos el ID del select específico para paciente existente
     const selectPac = document.querySelector('#modalExistente select[name="id_paciente"]');
     const idP = selectPac ? selectPac.value : '';
 
@@ -912,52 +911,73 @@ function mostrarOpcionesExistente(tipo) {
     divServicio.style.display = 'none';
 
     if (tipo === 'seguimiento') {
-        if (!idP) { 
-            alert("Por favor, seleccione un paciente primero.");
-            // Desmarcar radios si no hay paciente
-            document.querySelectorAll('input[name="tipo_atencion"]').forEach(r => r.checked = false);
-            return; 
-        }
-
+        if (!idP) { alert("Seleccione un paciente primero."); return; }
         divSeguimiento.style.display = 'block';
         const sel = document.getElementById('select_tratamiento_ex');
-if (sel) sel.innerHTML = '<option value="">-- Cargando tratamientos... --</option>';
+        sel.innerHTML = '<option value="">-- Cargando tratamientos... --</option>';
 
         fetch(`/pacientes/${idP}/tratamientos-activos`)
             .then(r => r.json())
             .then(data => {
-                if (data.length === 0) {
-                    sel.innerHTML = '<option value="">-- Sin tratamientos activos --</option>';
-                } else {
-                    sel.innerHTML = '<option value="">-- Seleccionar Tratamiento en Curso --</option>';
-                    data.forEach(t => {
-                        sel.innerHTML += `<option value="${t.id_tratamiento}">${t.nombre}</option>`;
-                    });
-                }
-            })
-            .catch(err => {
-                console.error("Error:", err);
-                sel.innerHTML = '<option value="">-- Error al cargar --</option>';
+                sel.innerHTML = data.length === 0 ? '<option value="">-- Sin tratamientos activos --</option>' : '<option value="">-- Seleccionar Tratamiento en Curso --</option>';
+                data.forEach(t => {
+                    sel.innerHTML += `<option value="${t.id_tratamiento}">${t.nombre}</option>`;
+                });
             });
 
     } else if (tipo === 'nuevo_tratamiento') {
+        if (!idP) { alert("Seleccione un paciente primero."); return; }
         divNuevoPlan.style.display = 'block';
+        
+        // --- LÓGICA DE FILTRADO PARA NO REPETIR ---
+        // Buscamos el select por el nombre que me pasaste
+        const selectCat = document.querySelector('select[name="id_cat_tratamiento_nuevo"]');
+        if (!selectCat) return;
+
+        // --- PASO 1: RESETEAR EL SELECT ---
+        // Esto quita los bloqueos y textos del paciente anterior
+        Array.from(selectCat.options).forEach(opt => {
+            opt.disabled = false;
+            opt.style.color = '';
+            opt.text = opt.text.replace(' (YA ESTÁ EN CURSO)', '');
+        });
+
+        // --- PASO 2: APLICAR EL FILTRO DEL NUEVO PACIENTE ---
+        fetch(`/pacientes/${idP}/tratamientos-activos`)
+            .then(r => r.json())
+            .then(data => {
+                const idsActivos = data.map(t => parseInt(t.id_cat_tratamiento));
+
+                Array.from(selectCat.options).forEach(opt => {
+                    if (opt.value === "") return;
+
+                    if (idsActivos.includes(parseInt(opt.value))) {
+                        opt.disabled = true;
+                        opt.style.color = '#a0aec0';
+                        // Solo agregamos el texto si no lo tiene (evita duplicados)
+                        if (!opt.text.includes('(YA ESTÁ EN CURSO)')) {
+                            opt.text += ' (YA ESTÁ EN CURSO)';
+                        }
+                    }
+                });
+            });
+
     } else if (tipo === 'servicio') {
         divServicio.style.display = 'block';
     }
 }
 
 function actualizarTratamientosAlCambiarPaciente() {
-    // 1. Buscamos el radio DENTRO del modal existente usando el nombre correcto: tipo_atencion_ex
     const modalEx = document.getElementById('modalExistente');
     if (!modalEx) return;
 
-    // IMPORTANTE: Tu HTML usa "tipo_atencion_ex" para los radios de este modal
-    const radioSeguimiento = modalEx.querySelector('input[name="tipo_atencion_ex"][value="seguimiento"]');
+    // Buscamos cuál de los radios está seleccionado actualmente
+    const radioSeleccionado = modalEx.querySelector('input[name="tipo_atencion_ex"]:checked');
     
-    // 2. Si el modo seguimiento está activo, refrescamos la lista
-    if (radioSeguimiento && radioSeguimiento.checked) {
-        mostrarOpcionesExistente('seguimiento');
+    // Si hay un radio seleccionado, disparamos la lógica de mostrarOpcionesExistente
+    // Esto refrescará tanto la lista de seguimientos como el bloqueo del catálogo según sea el caso
+    if (radioSeleccionado) {
+        mostrarOpcionesExistente(radioSeleccionado.value);
     }
 }
 

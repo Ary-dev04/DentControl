@@ -159,7 +159,20 @@
                 style="background: #64748b; color: white; padding: 10px 20px; border-radius: 8px; border: none; cursor: pointer; font-weight: bold; display: flex; align-items: center;">
             <i class="fa-solid fa-clock-rotate-left" style="margin-right: 8px;"></i> Ver Historial de Cambios
         </button>
+
+        <button type="button" onclick="document.getElementById('modalTratamientos').style.display='block'" 
+            style="background: #0ea5e9; color: white; padding: 12px 20px; border-radius: 10px; border: none; cursor: pointer; font-weight: bold; display: flex; align-items: center; gap: 10px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);">
+        <i class="fa-solid fa- kit-medical"></i> <i class="fa-solid fa-tooth"></i> Ver Plan de Tratamientos
+    </button>
+
+    <button type="button" onclick="document.getElementById('modalCitasHistorial').style.display='block'" 
+            style="background: #8b5cf6; color: white; padding: 12px 20px; border-radius: 10px; border: none; cursor: pointer; font-weight: bold; display: flex; align-items: center; gap: 10px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);">
+        <i class="fa-solid fa-calendar-days"></i> Historial de Citas y Pagos
+    </button>
+        
     </div>
+
+    
 
     <a href="{{ route('pacientes.index') }}" id="btnRegresar" class="btn-cancel" 
        style="background: #f1f5f9; color: #475569; padding: 10px 20px; border-radius: 8px; text-decoration: none; display: flex; align-items: center;">
@@ -168,8 +181,10 @@
 </div>
     </form>
 
+    
 
-    <div id="modalVersiones" class="modal-custom" style="display:none; position:fixed; z-index:2000; left:0; top:0; width:100%; height:100%; background:rgba(0,0,0,0.6);">
+
+<div id="modalVersiones" class="modal-custom" style="display:none; position:fixed; z-index:2000; left:0; top:0; width:100%; height:100%; background:rgba(0,0,0,0.6);">
     <div style="background:white; margin:2% auto; width:90%; max-width:650px; border-radius:15px; overflow:hidden; box-shadow: 0 20px 25px -5px rgba(0,0,0,0.2);">
         <div style="padding:15px 20px; background:#2563eb; color:white; display:flex; justify-content:space-between; align-items:center;">
             <h3 style="margin:0; font-size:1.2rem;">Historial de Versiones Anteriores</h3>
@@ -205,6 +220,150 @@
         </div>
     </div>
 </div>
+
+{{-- MODAL DE TRATAMIENTOS --}}
+<div id="modalTratamientos" class="modal-custom" style="display:none; position:fixed; z-index:2000; left:0; top:0; width:100%; height:100%; background:rgba(0,0,0,0.6);">
+    <div style="background:white; margin:5% auto; width:95%; max-width:900px; border-radius:15px; overflow:hidden; box-shadow: 0 20px 25px -5px rgba(0,0,0,0.2);">
+        <div style="padding:15px 20px; background:#0ea5e9; color:white; display:flex; justify-content:space-between; align-items:center;">
+            <h3 style="margin:0;"><i class="fa-solid fa-tooth"></i> Plan de Tratamientos del Paciente</h3>
+            <button onclick="document.getElementById('modalTratamientos').style.display='none'" style="background:none; border:none; color:white; font-size:1.8rem; cursor:pointer;">&times;</button>
+        </div>
+
+        <div style="padding:20px; max-height:70vh; overflow-y:auto;">
+            <table style="width:100%; border-collapse: collapse; font-size: 0.9rem;">
+                <thead>
+                    <tr style="background: #3d88b0; border-bottom: 2px solid #e2e8f0; text-align: left;">
+                        <th style="padding: 12px;">Tratamiento</th>
+                        <th style="padding: 12px;">Estado</th>
+                        <th style="padding: 12px;">Precio Estimado</th>
+                        <th style="padding: 12px;">Total Pagado</th>
+                        <th style="padding: 12px;">Saldo Pendiente</th>
+                        <th style="padding: 12px;">Inicio</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @forelse($paciente->tratamientos as $t)
+                        @php
+                            $totalPagado = $t->citas->where('estatus_cita', 'finalizada')->sum('monto_cobrado');
+                            $saldo = $t->precio_estimado - $totalPagado;
+                        @endphp
+                        <tr style="border-bottom: 1px solid #f1f5f9;">
+                            <td style="padding: 12px;">
+                                <strong>{{ $t->catalogoTratamiento->nombre }}</strong><br>
+                                <small style="color: #64748b;">{{ Str::limit($t->diagnostico_inicial, 40) }}</small>
+                            </td>
+                            <td style="padding: 12px;">
+                                @if($t->estatus == 'curso')
+                                    <span style="background:#dcfce7; color:#166534; padding:4px 8px; border-radius:10px; font-weight:bold; font-size:0.75rem;">EN CURSO</span>
+                                @elseif($t->estatus == 'finalizado')
+                                    <span style="background:#dbeafe; color:#1e40af; padding:4px 8px; border-radius:10px; font-weight:bold; font-size:0.75rem;">FINALIZADO</span>
+                                @else
+                                    <span style="background:#fef3c7; color:#92400e; padding:4px 8px; border-radius:10px; font-weight:bold; font-size:0.75rem;">PAUSADO</span>
+                                @endif
+                            </td>
+                            <td style="padding: 12px; font-weight: bold;">${{ number_format($t->precio_estimado, 2) }}</td>
+                            <td style="padding: 12px; color: #16a34a; font-weight: bold;">${{ number_format($totalPagado, 2) }}</td>
+                            <td style="padding: 12px; color: {{ $saldo > 0 ? '#ef4444' : '#16a34a' }}; font-weight: bold;">
+                                ${{ number_format($saldo, 2) }}
+                            </td>
+                            <td style="padding: 12px; color: #64748b;">{{ \Carbon\Carbon::parse($t->fecha_inicio)->format('d/m/Y') }}</td>
+                        </tr>
+                    @empty
+                        <tr>
+                            <td colspan="6" style="padding: 40px; text-align: center; color: #94a3b8;">
+                                <i class="fa-solid fa-folder-open" style="font-size: 2rem; display: block; margin-bottom: 10px;"></i>
+                                No hay tratamientos registrados para este paciente.
+                            </td>
+                        </tr>
+                    @endforelse
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+
+{{-- MODAL DE CITAS Y PAGOS --}}
+<div id="modalCitasHistorial" class="modal-custom" style="display:none; position:fixed; z-index:2000; left:0; top:0; width:100%; height:100%; background:rgba(0,0,0,0.6);">
+    <div style="background:white; margin:3% auto; width:95%; max-width:900px; border-radius:15px; overflow:hidden; box-shadow: 0 20px 25px -5px rgba(0,0,0,0.2);">
+        <div style="padding:15px 20px; background:#8b5cf6; color:white; display:flex; justify-content:space-between; align-items:center;">
+            <h3 style="margin:0;"><i class="fa-solid fa-calendar-days"></i> Historial de Visitas y Cobros</h3>
+            <button onclick="document.getElementById('modalCitasHistorial').style.display='none'" style="background:none; border:none; color:white; font-size:1.8rem; cursor:pointer;">&times;</button>
+        </div>
+
+        <div style="padding:20px; max-height:75vh; overflow-y:auto;">
+            <table style="width:100%; border-collapse: collapse; font-size: 0.9rem;">
+                <thead>
+                    <tr style="background: #a811ff; border-bottom: 2px solid #e2e8f0; text-align: left;">
+                        <th style="padding: 12px;">Fecha y Hora</th>
+                        <th style="padding: 12px;">Motivo / Servicio</th>
+                        <th style="padding: 12px;">Tipo</th>
+                        <th style="padding: 12px;">Estado Cita</th>
+                        <th style="padding: 12px;">Monto Cobrado</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @php
+                        // Ordenamos las citas de la más reciente a la más antigua
+                        $citasOrdenadas = $paciente->citas->sortByDesc(function($cita) {
+                            return $cita->fecha . ' ' . $cita->hora;
+                        });
+                    @endphp
+
+                    @forelse($citasOrdenadas as $cita)
+                        <tr style="border-bottom: 1px solid #f1f5f9;">
+                            <td style="padding: 12px;">
+                                <strong>{{ \Carbon\Carbon::parse($cita->fecha)->format('d/m/Y') }}</strong><br>
+                                <small style="color: #64748b;">{{ \Carbon\Carbon::parse($cita->hora)->format('h:i A') }}</small>
+                            </td>
+                            <td style="padding: 12px;">
+                                {{-- Si tiene servicio de catálogo lo muestra, si no, el motivo manual --}}
+                                <strong>{{ $cita->servicio->nombre ?? 'Consulta General' }}</strong><br>
+                                <small style="color: #64748b;">{{ $cita->motivo_consulta }}</small>
+                            </td>
+                            <td style="padding: 12px;">
+                                @if($cita->id_tratamiento)
+                                    <span style="color: #0ea5e9; font-weight: bold;"><i class="fa-solid fa-牙"></i> Tratamiento</span>
+                                @else
+                                    <span style="color: #a811ff; font-weight: bold;">Servicio Único</span>
+                                @endif
+                            </td>
+                            <td style="padding: 12px;">
+                                @switch($cita->estatus_cita)
+                                    @case('finalizada')
+                                        <span style="color: #16a34a;"><i class="fa-solid fa-check"></i> Finalizada</span>
+                                        @break
+                                    @case('programada')
+                                        <span style="color: #ca8a04;"><i class="fa-solid fa-calendar-day"></i> Programada</span>
+                                        @break
+                                    @default
+                                        <span style="color: #ef4444;"><i class="fa-solid fa-xmark"></i> Cancelada</span>
+                                @endswitch
+                            </td>
+                            <td style="padding: 12px; font-weight: bold; font-size: 1rem; color: #1e293b;">
+                                ${{ number_format($cita->monto_cobrado, 2) }}
+                            </td>
+                        </tr>
+                    @empty
+                        <tr>
+                            <td colspan="5" style="padding: 40px; text-align: center; color: #94a3b8;">
+                                No hay historial de citas para este paciente.
+                            </td>
+                        </tr>
+                    @endforelse
+                </tbody>
+                {{-- Resumen al final de la tabla --}}
+                <tfoot>
+                    <tr style="background: #f8fafc; font-weight: bold; font-size: 1rem;">
+                        <td colspan="4" style="padding: 15px; text-align: right;">Total Histórico Pagado:</td>
+                        <td style="padding: 15px; color: #16a34a;">${{ number_format($paciente->citas->where('estatus_cita', 'finalizada')->sum('monto_cobrado'), 2) }}</td>
+                    </tr>
+                </tfoot>
+            </table>
+        </div>
+    </div>
+</div>
+
     <script>
         const btnEditar = document.getElementById('btnHabilitarEdicion');
         const btnGuardar = document.getElementById('btnGuardar');

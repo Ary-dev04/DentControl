@@ -279,21 +279,22 @@ class PacienteController extends Controller
     }
 
     public function tratamientosActivos($id)
-    {
-        $tratamientos = Tratamiento::with('catalogoTratamiento')
-            ->where('id_paciente', $id)
-            ->where('estatus', 'curso')
-            ->get();
+{
+    $tratamientos = Tratamiento::with('catalogoTratamiento')
+        ->where('id_paciente', $id)
+        ->where('estatus', 'curso')
+        ->get();
 
-        $data = $tratamientos->map(function($t) {
-            return [
-                'id_tratamiento' => $t->id_tratamiento,
-                'nombre' => $t->catalogoTratamiento->nombre ?? 'Tratamiento sin nombre'
-            ];
-        });
+    $data = $tratamientos->map(function($t) {
+        return [
+            'id_tratamiento'      => $t->id_tratamiento,
+            'id_cat_tratamiento'  => $t->id_cat_tratamientos, // 🔹 Agregamos esto
+            'nombre'              => $t->catalogoTratamiento->nombre ?? 'Tratamiento sin nombre'
+        ];
+    });
 
-        return response()->json($data);
-    }
+    return response()->json($data);
+}
 
     public function getCitasOcupadas()
 {

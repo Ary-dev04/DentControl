@@ -98,4 +98,8 @@ Route::get('/asistente/buscar-paciente-acceso', [AccesoMovilController::class, '
     Route::get('/asistente/acceso-movil', [AccesoMovilController::class, 'index'])->name('acceso.index');
 Route::post('/asistente/acceso-movil/habilitar', [AccesoMovilController::class, 'habilitarAcceso'])->name('acceso.habilitar');
 
+
+// Agenda del día
+    Route::get('/asistente/agenda', [App\Http\Controllers\Clinica\AgendaController::class, 'index'])->name('asistente.agenda');
+
 });

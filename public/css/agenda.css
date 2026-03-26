@@ -1,0 +1,226 @@
+/* CONTENEDOR */
+
+.content{
+padding:30px;
+background:#f4f6f9;
+min-height:100vh;
+}
+
+/* TITULO */
+
+.content h1{
+font-size:34px;
+color:#2b6edc;
+margin-bottom:5px;
+}
+
+.fecha-hoy{
+color:#6b7280;
+margin-bottom:25px;
+}
+
+/* CARD */
+
+.card{
+background:white;
+border-radius:16px;
+padding:20px;
+box-shadow:0 8px 20px rgba(0,0,0,0.08);
+overflow:hidden;
+}
+
+/* TABLA */
+
+.data-table{
+width:100%;
+border-collapse:collapse;
+table-layout:fixed;
+}
+
+/* HEADER */
+
+.data-table thead{
+background:#2f6fd6;
+color:white;
+}
+
+.data-table thead th{
+padding:16px;
+font-weight:600;
+text-align:left;
+}
+
+/* FILAS */
+
+.data-table tbody td{
+padding:16px;
+border-bottom:1px solid #eee;
+}
+
+/* BADGES */
+
+.tipo{
+padding:6px 14px;
+border-radius:20px;
+font-size:13px;
+font-weight:500;
+display:inline-block;
+}
+
+.tipo-servicio{
+background:#dbeafe;
+color:#2563eb;
+}
+
+.tipo-tratamiento{
+background:#ede9fe;
+color:#7c3aed;
+}
+
+/* ESTADO */
+
+.estado{
+padding:6px 14px;
+border-radius:20px;
+font-size:13px;
+font-weight:500;
+}
+
+.estado.pendiente{
+background:#fef3c7;
+color:#d97706;
+}
+
+.estado.enproceso{
+background:#dcfce7;
+color:#059669;
+}
+
+.estado.finalizado{
+background:#e5e7eb;
+color:#374151;
+}
+
+/* BOTONES */
+
+.btn{
+border:none;
+padding:8px 14px;
+border-radius:8px;
+font-weight:500;
+cursor:pointer;
+}
+
+.btn-iniciar{
+background:#3b82f6;
+color:white;
+}
+
+.btn-finalizar{
+background:#10b981;
+color:white;
+}
+
+.btn-cobrar{
+background:#6366f1;
+color:white;
+}
+
+/* ACCIONES */
+
+td:last-child{
+text-align:center;
+}
+
+/* HOVER */
+
+.data-table tbody tr:hover{
+background:#f9fafb;
+}
+
+.data-table th:nth-child(6),
+.data-table td:nth-child(6){
+width:140px;
+}
+
+.data-table th:nth-child(7),
+.data-table td:nth-child(7){
+width:140px;
+}
+/* FIJAR COLUMNAS */
+
+.data-table th:nth-child(1),
+.data-table td:nth-child(1){
+width:80px;
+}
+
+.data-table th:nth-child(2),
+.data-table td:nth-child(2){
+width:180px;
+}
+
+.data-table th:nth-child(3),
+.data-table td:nth-child(3){
+width:120px;
+}
+
+.data-table th:nth-child(4),
+.data-table td:nth-child(4){
+width:160px;
+}
+
+.data-table th:nth-child(5),
+.data-table td:nth-child(5){
+width:160px;
+}
+
+.data-table th:nth-child(6),
+.data-table td:nth-child(6){
+width:130px;
+}
+
+.data-table th:nth-child(7),
+.data-table td:nth-child(7){
+width:130px;
+}
+/* MODAL */
+
+.modal{
+position:fixed;
+top:0;
+left:0;
+width:100%;
+height:100%;
+background:rgba(0,0,0,0.5);
+display:none;
+align-items:center;
+justify-content:center;
+}
+
+.modal:target{
+display:flex;
+}
+
+.modal-content{
+background:white;
+padding:25px;
+border-radius:12px;
+width:420px;
+box-shadow:0 10px 30px rgba(0,0,0,0.2);
+}
+
+.close-btn{
+position:absolute;
+right:20px;
+top:20px;
+font-size:22px;
+color:#555;
+text-decoration:none;
+}
+#bloqueServicio{
+display:none;
+}
+
+#bloqueTratamiento{
+display:none;
+}

@@ -22,10 +22,15 @@ class HistorialController extends Controller
 
     public function verHistorial($id)
 {
-    $paciente = Paciente::findOrFail($id);
+    // Cargamos al paciente con todas sus relaciones necesarias para los modales
+    $paciente = Paciente::with([
+        'tratamientos.catalogoTratamiento', // Para el nombre del tratamiento
+        'tratamientos.citas',               // Para sumar pagos por tratamiento
+        'citas.servicio'            // Para ver qué servicio se hizo en cada cita
+    ])->findOrFail($id);
+
     $expediente = ExpedienteClinico::where('id_paciente', $id)->first();
     
-    // Solo traemos el historial de cambios de datos (versiones)
     $versionesAnteriores = HistorialExpediente::where('id_paciente', $id)
         ->orderBy('fecha_modificacion', 'desc')
         ->get();
@@ -34,7 +39,6 @@ class HistorialController extends Controller
         $expediente = new ExpedienteClinico(['id_paciente' => $id]);
     }
 
-    // Ya no enviamos $historialCitas
     return view('asistente.historial.historial', compact('paciente', 'expediente', 'versionesAnteriores'));
 }
 

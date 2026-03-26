@@ -51,6 +51,6 @@ class Cita extends Model
     // Cita pertenece a un servicio del catálogo
     public function servicio()
     {
-        return $this->belongsTo(CatalogoServicios::class, 'id_cat_servicio', 'id_cat_servicio');
+        return $this->belongsTo(CatalogoServicio::class, 'id_cat_servicio', 'id_cat_servicio');
     }
 }

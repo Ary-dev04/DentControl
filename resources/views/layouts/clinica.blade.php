@@ -37,7 +37,7 @@
     @endif
 
     @if(auth()->user()->rol === 'asistente')
-        <a href="#">
+        <a href="{{ route('asistente.agenda') }}">
             <i class="fa-solid fa-calendar-day"></i> Agenda del día
         </a>
         <a href="{{ route('pacientes.index') }}">
