@@ -27,6 +27,7 @@ return new class extends Migration
             $table->string('telefono')->nullable();
             $table->string('curp')->nullable()->unique();
             $table->string('ocupacion')->nullable();
+            $table->string('grado_estudio');
             $table->decimal('peso', 5, 2)->nullable();
             // Dirección
             $table->string('calle')->nullable();
@@ -35,7 +36,12 @@ return new class extends Migration
             $table->string('colonia')->nullable();
             $table->string('ciudad')->nullable();
             $table->string('estado')->nullable();
+            $table->string('nombre_tutor');
+            $table->string('parentesco_tutor');
+            $table->string('telefono_tutor');
+            $table->string('email_tutor');
             $table->string('codigo_postal')->nullable();
+
 
             $table->enum('estatus', ['activo', 'baja'])->default('activo');
 

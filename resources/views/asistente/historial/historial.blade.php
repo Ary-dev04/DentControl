@@ -243,31 +243,52 @@
                 </thead>
                 <tbody>
                     @forelse($paciente->tratamientos as $t)
-                        @php
-                            $totalPagado = $t->citas->where('estatus_cita', 'finalizada')->sum('monto_cobrado');
-                            $saldo = $t->precio_estimado - $totalPagado;
-                        @endphp
-                        <tr style="border-bottom: 1px solid #f1f5f9;">
-                            <td style="padding: 12px;">
-                                <strong>{{ $t->catalogoTratamiento->nombre }}</strong><br>
-                                <small style="color: #64748b;">{{ Str::limit($t->diagnostico_inicial, 40) }}</small>
-                            </td>
-                            <td style="padding: 12px;">
-                                @if($t->estatus == 'curso')
-                                    <span style="background:#dcfce7; color:#166534; padding:4px 8px; border-radius:10px; font-weight:bold; font-size:0.75rem;">EN CURSO</span>
-                                @elseif($t->estatus == 'finalizado')
-                                    <span style="background:#dbeafe; color:#1e40af; padding:4px 8px; border-radius:10px; font-weight:bold; font-size:0.75rem;">FINALIZADO</span>
-                                @else
-                                    <span style="background:#fef3c7; color:#92400e; padding:4px 8px; border-radius:10px; font-weight:bold; font-size:0.75rem;">PAUSADO</span>
-                                @endif
-                            </td>
-                            <td style="padding: 12px; font-weight: bold;">${{ number_format($t->precio_estimado, 2) }}</td>
-                            <td style="padding: 12px; color: #16a34a; font-weight: bold;">${{ number_format($totalPagado, 2) }}</td>
-                            <td style="padding: 12px; color: {{ $saldo > 0 ? '#ef4444' : '#16a34a' }}; font-weight: bold;">
-                                ${{ number_format($saldo, 2) }}
-                            </td>
-                            <td style="padding: 12px; color: #64748b;">{{ \Carbon\Carbon::parse($t->fecha_inicio)->format('d/m/Y') }}</td>
-                        </tr>
+    @php
+        // IMPORTANTE: Aquí sumamos los montos de TODAS las citas que pertenecen a ESTE tratamiento
+        // Solo sumamos las que ya fueron cobradas (finalizadas)
+        $totalPagadoAcumulado = $t->citas->where('estatus_cita', 'finalizada')->sum('monto_cobrado');
+        
+        // El saldo es la diferencia entre el presupuesto inicial y lo que el paciente ya dio
+        $saldoPendiente = $t->precio_estimado - $totalPagadoAcumulado;
+    @endphp
+
+    <tr style="border-bottom: 1px solid #f1f5f9;">
+        <td style="padding: 12px;">
+            <strong>{{ $t->catalogoTratamiento->nombre }}</strong><br>
+            <small style="color: #64748b;">Presupuesto inicial: ${{ number_format($t->precio_estimado, 2) }}</small>
+        </td>
+        
+        <td style="padding: 12px;">
+            <span class="badge-{{ $t->estatus }}">
+                {{ strtoupper($t->estatus) }}
+            </span>
+        </td>
+
+        <td style="padding: 12px; font-weight: bold; color: #1e293b;">
+            ${{ number_format($t->precio_estimado, 2) }}
+        </td>
+
+        <td style="padding: 12px; color: #16a34a; font-weight: bold;">
+            ${{ number_format($totalPagadoAcumulado, 2) }}
+            <div style="font-size: 0.7rem; color: #64748b; font-weight: normal;">
+                ({{ $t->citas->where('estatus_cita', 'finalizada')->count() }} abonos realizados)
+            </div>
+        </td>
+
+        <td style="padding: 12px; font-weight: bold; color: {{ $saldoPendiente > 0 ? '#ef4444' : '#16a34a' }};">
+            @if($saldoPendiente > 0)
+                ${{ number_format($saldoPendiente, 2) }}
+            @elseif($saldoPendiente < 0)
+                <span style="color: #3b82f6;">+${{ number_format(abs($saldoPendiente), 2) }} (Ajuste)</span>
+            @else
+                $0.00 (Liquidado)
+            @endif
+        </td>
+
+        <td style="padding: 12px; color: #64748b;">
+            {{ \Carbon\Carbon::parse($t->fecha_inicio)->format('d/m/Y') }}
+        </td>
+    </tr>
                     @empty
                         <tr>
                             <td colspan="6" style="padding: 40px; text-align: center; color: #94a3b8;">

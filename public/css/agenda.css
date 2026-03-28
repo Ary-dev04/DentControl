@@ -69,12 +69,15 @@ display:inline-block;
 
 .tipo-servicio{
 background:#dbeafe;
-color:#2563eb;
+color:#a811ff;
+/*color:#2563eb;*/
 }
 
 .tipo-tratamiento{
-background:#ede9fe;
-color:#7c3aed;
+/*background:#e9edfe;*/
+background:#dbeafe;
+/*color:#7c3aed;*/
+color: #0ea5e9;
 }
 
 /* ESTADO */

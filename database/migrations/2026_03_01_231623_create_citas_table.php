@@ -26,7 +26,7 @@ return new class extends Migration
 
             $table->decimal('monto_cobrado', 10, 2)->default(0);
             $table->integer('duracion')->nullable();
-            $table->enum('estatus_cita', ['programada', 'finalizada', 'cancelada'])->default('programada');
+            $table->enum('estatus_cita', ['programada', 'finalizada', 'cancelada', 'enproceso'])->default('programada');
             $table->timestamps();
             //llaves foraneas
             $table->foreign('id_paciente')

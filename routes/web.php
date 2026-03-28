@@ -10,6 +10,7 @@ use App\Http\Controllers\Clinica\CatalogoController;
 use App\Http\Controllers\Clinica\PacienteController;
 use App\Http\Controllers\Clinica\HistorialController;
 use App\Http\Controllers\Clinica\AccesoMovilController;
+use App\Http\Controllers\Clinica\AgendaController;
 // --- RUTAS PÚBLICAS ---
 Route::get('/', [AuthController::class, 'showLogin'])->name('login');
 Route::post('/login', [AuthController::class, 'login'])->name('login.post');
@@ -88,11 +89,8 @@ Route::middleware(['auth', 'can:asistente-only'])->group(function () {
     Route::post('/asistente/historial/guardar/{id}', [HistorialController::class, 'guardar'])->name('paciente.historial.guardar');
 
     // Ruta para el buscador en tiempo real (AJAX)
-//Route::get('/asistente/buscar-paciente-ajax', [HistorialController::class, 'buscar'])->name('pacientes.buscar_ajax');
-Route::get('/pacientes/buscar-ajax', [HistorialController::class, 'buscar'])->name('pacientes.buscar_ajax');
 
-   // Route::post('/asistente/historial/guardar/{id}', [App\Http\Controllers\Clinica\HistorialController::class, 'guardar'])->name('paciente.historial.guardar');
-    //Route::get('/asistente/appmovil', [AppMovilController::class, 'acceso'])->name('asistente.appmovil');
+Route::get('/pacientes/buscar-ajax', [HistorialController::class, 'buscar'])->name('pacientes.buscar_ajax');
 
 Route::get('/asistente/buscar-paciente-acceso', [AccesoMovilController::class, 'buscarPacientesAcceso'])->name('pacientes.buscar_acceso_ajax');
     Route::get('/asistente/acceso-movil', [AccesoMovilController::class, 'index'])->name('acceso.index');
@@ -100,6 +98,9 @@ Route::post('/asistente/acceso-movil/habilitar', [AccesoMovilController::class, 
 
 
 // Agenda del día
-    Route::get('/asistente/agenda', [App\Http\Controllers\Clinica\AgendaController::class, 'index'])->name('asistente.agenda');
+    //Route::get('/asistente/agenda', [App\Http\Controllers\Clinica\AgendaController::class, 'index'])->name('asistente.agenda');
+    Route::get('/agenda', [AgendaController::class, 'index'])->name('asistente.agenda');
+    Route::post('/agenda/finalizar/{id}', [AgendaController::class, 'finalizarCita']);
+    Route::post('/agenda/iniciar/{id}', [App\Http\Controllers\Clinica\AgendaController::class, 'iniciarCita'])->name('agenda.iniciar');
 
 });
