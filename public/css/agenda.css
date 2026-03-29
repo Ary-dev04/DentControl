@@ -105,28 +105,56 @@ color:#374151;
 }
 
 /* BOTONES */
-
-.btn{
-border:none;
-padding:8px 14px;
-border-radius:8px;
-font-weight:500;
-cursor:pointer;
+.btn {
+    border: none;
+    padding: 8px 14px;
+    border-radius: 8px;
+    font-weight: 500;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    transition: background 0.2s, transform 0.1s;
 }
 
-.btn-iniciar{
-background:#3b82f6;
-color:white;
+.btn-iniciar {
+    background: #3b82f6;
+    color: white;
 }
 
-.btn-finalizar{
-background:#10b981;
-color:white;
+.btn-finalizar {
+    background: #10b981;
+    color: white;
 }
 
-.btn-cobrar{
-background:#6366f1;
-color:white;
+/* Botón Cancelar Circular */
+.btn-cancelar {
+    background: #ef4444;
+    color: white;
+    width: 32px;  /* Un poquito más grande para que sea fácil de presionar */
+    height: 32px;
+    border-radius: 50%;
+    display: inline-flex;
+    justify-content: center;
+    align-items: center;
+    padding: 0;
+    border: none;
+    cursor: pointer;
+    transition: transform 0.2s, background 0.2s;
+}
+
+.btn-cancelar i {
+    font-size: 14px; /* Tamaño de la X */
+    line-height: 1;
+}
+
+.btn-cancelar:hover {
+    background: #dc2626;
+    transform: scale(1.1);
+}
+
+.btn:active {
+    transform: scale(0.95);
 }
 
 /* ACCIONES */

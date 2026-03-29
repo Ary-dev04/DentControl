@@ -19,10 +19,10 @@
     </a>
 
     @if(auth()->user()->rol === 'dentista')
-        <a href="#">
+        <a href="{{ route('dentista.agenda') }}">
             <i class="fa-solid fa-calendar-day"></i> Agenda del día
         </a>
-        <a href="#">
+        <a href="{{ route('dentista.tratamientos') }}">
             <i class="fa-solid fa-notes-medical"></i> Tratamientos
         </a>
         <a href="#">

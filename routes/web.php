@@ -11,6 +11,8 @@ use App\Http\Controllers\Clinica\PacienteController;
 use App\Http\Controllers\Clinica\HistorialController;
 use App\Http\Controllers\Clinica\AccesoMovilController;
 use App\Http\Controllers\Clinica\AgendaController;
+use App\Http\Controllers\Clinica\DentistaAgendaController;
+use App\Http\Controllers\Dentista\TratamientoController;
 // --- RUTAS PÚBLICAS ---
 Route::get('/', [AuthController::class, 'showLogin'])->name('login');
 Route::post('/login', [AuthController::class, 'login'])->name('login.post');
@@ -54,8 +56,14 @@ Route::middleware(['auth', 'can:dentista-only'])->group(function () {
     // Rutas para Tratamientos
     Route::post('/catalogos/tratamientos', [CatalogoController::class, 'storeTratamiento'])->name('tratamientos.store');
     Route::put('/catalogos/tratamientos/{id}', [CatalogoController::class, 'updateTratamiento'])->name('tratamientos.update');
+
+    
+    Route::get('/dentista/tratamientos', [TratamientoController::class, 'index'])->name('dentista.tratamientos');
     
     Route::patch('/catalogos/tratamientos/{id}/toggle', [CatalogoController::class, 'toggleTratamiento'])->name('tratamientos.toggle');
+
+    //Agenda
+    Route::get('/dentista/agenda', [DentistaAgendaController::class, 'index'])->name('dentista.agenda');
 });
 
 // 3. ASISTENTES (Agenda y recepción)
@@ -102,5 +110,7 @@ Route::post('/asistente/acceso-movil/habilitar', [AccesoMovilController::class, 
     Route::get('/agenda', [AgendaController::class, 'index'])->name('asistente.agenda');
     Route::post('/agenda/finalizar/{id}', [AgendaController::class, 'finalizarCita']);
     Route::post('/agenda/iniciar/{id}', [App\Http\Controllers\Clinica\AgendaController::class, 'iniciarCita'])->name('agenda.iniciar');
+    Route::post('/agenda/cancelar/{id}', [AgendaController::class, 'cancelar'])->name('agenda.cancelar');
+
 
 });

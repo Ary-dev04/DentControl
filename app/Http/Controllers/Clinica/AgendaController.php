@@ -52,4 +52,17 @@ class AgendaController extends Controller
 
         return response()->json(['success' => true]);
     }
+
+    public function cancelar($id)
+{
+    try {
+        $cita = Cita::findOrFail($id);
+        $cita->estatus_cita = 'cancelada';
+        $cita->save();
+
+        return response()->json(['success' => true]);
+    } catch (\Exception $e) {
+        return response()->json(['success' => false, 'message' => $e->getMessage()]);
+    }
+}
 }

@@ -41,7 +41,7 @@
                             @if($esTrat)
                                 {{ $cita->tratamiento->catalogoTratamiento->nombre ?? 'Tratamiento' }}
                             @else
-                                {{ $cita->catalogoServicio->nombre ?? 'Consulta' }}
+                                {{ $cita->servicio->nombre ?? 'Consulta' }}
                             @endif
                         </td>
                         <td>{{ $cita->motivo_consulta }}</td>
@@ -50,30 +50,48 @@
                                 {{ $cita->estatus_cita == 'enproceso' ? 'En proceso' : ucfirst($cita->estatus_cita) }}
                             </span>
                         </td>
-                        <td class="acciones">
-                            @if($cita->estatus_cita == 'programada')
-                                <button class="btn btn-iniciar" onclick="iniciarCitaBD(this, {{ $cita->id_cita }})">
-                                    <i class="fa-solid fa-play"></i> Iniciar
-                                </button>
-                            
-                            @elseif($cita->estatus_cita == 'enproceso')
-                                {{-- Pasamos el ID, si es tratamiento, el nombre y el precio estimado total --}}
-                                <button class="btn btn-finalizar" 
-                                    onclick="abrirCobro(
-                                        {{ $cita->id_cita }}, 
-                                        {{ $esTrat ? 'true' : 'false' }}, 
-                                        '{{ $esTrat ? $cita->tratamiento->catalogoTratamiento->nombre : $cita->catalogoServicio->nombre }}',
-                                        {{ $esTrat ? ($cita->tratamiento->precio_estimado ?? 0) : 0 }}
-                                    )">
-                                    <i class="fa-solid fa-flag-checkered"></i> Finalizar
-                                </button>
+                        <td class="acciones" style="text-align: center; vertical-align: middle;">
+    <div style="display: flex !important; align-items: center !important; justify-content: center !important; gap: 12px !important; width: 100%;">
+        
+        @if($cita->estatus_cita == 'programada')
+            <button class="btn btn-iniciar" onclick="iniciarCitaBD(this, {{ $cita->id_cita }})" style="margin: 0 !important;">
+                <i class="fa-solid fa-play"></i> Iniciar
+            </button>
+            <button onclick="cancelarCita({{ $cita->id_cita }})" 
+                    style="background: #ef4444; color: white; border: none; width: 30px; height: 30px; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; padding: 0 !important; margin: 0 !important; flex-shrink: 0;" 
+                    title="Cancelar">
+                <i class="fa-solid fa-xmark" style="font-size: 14px;"></i>
+            </button>
+        
+        @elseif($cita->estatus_cita == 'enproceso')
+            <button class="btn btn-finalizar" 
+                onclick="abrirCobro(
+                    {{ $cita->id_cita }}, 
+                    {{ $esTrat ? 'true' : 'false' }}, 
+                    '{{ $esTrat ? ($cita->tratamiento?->catalogoTratamiento?->nombre ?? 'Tratamiento') : ($cita->servicio?->nombre ?? 'Consulta') }}',
+                    {{ $esTrat ? ($cita->tratamiento?->precio_estimado ?? 0) : 0 }}
+                )" style="margin: 0 !important;">
+                <i class="fa-solid fa-flag-checkered"></i> Finalizar
+            </button>
+            <button onclick="cancelarCita({{ $cita->id_cita }})" 
+                    style="background: #ef4444; color: white; border: none; width: 30px; height: 30px; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; padding: 0 !important; margin: 0 !important; flex-shrink: 0;" 
+                    title="Cancelar">
+                <i class="fa-solid fa-xmark" style="font-size: 14px;"></i>
+            </button>
 
-                            @elseif($cita->estatus_cita == 'finalizada')
-                                <span style="color: #16a34a; font-weight: bold;">
-                                    <i class="fa-solid fa-circle-check"></i> Cobrado (${{ number_format($cita->monto_cobrado, 2) }})
-                                </span>
-                            @endif
-                        </td>
+        @elseif($cita->estatus_cita == 'finalizada')
+            <div style="display: flex; flex-direction: column; align-items: center; line-height: 1.2;">
+                <span style="color: #16a34a; font-weight: bold; font-size: 0.85rem;">
+                    <i class="fa-solid fa-circle-check"></i> Cobrado
+                </span>
+                <span style="color: #16a34a; font-size: 0.8rem; font-weight: bold;">
+                    (${{ number_format($cita->monto_cobrado, 2) }})
+                </span>
+            </div>
+        @endif
+
+    </div>
+</td>
                     </tr>
                     @empty
                     <tr><td colspan="7" style="text-align:center;">No hay citas agendadas para hoy</td></tr>
@@ -229,6 +247,32 @@ function guardarCobroFinal() {
         }
     })
     .catch(err => alert("Error de conexión al guardar el cobro."));
+}
+
+// 4. Cancelar Cita
+function cancelarCita(idCita) {
+    if (confirm("¿Está seguro de que desea cancelar esta cita? Esta acción no se puede deshacer.")) {
+        fetch(`/agenda/cancelar/${idCita}`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': '{{ csrf_token() }}'
+            }
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.success) {
+                alert("Cita cancelada correctamente.");
+                location.reload();
+            } else {
+                alert("Error al cancelar la cita: " + (data.message || "Error desconocido"));
+            }
+        })
+        .catch(err => {
+            console.error(err);
+            alert("Error de conexión al intentar cancelar.");
+        });
+    }
 }
 </script>
 @endsection
