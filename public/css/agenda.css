@@ -34,7 +34,7 @@ overflow:hidden;
 .data-table{
 width:100%;
 border-collapse:collapse;
-table-layout:fixed;
+table-layout:auto;
 }
 
 /* HEADER */
@@ -107,14 +107,17 @@ color:#374151;
 /* BOTONES */
 .btn {
     border: none;
-    padding: 8px 14px;
+    padding: 6px 12px; /* Reducimos un poco el padding */
     border-radius: 8px;
-    font-weight: 500;
+    font-weight: 600;
+    font-size: 13px; /* Tamaño de letra más compacto */
     cursor: pointer;
     display: inline-flex;
     align-items: center;
-    gap: 5px;
-    transition: background 0.2s, transform 0.1s;
+    justify-content: center;
+    gap: 6px;
+    transition: all 0.2s;
+    min-width: 100px; /* Para que Iniciar y Finalizar midan lo mismo */
 }
 
 .btn-iniciar {
@@ -180,40 +183,14 @@ width:140px;
 }
 /* FIJAR COLUMNAS */
 
-.data-table th:nth-child(1),
-.data-table td:nth-child(1){
-width:80px;
-}
-
-.data-table th:nth-child(2),
-.data-table td:nth-child(2){
-width:180px;
-}
-
-.data-table th:nth-child(3),
-.data-table td:nth-child(3){
-width:120px;
-}
-
-.data-table th:nth-child(4),
-.data-table td:nth-child(4){
-width:160px;
-}
-
-.data-table th:nth-child(5),
-.data-table td:nth-child(5){
-width:160px;
-}
-
-.data-table th:nth-child(6),
-.data-table td:nth-child(6){
-width:130px;
-}
-
-.data-table th:nth-child(7),
-.data-table td:nth-child(7){
-width:130px;
-}
+/* FIJAR COLUMNAS - Ajustado para dar espacio a los botones */
+.data-table th:nth-child(1), .data-table td:nth-child(1) { width: 85px; }  /* Hora */
+.data-table th:nth-child(2), .data-table td:nth-child(2) { width: 180px; } /* Paciente */
+.data-table th:nth-child(3), .data-table td:nth-child(3) { width: 110px; } /* Tipo */
+.data-table th:nth-child(4), .data-table td:nth-child(4) { width: 180px; } /* Servicio */
+.data-table th:nth-child(5), .data-table td:nth-child(5) { width: 150px; } /* Motivo */
+.data-table th:nth-child(6), .data-table td:nth-child(6) { width: 120px; } /* Estatus */
+.data-table th:nth-child(7), .data-table td:nth-child(7) { width: 185px; } /* Acciones */
 /* MODAL */
 
 .modal{
@@ -255,3 +232,65 @@ display:none;
 #bloqueTratamiento{
 display:none;
 }
+
+/* Aseguramos que la columna de acciones sea estable */
+.data-table td.acciones {
+    width: 200px !important;
+    min-width: 200px !important;
+    text-align: left !important;
+    padding-left: 15px !important;
+}
+
+/* Contenedor flexible alineado al inicio */
+.acciones-wrapper {
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    gap: 10px;
+}
+
+/* Grupo para botones Iniciar/Finalizar + X */
+.grupo-botones {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+/* Botón circular de cancelar (X) */
+.btn-circular {
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    border: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    flex-shrink: 0;
+    transition: all 0.2s;
+}
+
+.btn-cancelar { background: #ef4444; color: white; }
+.btn-cancelar:hover { background: #dc2626; transform: scale(1.1); }
+
+/* Texto de Doctor Ocupado */
+.texto-ocupado {
+    color: #64748b;
+    font-size: 0.8rem;
+    font-style: italic;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    white-space: nowrap;
+}
+
+/* Estilo para el estado Cobrado */
+.status-cobrado {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    line-height: 1.2;
+}
+
+.badge-exito { color: #16a34a; font-weight: bold; font-size: 0.85rem; }
+.monto { color: #16a34a; font-size: 0.8rem; font-weight: bold; }

@@ -25,8 +25,8 @@
         <a href="{{ route('dentista.tratamientos') }}">
             <i class="fa-solid fa-notes-medical"></i> Tratamientos
         </a>
-        <a href="#">
-            <i class="fa-solid fa-folder-open"></i> Historial clínico
+        <a href="{{ route('asistente.historial') }}">
+            <i class="fa-solid fa-folder-open"></i> Expediente clínico
         </a>
         <a href="#">
             <i class="fa-solid fa-chart-pie"></i> Reportes
@@ -41,7 +41,7 @@
             <i class="fa-solid fa-calendar-day"></i> Agenda del día
         </a>
         <a href="{{ route('pacientes.index') }}">
-            <i class="fa-solid fa-user"></i> Pacientes
+            <i class="fa-solid fa-user"></i> Pacientes y Citas
         </a>
         <a href="{{ route('asistente.historial') }}">
             <i class="fa-solid fa-folder-open"></i>Expediente clínico

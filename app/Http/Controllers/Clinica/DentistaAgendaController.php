@@ -4,46 +4,22 @@ namespace App\Http\Controllers\Clinica;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
+use App\Models\Cita; // Importamos el modelo
+use Carbon\Carbon;   // Para manejar fechas
 
 class DentistaAgendaController extends Controller
 {
     public function index()
     {
-
-        // Datos de ejemplo (después vendrán de la BD)
-
-        $citas = [
-
-            [
-                'hora' => '09:00',
-                'paciente' => 'Juan Pérez López',
-                'tipo' => 'servicio',
-                'nombre' => 'Limpieza dental',
-                'motivo' => 'Dolor leve en muela',
-                'estado' => 'pendiente'
-            ],
-
-            [
-                'hora' => '11:00',
-                'paciente' => 'María Gómez Ruiz',
-                'tipo' => 'tratamiento',
-                'nombre' => 'Ortodoncia',
-                'motivo' => 'Ajuste mensual',
-                'estado' => 'enproceso'
-            ],
-
-            [
-                'hora' => '13:00',
-                'paciente' => 'Carlos Martínez',
-                'tipo' => 'tratamiento',
-                'nombre' => 'Extracción',
-                'motivo' => 'Extracción molar',
-                'estado' => 'finalizado'
-            ]
-
-        ];
+        // Traemos las citas de hoy que no estén canceladas
+        // Cargamos relaciones: paciente, servicio y tratamiento con su nombre de catálogo
+        $citas = Cita::with(['paciente', 'servicio', 'tratamiento.catalogoTratamiento'])
+            ->whereDate('fecha', Carbon::today())
+            ->where('estatus_cita', '!=', 'cancelada')
+            ->orderBy('hora', 'asc')
+            ->get();
 
         return view('dentista.agenda.index', compact('citas'));
-
     }
+
 }

@@ -391,7 +391,7 @@
 
             <div id="contenedor_seguimiento_ex" style="display: none; margin-bottom: 15px;">
                 <label>Seleccione el tratamiento actual:</label>
-                <select name="id_tratamiento_existente" id="select_tratamiento_ex" class="form-control">
+                <select name="id_tratamiento_existente" id="select_tratamiento_ex" onchange="consultarDuracionDB('tratamiento_seguimiento', this.value)" class="form-control">
                     <option value="">-- Seleccionar --</option>
                 </select>
             </div>
@@ -419,7 +419,7 @@
             <div class="form-row">
                 <div class="form-group">
                     <label>Duración sugerida (minutos)</label>
-                    <input type="number" id="duracion_sugerida_ex" readonly style="background-color: #f8f9fa; border: 1px solid #dee2e6;">
+                    <input type="number" name="duracion_sugerida" id="duracion_sugerida_ex" readonly style="background-color: #f8f9fa; border: 1px solid #dee2e6;">
                 </div>
                 <div class="form-group">
                     <label>Duración real (min) *</label>
@@ -859,8 +859,29 @@ function marcarSlotSeleccionado(info, idDiv, el) {
 }
 // --- FUNCIONES AUXILIARES (AJAX Y FILTROS) ---
 function mostrarOpcionesAtencion(tipo) {
-    document.getElementById('contenedor_tratamiento').style.display = tipo === 'tratamiento' ? 'block' : 'none';
-    document.getElementById('contenedor_servicio').style.display = tipo === 'servicio' ? 'block' : 'none';
+    const divTratamiento = document.getElementById('contenedor_tratamiento');
+    const divServicio = document.getElementById('contenedor_servicio');
+
+    // 1. Mostrar/Ocultar contenedores
+    divTratamiento.style.display = tipo === 'tratamiento' ? 'block' : 'none';
+    divServicio.style.display = tipo === 'servicio' ? 'block' : 'none';
+
+    // 2. LIMPIEZA DE VALORES
+    // Buscamos los selects dentro de cada contenedor y reseteamos su valor
+    const selectTrat = divTratamiento.querySelector('select');
+    const selectServ = divServicio.querySelector('select');
+
+    if (tipo === 'tratamiento') {
+        // Si eligió tratamiento, limpiamos el de servicio
+        if (selectServ) selectServ.value = "";
+    } else {
+        // Si eligió servicio, limpiamos el de tratamiento
+        if (selectTrat) selectTrat.value = "";
+    }
+
+    // 3. Opcional: Limpiar la duración sugerida al cambiar de tipo
+    const sugNuevo = document.getElementById('duracion_sugerida');
+    if (sugNuevo) sugNuevo.value = "";
 }
 
 function consultarDuracionDB(tipo, id) {
@@ -871,15 +892,19 @@ function consultarDuracionDB(tipo, id) {
         .then(data => {
             const minutos = data.duracion || 0;
             
-            // Llenar sugerida en Modal Nuevo
+            // Llenar sugerida en Modal Nuevo (si existe el campo)
             const sugNuevo = document.getElementById('duracion_sugerida');
             if (sugNuevo) sugNuevo.value = minutos;
 
-            // Llenar sugerida en Modal Existente
+            // Llenar sugerida en Modal Existente (el que nos interesa ahora)
             const sugEx = document.getElementById('duracion_sugerida_ex');
-            if (sugEx) sugEx.value = minutos;
-            
-            // Nota: Se eliminó la línea que rellenaba duracion_real y duracion_real_ex
+            if (sugEx) {
+                sugEx.value = minutos;
+                // Si tienes una función que calcula la hora fin basada en la duración, llámala aquí
+                if (typeof calcularHoraFinEx === 'function') {
+                    calcularHoraFinEx();
+                }
+            }
         })
         .catch(error => console.error('Error al obtener duración:', error));
 }
@@ -909,6 +934,12 @@ function mostrarOpcionesExistente(tipo) {
     divSeguimiento.style.display = 'none';
     divNuevoPlan.style.display = 'none';
     divServicio.style.display = 'none';
+
+    // LIMPIAR VALORES para que no se envíen datos cruzados
+    document.getElementById('select_tratamiento_ex').value = "";
+    document.querySelector('select[name=\"id_cat_tratamiento_nuevo\"]').value = "";
+    document.querySelector('select[name=\"id_cat_servicio\"]').value = "";
+    document.getElementById('duracion_sugerida_ex').value = ""; // Limpiar duración al cambiar tipo
 
     if (tipo === 'seguimiento') {
         if (!idP) { alert("Seleccione un paciente primero."); return; }

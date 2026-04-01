@@ -17,6 +17,12 @@ use App\Http\Controllers\Dentista\TratamientoController;
 Route::get('/', [AuthController::class, 'showLogin'])->name('login');
 Route::post('/login', [AuthController::class, 'login'])->name('login.post');
 Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
+// --- RUTAS COMPARTIDAS ---
+Route::post('/agenda/iniciar/{id}', [App\Http\Controllers\Clinica\AgendaController::class, 'iniciarCita'])->name('agenda.iniciar');
+Route::get('/asistente/historial/{id}', [HistorialController::class, 'verHistorial'])->name('paciente.historial');
+Route::get('/pacientes/buscar-ajax', [HistorialController::class, 'buscar'])->name('pacientes.buscar_ajax');
+Route::get('/asistente/historial', [HistorialController::class, 'index'])->name('asistente.historial');
+Route::post('/asistente/historial/guardar/{id}', [HistorialController::class, 'guardar'])->name('paciente.historial.guardar');
 
 // --- RUTAS PROTEGIDAS POR ROL ---
 
@@ -57,13 +63,18 @@ Route::middleware(['auth', 'can:dentista-only'])->group(function () {
     Route::post('/catalogos/tratamientos', [CatalogoController::class, 'storeTratamiento'])->name('tratamientos.store');
     Route::put('/catalogos/tratamientos/{id}', [CatalogoController::class, 'updateTratamiento'])->name('tratamientos.update');
 
-    
+
     Route::get('/dentista/tratamientos', [TratamientoController::class, 'index'])->name('dentista.tratamientos');
     
     Route::patch('/catalogos/tratamientos/{id}/toggle', [CatalogoController::class, 'toggleTratamiento'])->name('tratamientos.toggle');
 
     //Agenda
     Route::get('/dentista/agenda', [DentistaAgendaController::class, 'index'])->name('dentista.agenda');
+
+    Route::post('/historial/nota/guardar', [HistorialController::class, 'guardarNota'])->name('notas.guardar');
+
+    // Ruta para actualizar el precio desde el historial
+    Route::post('/historial/actualizar-precio/{id}', [HistorialController::class, 'actualizarPrecioTratamiento'])->name('paciente.historial.precio');
 });
 
 // 3. ASISTENTES (Agenda y recepción)
@@ -88,17 +99,17 @@ Route::middleware(['auth', 'can:asistente-only'])->group(function () {
     Route::get('/validar-cita-duplicada', [App\Http\Controllers\Clinica\PacienteController::class, 'validarCitaDuplicada']);
 
     // 1. Ruta para el menú (entrada general)
-    Route::get('/asistente/historial', [HistorialController::class, 'index'])->name('asistente.historial');
+    //Route::get('/asistente/historial', [HistorialController::class, 'index'])->name('asistente.historial');
 
     // 2. Ruta para ver un paciente específico (desde la tabla)
-    Route::get('/asistente/historial/{id}', [HistorialController::class, 'verHistorial'])->name('paciente.historial');
+    //Route::get('/asistente/historial/{id}', [HistorialController::class, 'verHistorial'])->name('paciente.historial');
 
     // Ruta para procesar el guardado del expediente
-    Route::post('/asistente/historial/guardar/{id}', [HistorialController::class, 'guardar'])->name('paciente.historial.guardar');
+    //Route::post('/asistente/historial/guardar/{id}', [HistorialController::class, 'guardar'])->name('paciente.historial.guardar');
 
     // Ruta para el buscador en tiempo real (AJAX)
 
-Route::get('/pacientes/buscar-ajax', [HistorialController::class, 'buscar'])->name('pacientes.buscar_ajax');
+//Route::get('/pacientes/buscar-ajax', [HistorialController::class, 'buscar'])->name('pacientes.buscar_ajax');
 
 Route::get('/asistente/buscar-paciente-acceso', [AccesoMovilController::class, 'buscarPacientesAcceso'])->name('pacientes.buscar_acceso_ajax');
     Route::get('/asistente/acceso-movil', [AccesoMovilController::class, 'index'])->name('acceso.index');
@@ -109,7 +120,7 @@ Route::post('/asistente/acceso-movil/habilitar', [AccesoMovilController::class, 
     //Route::get('/asistente/agenda', [App\Http\Controllers\Clinica\AgendaController::class, 'index'])->name('asistente.agenda');
     Route::get('/agenda', [AgendaController::class, 'index'])->name('asistente.agenda');
     Route::post('/agenda/finalizar/{id}', [AgendaController::class, 'finalizarCita']);
-    Route::post('/agenda/iniciar/{id}', [App\Http\Controllers\Clinica\AgendaController::class, 'iniciarCita'])->name('agenda.iniciar');
+    //Route::post('/agenda/iniciar/{id}', [App\Http\Controllers\Clinica\AgendaController::class, 'iniciarCita'])->name('agenda.iniciar');
     Route::post('/agenda/cancelar/{id}', [AgendaController::class, 'cancelar'])->name('agenda.cancelar');
 
 

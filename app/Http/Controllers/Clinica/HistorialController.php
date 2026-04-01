@@ -35,11 +35,25 @@ class HistorialController extends Controller
         ->orderBy('fecha_modificacion', 'desc')
         ->get();
 
+    // --- NUEVO: Cargar Notas de Evolución ---
+    // Obtenemos todas las notas de los tratamientos de este paciente
+    $id_tratamientos = $paciente->tratamientos->pluck('id_tratamiento');
+    $notas = \App\Models\NotasEvolucion::with(['usuario', 'tratamiento.catalogoTratamiento'])
+        ->whereIn('id_tratamiento', $id_tratamientos)
+        ->orderBy('fecha', 'desc')
+        ->orderBy('hora', 'desc')
+        ->get();
+    
+    // --- NUEVO: Buscar si hay una cita activa para el modal ---
+    $citaActiva = \App\Models\Cita::where('id_paciente', $id)
+        ->where('estatus_cita', 'enproceso')
+        ->first();
+
     if (!$expediente) {
         $expediente = new ExpedienteClinico(['id_paciente' => $id]);
     }
 
-    return view('asistente.historial.historial', compact('paciente', 'expediente', 'versionesAnteriores'));
+    return view('asistente.historial.historial', compact('paciente', 'expediente', 'versionesAnteriores', 'notas', 'citaActiva'));
 }
 
     public function guardar(Request $request, $id_paciente)
@@ -111,4 +125,57 @@ class HistorialController extends Controller
 
         return response()->json($pacientes);
     }
+
+    public function guardarNota(Request $request)
+{
+    $request->validate([
+        'id_tratamiento' => 'required|exists:tratamiento,id_tratamiento',
+        'nota_texto' => 'required|string|min:5',
+        'indicaciones' => 'nullable|string'
+    ]);
+
+    try {
+        \App\Models\NotasEvolucion::create([
+            'id_tratamiento' => $request->id_tratamiento,
+            'id_usuario'     => Auth::id(), // El dentista logueado
+            'fecha'          => now()->format('Y-m-d'),
+            'hora'           => now()->format('H:i:s'),
+            'nota_texto'     => $request->nota_texto,
+            'indicaciones'   => $request->indicaciones,
+        ]);
+
+        return redirect()->back()->with('success', 'Nota de evolución guardada correctamente.');
+    } catch (\Exception $e) {
+        return redirect()->back()->with('error', 'Error al guardar la nota: ' . $e->getMessage());
+    }
+}
+
+public function actualizarPrecioTratamiento(Request $request, $id)
+{
+    // Verificación de seguridad por rol
+    if (auth()->user()->rol !== 'dentista') {
+        return response()->json([
+            'success' => false, 
+            'message' => 'Solo el dentista puede asignar presupuestos.'
+        ], 403);
+    }
+
+    $request->validate([
+        'precio_estimado' => 'required|numeric|min:0'
+    ]);
+
+    try {
+        // Buscamos el tratamiento por su ID
+        $tratamiento = \App\Models\Tratamiento::findOrFail($id);
+        $tratamiento->precio_estimado = $request->precio_estimado;
+        $tratamiento->save();
+
+        return response()->json(['success' => true]);
+    } catch (\Exception $e) {
+        return response()->json([
+            'success' => false, 
+            'message' => 'Error al actualizar la base de datos.'
+        ], 500);
+    }
+}
 }

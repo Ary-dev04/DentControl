@@ -38,20 +38,34 @@ class PacienteController extends Controller
     }
 
     public function obtenerDuracion(Request $request)
-    {
-        $tipo = $request->query('tipo');
-        $id = $request->query('id');
+{
+    $tipo = $request->query('tipo');
+    $id = $request->query('id');
+    $duracion = 0;
 
-        if ($tipo === 'tratamiento') {
-            $item = DB::table('catalogo_tratamientos')->where('id_cat_tratamientos', $id)->first();
+    if ($tipo === 'tratamiento') {
+        // Nuevo tratamiento (Catálogo)
+        $item = DB::table('catalogo_tratamientos')->where('id_cat_tratamientos', $id)->first(); // Verifica si es id_cat_tratamientos o id_cat_treatments
+        $duracion = $item ? $item->duracion_sugerido_sesion : 0;
+    } 
+    elseif ($tipo === 'tratamiento_seguimiento') {
+        // SEGUIMIENTO: Buscamos el tratamiento que ya tiene el paciente
+        $tratamientoPaciente = DB::table('tratamiento')->where('id_tratamiento', $id)->first();
+        if ($tratamientoPaciente) {
+            $item = DB::table('catalogo_tratamientos')
+                ->where('id_cat_tratamientos', $tratamientoPaciente->id_cat_tratamientos)
+                ->first();
             $duracion = $item ? $item->duracion_sugerido_sesion : 0;
-        } else {
-            $item = DB::table('catalogo_servicios')->where('id_cat_servicio', $id)->first();
-            $duracion = $item ? $item->duracion : 0;
         }
-
-        return response()->json(['duracion' => $duracion]);
+    } 
+    else {
+        // Servicio Rápido
+        $item = DB::table('catalogo_servicios')->where('id_cat_servicio', $id)->first();
+        $duracion = $item ? $item->duracion : 0;
     }
+
+    return response()->json(['duracion' => $duracion]);
+}
 
     public function store(Request $request)
     {
@@ -254,7 +268,7 @@ class PacienteController extends Controller
                 $id_tratamiento_final = $request->id_tratamiento_existente;
 
             } elseif ($validated['tipo_atencion_ex'] === 'servicio') {
-                $id_servicio_final = $request->id_cat_servicio_ex;
+                $id_servicio_final = $request->id_cat_servicio;
             }
 
                 DB::table('citas')->insert([

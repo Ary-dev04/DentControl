@@ -25,6 +25,9 @@
                     </tr>
                 </thead>
                 <tbody>
+                    @php 
+                    $hayPacienteEnAtencion = $citas->contains('estatus_cita', 'enproceso');
+                    @endphp
                     @forelse($citas as $cita)
                     <tr data-id="{{ $cita->id_cita }}">
                         <td>{{ \Carbon\Carbon::parse($cita->hora)->format('h:i A') }}</td>
@@ -50,43 +53,41 @@
                                 {{ $cita->estatus_cita == 'enproceso' ? 'En proceso' : ucfirst($cita->estatus_cita) }}
                             </span>
                         </td>
-                        <td class="acciones" style="text-align: center; vertical-align: middle;">
-    <div style="display: flex !important; align-items: center !important; justify-content: center !important; gap: 12px !important; width: 100%;">
+                       <td class="acciones">
+    <div class="acciones-wrapper">
         
         @if($cita->estatus_cita == 'programada')
-            <button class="btn btn-iniciar" onclick="iniciarCitaBD(this, {{ $cita->id_cita }})" style="margin: 0 !important;">
-                <i class="fa-solid fa-play"></i> Iniciar
-            </button>
-            <button onclick="cancelarCita({{ $cita->id_cita }})" 
-                    style="background: #ef4444; color: white; border: none; width: 30px; height: 30px; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; padding: 0 !important; margin: 0 !important; flex-shrink: 0;" 
-                    title="Cancelar">
-                <i class="fa-solid fa-xmark" style="font-size: 14px;"></i>
-            </button>
-        
+            <div class="grupo-botones">
+                @if(!$hayPacienteEnAtencion)
+                    <button class="btn btn-iniciar" onclick="iniciarCitaBD(this, {{ $cita->id_cita }})">
+                        <i class="fa-solid fa-play"></i> Iniciar
+                    </button>
+                @else
+                    <span class="texto-ocupado" title="El doctor ya está atendiendo a un paciente">
+                        <i class="fa-solid fa-lock"></i> Doctor Ocupado
+                    </span>
+                @endif
+                
+                <button class="btn-circular btn-cancelar" onclick="cancelarCita({{ $cita->id_cita }})" title="Cancelar">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+
         @elseif($cita->estatus_cita == 'enproceso')
-            <button class="btn btn-finalizar" 
-                onclick="abrirCobro(
-                    {{ $cita->id_cita }}, 
-                    {{ $esTrat ? 'true' : 'false' }}, 
-                    '{{ $esTrat ? ($cita->tratamiento?->catalogoTratamiento?->nombre ?? 'Tratamiento') : ($cita->servicio?->nombre ?? 'Consulta') }}',
-                    {{ $esTrat ? ($cita->tratamiento?->precio_estimado ?? 0) : 0 }}
-                )" style="margin: 0 !important;">
-                <i class="fa-solid fa-flag-checkered"></i> Finalizar
-            </button>
-            <button onclick="cancelarCita({{ $cita->id_cita }})" 
-                    style="background: #ef4444; color: white; border: none; width: 30px; height: 30px; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; padding: 0 !important; margin: 0 !important; flex-shrink: 0;" 
-                    title="Cancelar">
-                <i class="fa-solid fa-xmark" style="font-size: 14px;"></i>
-            </button>
+            <div class="grupo-botones">
+                <button class="btn btn-finalizar" 
+                    onclick="abrirCobro({{ $cita->id_cita }}, {{ $esTrat ? 'true' : 'false' }}, '{{ $esTrat ? ($cita->tratamiento?->catalogoTratamiento?->nombre ?? 'Tratamiento') : ($cita->servicio?->nombre ?? 'Consulta') }}', {{ $esTrat ? ($cita->tratamiento?->precio_estimado ?? 0) : 0 }})">
+                    <i class="fa-solid fa-flag-checkered"></i> Finalizar
+                </button>
+                <button class="btn-circular btn-cancelar" onclick="cancelarCita({{ $cita->id_cita }})" title="Cancelar">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
 
         @elseif($cita->estatus_cita == 'finalizada')
-            <div style="display: flex; flex-direction: column; align-items: center; line-height: 1.2;">
-                <span style="color: #16a34a; font-weight: bold; font-size: 0.85rem;">
-                    <i class="fa-solid fa-circle-check"></i> Cobrado
-                </span>
-                <span style="color: #16a34a; font-size: 0.8rem; font-weight: bold;">
-                    (${{ number_format($cita->monto_cobrado, 2) }})
-                </span>
+            <div class="status-cobrado">
+                <span class="badge-exito"><i class="fa-solid fa-circle-check"></i> Cobrado</span>
+                <span class="monto">(${{ number_format($cita->monto_cobrado, 2) }})</span>
             </div>
         @endif
 

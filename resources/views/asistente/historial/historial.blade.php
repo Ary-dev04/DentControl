@@ -128,21 +128,145 @@
 
             <div class="form-row">
                 <div class="form-group">
-                    <label>Antecedentes Hereditarios</label>
+                    <label>
+                        Antecedentes Hereditarios
+                        @if(empty($expediente->antecedentes_hereditarios))
+                        <span style="color: #ef4444; font-size: 0.75rem; font-style: italic; margin-left: 5px;">
+                            <i class="fa-solid fa-circle-exclamation"></i> Pendiente de completar por el dentista
+                        </span>
+                        @endif
+                    </label>
                     <textarea name="antecedentes_hereditarios" id="hereditarios" class="campo-editable" rows="3" disabled>{{ old('antecedentes_hereditarios', $expediente->antecedentes_hereditarios) }}</textarea>
                 </div>
                 <div class="form-group">
-                    <label>Antecedentes Patológicos</label>
+                    <label>
+                        Antecedentes Patológicos
+                        @if(empty($expediente->antecedentes_patologicos))
+                        <span style="color: #ef4444; font-size: 0.75rem; font-style: italic; margin-left: 5px;">
+                            <i class="fa-solid fa-circle-exclamation"></i> Pendiente de completar por el dentista
+                        </span>
+                    @endif
+                    </label>
                     
                     <textarea name="antecedentes_patologicos" id="patologicos" class="campo-editable" rows="3" disabled>{{ old('antecedentes_patologicos', $expediente->antecedentes_patologicos) }}</textarea>
                 </div>
 
                 <div class="form-group full-width" style="margin-top: 15px;">
-                <label>Observaciones Generales</label>
-                <textarea name="observaciones_generales" id="observaciones" class="campo-editable" rows="3" disabled>{{ old('observaciones_generales', $expediente->observaciones_generales) }}</textarea>
+                <label>
+                    Observaciones Generales
+                    @if(empty($expediente->observaciones_generales))
+                <span style="color: #64748b; font-size: 0.75rem; font-style: italic; margin-left: 5px;">
+                    <i class="fa-solid fa-circle-info"></i> Detalles adicionales del caso
+                </span>
+                @endif
+                </label>
+                <textarea name="observaciones_generales" id="observaciones" class="campo-editable" 
+                placeholder="Ej: Paciente muestra ansiedad dental, prefiere anestesia sin epinefrina, o detalles sobre higiene bucal..."
+                rows="3" disabled>{{ old('observaciones_generales', $expediente->observaciones_generales) }}</textarea>
             </div>
             </div>
         </section>
+
+        {{-- SECCIÓN DE PRESUPUESTO (Solo para Tratamientos Activos) --}}
+@if(isset($citaActiva) && $citaActiva->id_tratamiento)
+    @php
+        // Buscamos el tratamiento específico de la cita para obtener su precio
+        $tratamientoActual = $paciente->tratamientos->where('id_tratamiento', $citaActiva->id_tratamiento)->first();
+    @endphp
+
+    {{-- SECCIÓN DE PRESUPUESTO ACTUALIZADA --}}
+@if($tratamientoActual)
+<section class="card" style="border-top: 4px solid #0ea5e9; margin-top: 20px; background: #f0f9ff;">
+    <div style="display: flex; justify-content: space-between; align-items: center;">
+        <div>
+            <h3 style="margin: 0; color: #0369a1;"><i class="fa-solid fa-file-invoice-dollar"></i> Presupuesto del Tratamiento</h3>
+            <p style="margin: 5px 0 0 0; color: #0c4a6e;"><strong>En curso:</strong> {{ $tratamientoActual->catalogoTratamiento->nombre }}</p>
+        </div>
+
+        <div style="text-align: right;">
+            <label style="display: block; font-weight: bold; margin-bottom: 5px;">Precio Estimado Total ($)</label>
+            <div style="display: flex; gap: 10px; align-items: center;">
+                <div style="position: relative;">
+                    <span style="position: absolute; left: 10px; top: 8px; color: #64748b;">$</span>
+                    <input type="number" 
+                           step="0.01" 
+                           id="inputPrecioEstimado"
+                           value="{{ $tratamientoActual->precio_estimado }}" 
+                           {{-- El campo nace bloqueado si ya tiene un precio --}}
+                           {{ $tratamientoActual->precio_estimado > 0 ? 'disabled' : '' }}
+                           style="padding-left: 25px; width: 150px; font-weight: bold; border-radius: 8px; border: 1px solid #cbd5e1; height: 38px; color: #16a34a; background: {{ $tratamientoActual->precio_estimado > 0 ? '#f8fafc' : 'white' }};"
+                           placeholder="0.00">
+                </div>
+                
+                @if(auth()->user()->rol === 'dentista')
+                    <button type="button" 
+                            id="btnPresupuesto"
+                            onclick="gestionarPresupuesto({{ $tratamientoActual->id_tratamiento }})" 
+                            {{-- Usamos un data-attribute para saber si estamos editando o solo viendo --}}
+                            data-estado="{{ $tratamientoActual->precio_estimado > 0 ? 'lectura' : 'edicion' }}"
+                            style="background: {{ $tratamientoActual->precio_estimado > 0 ? '#64748b' : '#0ea5e9' }}; color: white; border: none; padding: 10px 15px; border-radius: 8px; cursor: pointer; font-weight: bold; transition: all 0.3s ease;">
+                        <i class="fa-solid {{ $tratamientoActual->precio_estimado > 0 ? 'fa-pen-to-square' : 'fa-floppy-disk' }}"></i> 
+                        <span id="textoBotonPresupuesto">
+                            {{ $tratamientoActual->precio_estimado > 0 ? 'Editar' : 'Guardar' }}
+                        </span>
+                    </button>
+                @endif
+            </div>
+            @if(empty($tratamientoActual->precio_estimado))
+                <small id="avisoPendiente" style="color: #ef4444; font-weight: bold; display: block; margin-top: 5px;">
+                    <i class="fa-solid fa-circle-exclamation"></i> Pendiente definir precio
+                </small>
+            @endif
+        </div>
+    </div>
+</section>
+@endif
+@endif
+
+        {{-- SECCIÓN DE NOTAS DE EVOLUCIÓN (Nueva) --}}
+<section class="card" style="border-top: 4px solid #8b5cf6; margin-top: 20px;">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+        <h3 style="margin: 0;"><i class="fa-solid fa-file-medical"></i> Notas de Evolución</h3>
+        
+        {{-- Solo el DENTISTA puede agregar notas --}}
+        @if(auth()->user()->rol == 'dentista')
+    @if(isset($citaActiva) && !empty($citaActiva->id_tratamiento))
+        <button type="button" onclick="document.getElementById('modalNuevaNota').style.display='block'" ...>
+            <i class="fa-solid fa-plus"></i> Nueva Nota Hoy
+        </button>
+    @else
+        <span style="color: #94a3b8; font-size: 0.8rem; font-style: italic;">
+            <i class="fa-solid fa-lock"></i> {{ isset($citaActiva) ? 'Servicio único: no requiere notas de evolución' : 'Inicie atención para agregar notas' }}
+        </span>
+    @endif
+@endif
+    </div>
+
+    <div class="timeline" style="max-height: 400px; overflow-y: auto; padding-right: 10px;">
+        @forelse($notas as $nota)
+            <div style="border-left: 3px solid #8b5cf6; padding-left: 15px; margin-bottom: 20px; position: relative;">
+                <div style="font-size: 0.8rem; color: #64748b; font-weight: bold;">
+                    {{ \Carbon\Carbon::parse($nota->fecha)->format('d/m/Y') }} - {{ $nota->hora }}
+                </div>
+                <div style="font-weight: bold; color: #1e293b; margin: 5px 0;">
+                    Tratamiento: {{ $nota->tratamiento->catalogoTratamiento->nombre }}
+                </div>
+                <p style="margin: 5px 0; font-size: 0.95rem; color: #475569;">
+                    <strong>Nota:</strong> {{ $nota->nota_texto }}
+                </p>
+                @if($nota->indicaciones)
+                    <p style="margin: 5px 0; font-size: 0.9rem; color: #059669; background: #ecfdf5; padding: 5px; border-radius: 4px;">
+                        <i class="fa-solid fa-hand-holding-medical"></i> <strong>Indicaciones:</strong> {{ $nota->indicaciones }}
+                    </p>
+                @endif
+                <small style="color: #94a3b8;">Atendió: Dr. {{ $nota->usuario->nombre }}</small>
+            </div>
+        @empty
+            <p style="text-align: center; color: #94a3b8; padding: 20px;">No hay notas de evolución registradas.</p>
+        @endforelse
+    </div>
+</section>
+
 
         {{-- ACCIONES DEL FORMULARIO --}}
         <div class="form-actions" style="display: flex; justify-content: space-between; align-items: center; margin-top: 25px;">
@@ -162,7 +286,7 @@
 
         <button type="button" onclick="document.getElementById('modalTratamientos').style.display='block'" 
             style="background: #0ea5e9; color: white; padding: 12px 20px; border-radius: 10px; border: none; cursor: pointer; font-weight: bold; display: flex; align-items: center; gap: 10px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);">
-        <i class="fa-solid fa- kit-medical"></i> <i class="fa-solid fa-tooth"></i> Ver Plan de Tratamientos
+        <i class="fa-solid fa-kit-medical"></i> <i class="fa-solid fa-tooth"></i> Ver Plan de Tratamientos
     </button>
 
     <button type="button" onclick="document.getElementById('modalCitasHistorial').style.display='block'" 
@@ -174,7 +298,7 @@
 
     
 
-    <a href="{{ route('pacientes.index') }}" id="btnRegresar" class="btn-cancel" 
+    <a href="{{ auth()->user()->rol == 'dentista' ? route('dentista.agenda') : route('pacientes.index') }}" id="btnRegresar" class="btn-cancel" 
        style="background: #f1f5f9; color: #475569; padding: 10px 20px; border-radius: 8px; text-decoration: none; display: flex; align-items: center;">
         <i class="fa-solid fa-arrow-left" style="margin-right: 8px;"></i> VOLVER
     </a>
@@ -357,6 +481,12 @@
                                     @case('programada')
                                         <span style="color: #ca8a04;"><i class="fa-solid fa-calendar-day"></i> Programada</span>
                                         @break
+                                    @case('enproceso')
+                                    {{-- Estilo para la cita que el dentista está atendiendo actualmente --}}
+                                    <span style="color: #8b5cf6; font-weight: bold; background: #f5f3ff; padding: 4px 8px; border-radius: 4px; border: 1px solid #ddd6fe;">
+                                        <i class="fa-solid fa-stethoscope fa-beat-fast"></i> En Proceso
+                                    </span>
+                                    @break
                                     @default
                                         <span style="color: #ef4444;"><i class="fa-solid fa-xmark"></i> Cancelada</span>
                                 @endswitch
@@ -382,6 +512,35 @@
                 </tfoot>
             </table>
         </div>
+    </div>
+</div>
+
+<div id="modalNuevaNota" class="modal-custom" style="display:none; position:fixed; z-index:2000; left:0; top:0; width:100%; height:100%; background:rgba(0,0,0,0.6);">
+    <div style="background:white; margin:5% auto; width:90%; max-width:500px; border-radius:15px; overflow:hidden;">
+        <form action="{{ route('notas.guardar') }}" method="POST">
+            @csrf
+            <div style="padding:15px 20px; background:#8b5cf6; color:white; display:flex; justify-content:space-between;">
+                <h3 style="margin:0;">Registrar Evolución</h3>
+                <button type="button" onclick="document.getElementById('modalNuevaNota').style.display='none'" style="background:none; border:none; color:white; font-size:1.5rem; cursor:pointer;">&times;</button>
+            </div>
+            <div style="padding:20px;">
+                {{-- Aquí asumo que pasas el id_tratamiento de la cita activa --}}
+                <input type="hidden" name="id_tratamiento" value="{{ $citaActiva ? $citaActiva->id_tratamiento : '' }}">
+                
+                <div class="form-group" style="margin-bottom: 15px;">
+                    <label style="display:block; margin-bottom:5px; font-weight:bold;">¿Qué se realizó hoy?</label>
+                    <textarea name="nota_texto" rows="4" style="width:100%; border:1px solid #cbd5e1; border-radius:8px; padding:10px;" placeholder="Ej: Se realizó limpieza profunda en cuadrante superior..." required></textarea>
+                </div>
+
+                <div class="form-group">
+                    <label style="display:block; margin-bottom:5px; font-weight:bold;">Indicaciones al paciente</label>
+                    <textarea name="indicaciones" rows="2" style="width:100%; border:1px solid #cbd5e1; border-radius:8px; padding:10px;" placeholder="Ej: No comer alimentos sólidos en 2 horas..."></textarea>
+                </div>
+            </div>
+            <div style="padding:15px; background:#f1f5f9; text-align:right;">
+                <button type="submit" style="background:#8b5cf6; color:white; border:none; padding:10px 20px; border-radius:8px; font-weight:bold; cursor:pointer;">Guardar Nota</button>
+            </div>
+        </form>
     </div>
 </div>
 
@@ -439,8 +598,25 @@
     <div class="card" style="text-align: center; padding: 80px 20px; border: 2px dashed #cbd5e1; background: #f8fafc; border-radius: 15px;">
         <i class="fa-solid fa-user-injured" style="font-size: 4rem; color: #cbd5e1; margin-bottom: 20px;"></i>
         <h2 style="color: #64748b;">No se ha seleccionado paciente</h2>
-        <p style="color: #94a3b8; margin-bottom: 30px;">Busque un paciente en la barra superior para ver su historial.</p>
-        <a href="{{ route('pacientes.index') }}" class="btn-primary" style="text-decoration: none; padding: 12px 25px; border-radius: 8px;">Ir a Lista General</a>
+        <p style="color: #94a3b8; margin-bottom: 30px;">
+            @if(Auth::user()->rol === 'dentista')
+                Consulta tu agenda del día para seleccionar un paciente y comenzar la atención.
+            @else
+                Busque un paciente en la barra superior para ver su historial.
+            @endif
+        </p>
+
+        @if(Auth::user()->rol === 'dentista')
+            {{-- BOTÓN PARA EL DENTISTA --}}
+            <a href="{{ route('dentista.agenda') }}" class="btn-primary" style="text-decoration: none; padding: 12px 25px; border-radius: 8px; background: #2b6edc; color: white; display: inline-block;">
+                <i class="fa-solid fa-calendar-day"></i> Ver mi Agenda de Hoy
+            </a>
+        @else
+            {{-- BOTÓN PARA EL ASISTENTE (EL QUE YA TENÍAS) --}}
+            <a href="{{ route('pacientes.index') }}" class="btn-primary" style="text-decoration: none; padding: 12px 25px; border-radius: 8px; background: #2b6edc; color: white; display: inline-block;">
+                Ir a Lista General
+            </a>
+        @endif
     </div>
 @endif
 <script>
@@ -545,5 +721,83 @@
             e.preventDefault(); 
         }
     });
+
+   function gestionarPresupuesto(idTratamiento) {
+    const btn = document.getElementById('btnPresupuesto');
+    const input = document.getElementById('inputPrecioEstimado');
+    const textoBtn = document.getElementById('textoBotonPresupuesto');
+    const icono = btn.querySelector('i');
+    const estado = btn.getAttribute('data-estado');
+
+    // MODO: PASAR A EDICIÓN
+    if (estado === 'lectura') {
+        input.disabled = false;
+        input.style.background = "white";
+        input.style.border = "2px solid #0ea5e9";
+        input.focus();
+        
+        btn.setAttribute('data-estado', 'edicion');
+        btn.style.background = "#f59e0b"; // Naranja
+        textoBtn.innerText = " Guardar";
+        icono.className = "fa-solid fa-floppy-disk";
+    } 
+    // MODO: GUARDAR CAMBIOS
+    else {
+        const precio = input.value;
+
+        if(!precio || precio <= 0) {
+            alert("Por favor ingrese un monto válido.");
+            return;
+        }
+
+        btn.disabled = true;
+        textoBtn.innerText = " Guardando...";
+
+        fetch(`/historial/actualizar-precio/${idTratamiento}`, { 
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': '{{ csrf_token() }}'
+            },
+            body: JSON.stringify({ precio_estimado: precio })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if(data.success) {
+                // Bloquear campo nuevamente
+                input.disabled = true;
+                input.style.background = "#f8fafc";
+                input.style.border = "1px solid #cbd5e1";
+                
+                btn.disabled = false;
+                btn.setAttribute('data-estado', 'lectura');
+                btn.style.background = "#16a34a"; // Verde éxito
+                textoBtn.innerText = " ¡Actualizado!";
+                icono.className = "fa-solid fa-check";
+                
+                // Quitar aviso de pendiente si existe
+                const aviso = document.getElementById('avisoPendiente');
+                if(aviso) aviso.style.display = 'none';
+
+                setTimeout(() => {
+                    btn.style.background = "#64748b"; // Volver al color neutro de "Editar"
+                    textoBtn.innerText = " Editar";
+                    icono.className = "fa-solid fa-pen-to-square";
+                    
+                    // Recargar para actualizar los saldos en los modales de pagos
+                    location.reload(); 
+                }, 1500);
+            } else {
+                alert("Error: " + data.message);
+                btn.disabled = false;
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert("Ocurrió un error en la conexión.");
+            btn.disabled = false;
+        });
+    }
+}
 </script>
 @endsection
