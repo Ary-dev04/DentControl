@@ -132,3 +132,29 @@ margin:4px 0;
 font-size:14px;
 color:#374151;
 }
+
+.btn-nota-morada {
+    background-color: #8b5cf6; /* Morado vibrante (Vivid Violet) */
+    color: white;
+    border: none;
+    padding: 10px 18px;
+    border-radius: 8px;
+    font-weight: 600;
+    font-size: 0.9rem;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 6px -1px rgba(139, 92, 246, 0.3);
+}
+
+.btn-nota-morada:hover {
+    background-color: #7c3aed; /* Morado un poco más oscuro */
+    transform: translateY(-2px);
+    box-shadow: 0 6px 12px -2px rgba(139, 92, 246, 0.4);
+}
+
+.btn-nota-morada i {
+    font-size: 1.1rem;
+}

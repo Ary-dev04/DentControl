@@ -49,8 +49,8 @@
         <a href="{{ route('acceso.index') }}">
             <i class="fa-solid fa-mobile-screen-button"></i>Acceso App Móvil
         </a>
-        <a href="#">
-            <i class="fa-solid fa-gears"></i> Gestión de App
+        <a href="{{ route('asistente.gestion-app') }}">
+            <i class="fa-solid fa-gear"></i> Gestión de App
         </a>
     @endif
 </nav>

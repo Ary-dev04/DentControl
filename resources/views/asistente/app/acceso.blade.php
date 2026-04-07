@@ -105,16 +105,39 @@
                 </div>
 
                 <div class="form-actions" style="margin-top: 25px;">
-                    @php $tieneCorreo = $paciente->email || $paciente->email_tutor; @endphp
-                    <button type="submit" class="btn-primary" 
-                            style="background: {{ $tieneCorreo ? '#2563eb' : '#94a3b8' }};" 
-                            {{ !$tieneCorreo ? 'disabled' : '' }}>
-                        <i class="fa-solid fa-envelope"></i> Enviar credenciales
-                    </button>
-                    <a href="{{ route('acceso.index') }}" class="btn-cancel" style="background: #64748b; color: white; padding: 10px 20px; border-radius: 8px; text-decoration: none;">
-                        Cancelar
-                    </a>
-                </div>
+    @php 
+        $tieneCorreo = $paciente->email || $paciente->email_tutor;
+        // Verificamos si ya existe el registro de acceso móvil
+        $yaTieneCuenta = $paciente->accesoMovil ? true : false;
+    @endphp
+
+    @if(!$yaTieneCuenta)
+        {{-- MODO CREACIÓN: El botón aparece si no tiene cuenta --}}
+        <button type="submit" class="btn-primary" 
+                style="background: {{ $tieneCorreo ? '#2563eb' : '#94a3b8' }}; padding: 12px 25px; border-radius: 8px; border: none; color: white; cursor: {{ $tieneCorreo ? 'pointer' : 'not-allowed' }}; font-weight: bold; display: flex; align-items: center; gap: 8px;" 
+                {{ !$tieneCorreo ? 'disabled' : '' }}>
+            <i class="fa-solid fa-envelope"></i> Enviar credenciales
+        </button>
+    @else
+        {{-- MODO INFORMATIVO: El botón desaparece y se muestra este aviso --}}
+        <div style="background: #ecfdf5; border: 1px solid #10b981; padding: 15px; border-radius: 10px; display: flex; align-items: center; gap: 15px; margin-bottom: 15px;">
+            <div style="background: #10b981; color: white; width: 35px; height: 35px; border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                <i class="fa-solid fa-check"></i>
+            </div>
+            <div>
+                <strong style="color: #065f46; display: block; font-size: 1rem;">Acceso habilitado correctamente</strong>
+                <span style="color: #059669; font-size: 0.85rem;">Las claves de acceso ya fueron generadas y enviadas al correo electrónico.</span>
+            </div>
+        </div>
+    @endif
+
+    {{-- El botón de cancelar/volver siempre está presente para poder salir de la vista --}}
+    <div style="margin-top: 10px;">
+        <a href="{{ route('acceso.index') }}" class="btn-cancel" style="background: #64748b; color: white; padding: 10px 20px; border-radius: 8px; text-decoration: none; display: inline-flex; align-items: center; gap: 8px; font-size: 0.9rem;">
+            <i class="fa-solid fa-arrow-left"></i> Volver a buscar
+        </a>
+    </div>
+</div>
             </form>
         </section>
         @else

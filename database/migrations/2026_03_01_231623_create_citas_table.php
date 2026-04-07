@@ -22,6 +22,8 @@ return new class extends Migration
 
             $table->date('fecha');
             $table->time('hora');
+            $table->time('hora_inicio_real')->nullable(); // Hora exacta que empezó
+            $table->time('hora_final_real')->nullable();  // Hora exacta que terminó
             $table->string('motivo_consulta')->nullable();
 
             $table->decimal('monto_cobrado', 10, 2)->default(0);

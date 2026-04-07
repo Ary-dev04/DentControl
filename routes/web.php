@@ -13,6 +13,7 @@ use App\Http\Controllers\Clinica\AccesoMovilController;
 use App\Http\Controllers\Clinica\AgendaController;
 use App\Http\Controllers\Clinica\DentistaAgendaController;
 use App\Http\Controllers\Dentista\TratamientoController;
+use App\Http\Controllers\Asistente\GestionAppController;
 // --- RUTAS PÚBLICAS ---
 Route::get('/', [AuthController::class, 'showLogin'])->name('login');
 Route::post('/login', [AuthController::class, 'login'])->name('login.post');
@@ -122,6 +123,8 @@ Route::post('/asistente/acceso-movil/habilitar', [AccesoMovilController::class, 
     Route::post('/agenda/finalizar/{id}', [AgendaController::class, 'finalizarCita']);
     //Route::post('/agenda/iniciar/{id}', [App\Http\Controllers\Clinica\AgendaController::class, 'iniciarCita'])->name('agenda.iniciar');
     Route::post('/agenda/cancelar/{id}', [AgendaController::class, 'cancelar'])->name('agenda.cancelar');
+
+    Route::get('/asistente/gestion-app', [GestionAppController::class, 'index'])->name('asistente.gestion-app');
 
 
 });

@@ -231,9 +231,9 @@
         {{-- Solo el DENTISTA puede agregar notas --}}
         @if(auth()->user()->rol == 'dentista')
     @if(isset($citaActiva) && !empty($citaActiva->id_tratamiento))
-        <button type="button" onclick="document.getElementById('modalNuevaNota').style.display='block'" ...>
-            <i class="fa-solid fa-plus"></i> Nueva Nota Hoy
-        </button>
+        <button type="button" class="btn-nota-morada" onclick="document.getElementById('modalNuevaNota').style.display='block'">
+    <i class="fa-solid fa-circle-plus"></i> Nueva Nota Hoy
+</button>
     @else
         <span style="color: #94a3b8; font-size: 0.8rem; font-style: italic;">
             <i class="fa-solid fa-lock"></i> {{ isset($citaActiva) ? 'Servicio único: no requiere notas de evolución' : 'Inicie atención para agregar notas' }}

@@ -22,6 +22,8 @@ class Cita extends Model
         'id_clinica',
         'fecha',
         'hora',
+        'hora_inicio_real',
+        'hora_final_real',
         'motivo_consulta',
         'monto_cobrado',
         'duracion',
