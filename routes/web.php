@@ -14,6 +14,9 @@ use App\Http\Controllers\Clinica\AgendaController;
 use App\Http\Controllers\Clinica\DentistaAgendaController;
 use App\Http\Controllers\Dentista\TratamientoController;
 use App\Http\Controllers\Asistente\GestionAppController;
+use App\Http\Controllers\Dentista\ReporteController;
+use App\Http\Controllers\Admin\ReporteSaasController;
+
 // --- RUTAS PÚBLICAS ---
 Route::get('/', [AuthController::class, 'showLogin'])->name('login');
 Route::post('/login', [AuthController::class, 'login'])->name('login.post');
@@ -44,6 +47,9 @@ Route::middleware(['auth', 'can:admin-only'])->group(function () {
     Route::get('/usuarios/{id}/edit', [UsuarioController::class, 'edit'])->name('usuarios.edit');
     Route::put('/usuarios/{id}', [UsuarioController::class, 'update'])->name('usuarios.update');
     Route::patch('/usuarios/{id}/toggle', [UsuarioController::class, 'toggleStatus'])->name('usuarios.toggle');
+
+    //Reporte
+    Route::get('/admin/reportes', [ReporteSaasController::class, 'index'])->name('admin.reportes');
 
 });
 
@@ -76,6 +82,8 @@ Route::middleware(['auth', 'can:dentista-only'])->group(function () {
 
     // Ruta para actualizar el precio desde el historial
     Route::post('/historial/actualizar-precio/{id}', [HistorialController::class, 'actualizarPrecioTratamiento'])->name('paciente.historial.precio');
+
+    Route::get('/dentista/reportes', [ReporteController::class, 'index'])->name('dentista.reportes');
 });
 
 // 3. ASISTENTES (Agenda y recepción)

@@ -28,7 +28,7 @@
         <a href="{{ route('asistente.historial') }}">
             <i class="fa-solid fa-folder-open"></i> Expediente clínico
         </a>
-        <a href="#">
+        <a href="{{ route('dentista.reportes') }}">
             <i class="fa-solid fa-chart-pie"></i> Reportes
         </a>
         <a href="{{ route('catalogos.index') }}" class="{{ Request::is('catalogos*') ? 'active' : '' }}">

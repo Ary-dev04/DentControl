@@ -32,7 +32,7 @@
         <i class="fa-solid fa-users"></i> Registrar usuarios
       </a>
 
-      <a href="#">
+      <a href="{{ route('admin.reportes') }}">
         <i class="fa-solid fa-chart-column"></i> Reportes
       </a>
     </nav>
