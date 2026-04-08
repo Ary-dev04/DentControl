@@ -56,9 +56,9 @@ class HistorialController extends Controller
     return view('asistente.historial.historial', compact('paciente', 'expediente', 'versionesAnteriores', 'notas', 'citaActiva'));
 }
 
-    public function guardar(Request $request, $id_paciente)
+   public function guardar(Request $request, $id_paciente)
 {
-    // 1. VALIDACIÓN ESTRICTA (Atiende las observaciones 2 y 3)
+    // 1. VALIDACIÓN (Mantenemos tus reglas y mensajes)
     $reglaClinica = 'nullable|regex:/^[a-zA-ZñÑáéíóúÁÉÍÓÚ\s\-\(\)\.]+$/u';
 
     $request->validate([
@@ -70,45 +70,63 @@ class HistorialController extends Controller
     ], [
         'peso.max' => 'El peso ingresado excede el límite lógico permitido.',
         'peso.min' => 'El peso debe ser mayor a 0.',
-        'regex' => 'El campo :attribute contiene caracteres especiales no permitidos (solo letras, espacios, guiones y paréntesis).'
+        'regex' => 'El campo :attribute contiene caracteres especiales no permitidos.'
     ]);
 
-    // --- INICIO LÓGICA DE HISTORIAL (AUDITORÍA) ---
-    
     $pacienteActual = Paciente::findOrFail($id_paciente);
     $expedienteActual = ExpedienteClinico::firstOrCreate(['id_paciente' => $id_paciente]);
 
-    // Guardamos la versión ACTUAL antes de que sea reemplazada por la nueva
-    HistorialExpediente::create([
-        'id_paciente'               => $id_paciente,
-        'peso'                      => $pacienteActual->peso, 
-        'alergias'                  => $expedienteActual->alergias ?? 'Ninguna',
-        'antecedentes_hereditarios' => $expedienteActual->antecedentes_hereditarios ?? 'Sin datos',
-        'antecedentes_patologicos'  => $expedienteActual->antecedentes_patologicos ?? 'Sin datos',
-        'observaciones_generales'   => $expedienteActual->observaciones_generales ?? 'Sin observaciones',
-        'id_usuario'                => Auth::id(),
-        'fecha_modificacion'        => now()
-    ]);
+    // --- NUEVO: PREPARAR LOS DATOS ENTRANTES PARA COMPARACIÓN ---
+    // Limpiamos con trim() para evitar que espacios accidentales cuenten como cambios
+    $nuevoPeso = $request->peso;
+    $nuevaAlergia = $request->filled('alergias') ? trim($request->alergias) : 'Ninguna';
+    $nuevoHereditario = $request->filled('antecedentes_hereditarios') ? trim($request->antecedentes_hereditarios) : 'Sin datos';
+    $nuevoPatologico = $request->filled('antecedentes_patologicos') ? trim($request->antecedentes_patologicos) : 'Sin datos';
+    $nuevaObservacion = $request->filled('observaciones_generales') ? trim($request->observaciones_generales) : null;
 
-    // --- FIN LÓGICA DE HISTORIAL ---
+    // --- NUEVO: COMPARACIÓN LÓGICA (Atiende la observación del historial) ---
+    // Comparamos lo que ya tenemos en la base de datos contra lo que viene del formulario
+    $huboCambios = (
+        (float)$pacienteActual->peso !== (float)$nuevoPeso ||
+        ($expedienteActual->alergias ?? 'Ninguna') !== $nuevaAlergia ||
+        ($expedienteActual->antecedentes_hereditarios ?? 'Sin datos') !== $nuevoHereditario ||
+        ($expedienteActual->antecedentes_patologicos ?? 'Sin datos') !== $nuevoPatologico ||
+        ($expedienteActual->observaciones_generales) !== $nuevaObservacion
+    );
 
-    // 2. Actualizamos el peso en la tabla PACIENTES
-    $pacienteActual->update([
-        'peso' => $request->peso
-    ]);
+    // RESULTADO ESPERADO: Si no hubo cambios, no guardamos nada y avisamos al usuario
+    if (!$huboCambios) {
+        return redirect()->back()->with('info', 'No se realizaron cambios en el expediente clínico.');
+    }
 
-    // 3. Actualizamos con los datos NUEVOS (Manejando vacíos por defecto)
-    $expedienteActual->update([
-        // Si el asistente borra todo en alergias, se guarda "Ninguna"
-        'alergias'                  => $request->filled('alergias') ? $request->alergias : 'Ninguna',
+    // --- SI LLEGAMOS AQUÍ, ES QUE SÍ HUBO CAMBIOS REALES ---
+
+    DB::transaction(function () use ($id_paciente, $pacienteActual, $expedienteActual, $nuevoPeso, $nuevaAlergia, $nuevoHereditario, $nuevoPatologico, $nuevaObservacion) {
         
-        // Si deja vacíos los antecedentes, guardamos "Sin datos" para mantener el orden clínico
-        'antecedentes_hereditarios' => $request->filled('antecedentes_hereditarios') ? $request->antecedentes_hereditarios : 'Sin datos',
-        'antecedentes_patologicos'  => $request->filled('antecedentes_patologicos') ? $request->antecedentes_patologicos : 'Sin datos',
-        
-        'observaciones_generales'   => $request->observaciones_generales,
-        'fecha_registro'            => now()->format('Y-m-d'),
-    ]);
+        // 1. Guardamos la versión ANTERIOR (Auditoría)
+        HistorialExpediente::create([
+            'id_paciente'               => $id_paciente,
+            'peso'                      => $pacienteActual->peso, 
+            'alergias'                  => $expedienteActual->alergias ?? 'Ninguna',
+            'antecedentes_hereditarios' => $expedienteActual->antecedentes_hereditarios ?? 'Sin datos',
+            'antecedentes_patologicos'  => $expedienteActual->antecedentes_patologicos ?? 'Sin datos',
+            'observaciones_generales'   => $expedienteActual->observaciones_generales ?? 'Sin observaciones',
+            'id_usuario'                => Auth::id(),
+            'fecha_modificacion'        => now()
+        ]);
+
+        // 2. Actualizamos el peso en Pacientes
+        $pacienteActual->update(['peso' => $nuevoPeso]);
+
+        // 3. Actualizamos el Expediente con los datos nuevos
+        $expedienteActual->update([
+            'alergias'                  => $nuevaAlergia,
+            'antecedentes_hereditarios' => $nuevoHereditario,
+            'antecedentes_patologicos'  => $nuevoPatologico,
+            'observaciones_generales'   => $nuevaObservacion,
+            'fecha_registro'            => now()->format('Y-m-d'),
+        ]);
+    });
 
     return redirect()->back()->with('success', 'El expediente se ha actualizado y se guardó una copia de la versión anterior.');
 }

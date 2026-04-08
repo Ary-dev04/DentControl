@@ -124,7 +124,13 @@ Route::post('/asistente/acceso-movil/habilitar', [AccesoMovilController::class, 
     //Route::post('/agenda/iniciar/{id}', [App\Http\Controllers\Clinica\AgendaController::class, 'iniciarCita'])->name('agenda.iniciar');
     Route::post('/agenda/cancelar/{id}', [AgendaController::class, 'cancelar'])->name('agenda.cancelar');
 
+    // --- MÓDULO 2: GESTIÓN Y MANTENIMIENTO (GestionAppController) ---
+    // Vista principal de la tabla de usuarios registrados
     Route::get('/asistente/gestion-app', [GestionAppController::class, 'index'])->name('asistente.gestion-app');
-
+    // Acción para regenerar y reenviar (POST)
+    Route::post('/asistente/gestion-app/reenviar/{id}', [GestionAppController::class, 'reenviar'])->name('acceso.reenviar');
+    
+    // Acción para activar/desactivar (POST)
+    Route::post('/asistente/gestion-app/estatus/{id}', [GestionAppController::class, 'cambiarEstatus'])->name('acceso.estatus');
 
 });

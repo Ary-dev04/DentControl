@@ -57,23 +57,46 @@
 
 /* MODALES */
 .modal {
-  display: none;
+  display: none; /* JS lo cambiará a 'flex' */
   position: fixed;
   inset: 0;
-  background: rgba(0,0,0,.5);
-}
-
-.modal:target {
-  display: flex;
-  align-items: center;
+  background: rgba(0, 0, 0, 0.6);
+  z-index: 9999; /* Asegura que esté por encima de todo */
+  
+  /* Estas dos líneas son la clave para que el contenido no se estire */
+  align-items: center; 
   justify-content: center;
 }
 
+/* Elimina el .modal:target, ya no lo necesitamos porque usamos JS */
+
 .modal-content {
   background: white;
-  padding: 25px;
-  border-radius: 10px;
-  width: 400px;
+  padding: 30px;
+  border-radius: 15px;
+  width: 90%;
+  max-width: 400px; /* Evita que sea gigante en pantallas grandes */
+  position: relative;
+  box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+  text-align: center; /* Centra el texto y botones */
+}
+
+.form-actions {
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+  margin-top: 20px;
+}
+
+/* Botón secundario/cancelar */
+.btn-secondary {
+  background: #95a5a6;
+  color: white;
+  padding: 10px 15px;
+  border-radius: 6px;
+  text-decoration: none;
+  display: inline-block;
+  font-size: 14px;
 }
 
 .btn-danger {

@@ -13,6 +13,12 @@
     </div>
 @endif
 
+@if(session('info'))
+    <div style="background: #e0f2fe; color: #0369a1; padding: 15px; border-radius: 8px; border: 1px solid #bae6fd; margin-bottom: 20px;">
+        <i class="fa-solid fa-info-circle"></i> {{ session('info') }}
+    </div>
+@endif
+
 <section class="card-section" style="margin-bottom: 20px;">
     <div class="search-container" style="position: relative; max-width: 600px;">
         <i class="fa-solid fa-magnifying-glass" style="position: absolute; left: 15px; top: 12px; color: #94a3b8;"></i>
