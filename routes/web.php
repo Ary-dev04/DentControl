@@ -84,6 +84,13 @@ Route::middleware(['auth', 'can:dentista-only'])->group(function () {
     Route::post('/historial/actualizar-precio/{id}', [HistorialController::class, 'actualizarPrecioTratamiento'])->name('paciente.historial.precio');
 
     Route::get('/dentista/reportes', [ReporteController::class, 'index'])->name('dentista.reportes');
+
+    // Rutas para Gestión de Tratamientos
+    Route::get('/tratamientos', [TratamientoController::class, 'index'])->name('tratamientos.index');
+Route::get('/buscar-paciente', [TratamientoController::class, 'buscarPaciente']);
+Route::get('/obtener-tratamientos/{id}', [TratamientoController::class, 'obtenerTratamientos']);
+Route::get('/detalle-tratamiento/{id}', [TratamientoController::class, 'detalleTratamiento']);
+Route::post('/tratamientos/actualizar', [TratamientoController::class, 'actualizar'])->name('tratamientos.actualizar');
 });
 
 // 3. ASISTENTES (Agenda y recepción)
