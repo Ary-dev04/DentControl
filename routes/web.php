@@ -18,7 +18,18 @@ use App\Http\Controllers\Dentista\ReporteController;
 use App\Http\Controllers\Admin\ReporteSaasController;
 
 // --- RUTAS PÚBLICAS ---
-Route::get('/', [AuthController::class, 'showLogin'])->name('login');
+Route::get('/', function () {
+    return view('welcome');
+});
+
+// Agrégalas justo debajo de la ruta del '/'
+Route::view('/terminos-y-condiciones', 'legal.terminos')->name('terminos');
+Route::view('/aviso-de-privacidad', 'legal.privacidad')->name('privacidad');
+
+Route::get('/login', [AuthController::class, 'showLogin'])->name('login');
+
+// --- RUTAS PÚBLICAS ---
+Route::get('/login', [AuthController::class, 'showLogin'])->name('login');
 Route::post('/login', [AuthController::class, 'login'])->name('login.post');
 Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
 // --- RUTAS COMPARTIDAS ---

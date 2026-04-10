@@ -8,123 +8,113 @@
 
 <h1>Minería de datos clínica</h1>
 <p class="subtitle">
-  Análisis estadístico y comportamiento de servicios en la clínica
+    Análisis estadístico y comportamiento de servicios y tratamientos en la clínica
 </p>
 
-<!-- ================= KPI ================= -->
 <section class="kpi-grid">
 
-  <div class="kpi-card blue">
-    <i class="fa-solid fa-user"></i>
-    <h2>120</h2>
-    <p>Total de pacientes</p>
-  </div>
+    <div class="kpi-card blue">
+        <i class="fa-solid fa-user"></i>
+        <h2>{{ $totalPacientes }}</h2>
+        <p>Total de pacientes</p>
+    </div>
 
-  <div class="kpi-card green">
-    <i class="fa-solid fa-tooth"></i>
-    <h2>45</h2>
-    <p>Tratamientos activos</p>
-  </div>
+    <div class="kpi-card green">
+        <i class="fa-solid fa-tooth"></i>
+        <h2>{{ $citasProgramadas }}</h2>
+        <p>Citas programadas</p>
+    </div>
 
-  <div class="kpi-card orange">
-    <i class="fa-solid fa-calendar-check"></i>
-    <h2>8</h2>
-    <p>Citas de hoy</p>
-  </div>
+    <div class="kpi-card orange">
+        <i class="fa-solid fa-calendar-check"></i>
+        <h2>{{ $citasHoy }}</h2>
+        <p>Citas de hoy</p>
+    </div>
 
-  <div class="kpi-card purple">
-    <i class="fa-solid fa-dollar-sign"></i>
-    <h2>$85,000</h2>
-    <p>Ingresos del mes</p>
-  </div>
+    <div class="kpi-card purple">
+        <i class="fa-solid fa-dollar-sign"></i>
+        <h2>${{ number_format($ingresosMes, 2) }}</h2>
+        <p>Ingresos del mes</p>
+    </div>
 
-  <div class="kpi-card blue">
-    <i class="fa-solid fa-mobile-screen-button"></i>
-    <h2>32</h2>
-    <p>Accesos móviles generados</p>
-  </div>
+    <div class="kpi-card blue">
+        <i class="fa-solid fa-mobile-screen-button"></i>
+        <h2>{{ $accesosMoviles }}</h2>
+        <p>Accesos móviles generados</p>
+    </div>
 
 </section>
 
-<!-- ================= INGRESOS POR SERVICIO ================= -->
 <section class="card-section">
-  <h3>Ingresos por servicio ($)</h3>
+    <h3>Desglose de Ingresos por Concepto ($)</h3>
+    <p style="font-size: 0.8rem; color: gray; margin-bottom: 10px;">Incluye servicios directos y procedimientos de tratamientos finalizados.</p>
 
-  <table>
-    <thead>
-      <tr>
-        <th>Servicio</th>
-        <th>Total realizados</th>
-        <th>Ingresos</th>
-      </tr>
-    </thead>
-    <tbody>
-      <tr>
-        <td>Limpieza dental</td>
-        <td>45</td>
-        <td>$18,000</td>
-      </tr>
-      <tr>
-        <td>Resina</td>
-        <td>30</td>
-        <td>$25,000</td>
-      </tr>
-      <tr>
-        <td>Ortodoncia</td>
-        <td>18</td>
-        <td>$30,000</td>
-      </tr>
-      <tr>
-        <td>Extracción</td>
-        <td>25</td>
-        <td>$12,000</td>
-      </tr>
-    </tbody>
-  </table>
+    <table>
+        <thead>
+            <tr>
+                <th>Concepto (Servicio/Tratamiento)</th>
+                <th>Total realizados</th>
+                <th>Ingresos totales</th>
+            </tr>
+        </thead>
+        <tbody>
+            @forelse($ingresosPorServicio as $item)
+            <tr>
+                <td>{{ $item->nombre }}</td>
+                <td>{{ $item->cantidad }}</td>
+                <td>${{ number_format($item->ingresos, 2) }}</td>
+            </tr>
+            @empty
+            <tr>
+                <td colspan="3" style="text-align: center;">No se han registrado cobros en citas finalizadas todavía.</td>
+            </tr>
+            @endforelse
+        </tbody>
+    </table>
 </section>
 
-<!-- ================= INGRESOS POR MES ================= -->
 <section class="card-section">
-  <h3>Ingresos por mes</h3>
+    <h3>Rendimiento Mensual (Año {{ date('Y') }})</h3>
 
-  <table>
-    <thead>
-      <tr>
-        <th>Mes</th>
-        <th>Ingresos</th>
-      </tr>
-    </thead>
-    <tbody>
-      <tr><td>Enero</td><td>$20,000</td></tr>
-      <tr><td>Febrero</td><td>$25,000</td></tr>
-      <tr><td>Marzo</td><td>$30,000</td></tr>
-      <tr><td>Abril</td><td>$28,000</td></tr>
-    </tbody>
-  </table>
+    <table>
+        <thead>
+            <tr>
+                <th>Mes</th>
+                <th>Ingresos</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach($ingresosPorMes as $mes)
+            <tr>
+                <td>{{ $mes['nombre'] }}</td>
+                <td>${{ number_format($mes['total'], 2) }}</td>
+            </tr>
+            @endforeach
+        </tbody>
+    </table>
 </section>
 
-<!-- ================= ESTADO ================= -->
 <section class="card-section">
-  <h3>Estado de tratamientos</h3>
+    <h3>Estatus General de Consultas</h3>
 
-  <table>
-    <thead>
-      <tr>
-        <th>Estado</th>
-        <th>Cantidad</th>
-      </tr>
-    </thead>
-    <tbody>
-      <tr>
-        <td class="estado activo">Activos</td>
-        <td>45</td>
-      </tr>
-      <tr>
-        <td class="estado finalizado">Finalizados</td>
-        <td>62</td>
-      </tr>
-    </tbody>
-  </table>
+    <table>
+        <thead>
+            <tr>
+                <th>Estado</th>
+                <th>Cantidad</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td class="estado activo">Programadas (Pendientes)</td>
+                <td>{{ $citasProgramadas }}</td>
+            </tr>
+            <tr>
+                <td class="estado finalizado">Finalizadas (Completadas)</td>
+                <td>{{ $citasFinalizadas }}</td>
+            </tr>
+        </tbody>
+    </table>
 </section>
 
 @endsection
