@@ -167,6 +167,7 @@ class PacienteController extends Controller
                         'estatus'             => 'curso',
                     ]);
                     $id_tratamiento_rel = $nuevoTratamiento->id_tratamiento;
+                    $id_cat_servicio_rel = null;
 
                     // Primera Nota de Evolución para el historial
                     DB::table('notas_evolucion')->insert([
@@ -179,6 +180,7 @@ class PacienteController extends Controller
                     ]);
                 } else {
                     $id_cat_servicio_rel = $request->id_cat_servicio;
+                    $id_tratamiento_rel = null;
                 }
 
                 // 4. Crear Cita
