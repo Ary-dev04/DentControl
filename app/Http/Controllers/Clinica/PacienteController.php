@@ -119,10 +119,10 @@ class PacienteController extends Controller
                     'apellido_materno' => $validated['apellido_materno'],
                     'fecha_nacimiento' => $validated['fecha_nacimiento'],
                     'sexo'             => $validated['sexo'],
-                    'email'            => $esMenor ? $validated['email_tutor'] : $validated['email'],//$esMenor ? null : $validated['email'], // Guardamos NULL si es menor
-                    'telefono'         => $esMenor ? $validated['telefono_tutor'] : $validated['telefono'],//$esMenor ? null : $validated['telefono'], // Guardamos NULL si es menor
+                    'email'            => $esMenor ? null : $validated['email'], // Guardamos NULL si es menor
+                    'telefono'         => $esMenor ? null : $validated['telefono'], // Guardamos NULL si es menor
                     'curp'             => $validated['curp'],
-                    'ocupacion'        => $esMenor ? 'MENOR DE EDAD' : $validated['ocupacion'],//$esMenor ? null : $validated['ocupacion'],
+                    'ocupacion'        => $esMenor ? null : $validated['ocupacion'],
                     'grado_estudio'    => $esMenor ? $validated['grado_estudio'] : null,
                     'peso'             => $validated['peso'],
                     'calle'            => $validated['calle'],
@@ -134,10 +134,10 @@ class PacienteController extends Controller
                     'codigo_postal'    => $validated['codigo_postal'],
                     'estatus'          => 'activo',
 
-                    'nombre_tutor'     => $validated['nombre_tutor'] ?? null,
-                    'parentesco_tutor' => $validated['parentesco_tutor'] ?? null,
-                    'telefono_tutor'   => $validated['telefono_tutor'] ?? null,
-                    'email_tutor'      => $validated['email_tutor'] ?? null,
+                    'nombre_tutor'     => $validated['nombre_tutor'],
+                    'parentesco_tutor' => $validated['parentesco_tutor'],
+                    'telefono_tutor'   => $validated['telefono_tutor'],
+                    'email_tutor'      => $validated['email_tutor'],
                 ]);
 
                 // 2. Crear Expediente Clínico (Base para el historial)
