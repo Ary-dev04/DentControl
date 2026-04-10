@@ -197,9 +197,13 @@ class PacienteController extends Controller
                 ]);
             });
 
-             return redirect()->back()->with('success', 'Paciente registrado con expediente y cita programada.');
+             //return redirect()->back()->with('success', 'Paciente registrado con expediente y cita programada.');
+             return redirect()->route('pacientes.index')
+                     ->with('success', 'Paciente registrado con expediente y cita programada.');
         } catch (\Exception $e) {
-            return redirect()->back()->with('error', 'Error al registrar: ' . $e->getMessage());
+            //return redirect()->back()->with('error', 'Error al registrar: ' . $e->getMessage());
+            return redirect()->route('pacientes.index')
+                     ->with('error', 'Error al registrar: ' . $e->getMessage());
         }
     }
 
