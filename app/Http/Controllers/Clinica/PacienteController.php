@@ -108,7 +108,7 @@ class PacienteController extends Controller
         $id_usuario = Auth::id();
 
         try {
-            return DB::transaction(function () use ($request, $validated, $id_clinica, $id_usuario, $esMenor) {
+         DB::transaction(function () use ($request, $validated, $id_clinica, $id_usuario, $esMenor) {
                 
                 // 1. Crear Paciente
                 $paciente = Paciente::create([
@@ -195,9 +195,9 @@ class PacienteController extends Controller
                     'estatus_cita'    => 'programada',
                     'created_at'      => now(),
                 ]);
-
-                return redirect()->back()->with('success', 'Paciente registrado con expediente y cita programada.');
             });
+
+             return redirect()->back()->with('success', 'Paciente registrado con expediente y cita programada.');
         } catch (\Exception $e) {
             return redirect()->back()->with('error', 'Error al registrar: ' . $e->getMessage());
         }
