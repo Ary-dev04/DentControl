@@ -25,10 +25,21 @@
         <div class="number">{{ $totalPacientes ?? 0 }}</div>
       </div>
 
-      <div class="card card-red">
-        <h3>Alertas del sistema</h3>
-        <div class="number">0</div>
-      </div>
+      <div class="card card-red" style="{{ $totalAlertas > 0 ? 'border: 2px solid #ff4d4d; box-shadow: 0 0 10px rgba(255,0,0,0.2);' : '' }}">
+    <h3>Alertas del sistema</h3>
+    <div class="number">{{ $totalAlertas }}</div>
+    
+    @if($totalAlertas > 0)
+        <p style="font-size: 0.75rem; color: #b30000; margin-top: 5px; line-height: 1.2;">
+            <i class="fa-solid fa-circle-exclamation"></i> 
+            Requieren atención: Bajas, RFCs faltantes o inactividad.
+        </p>
+    @else
+        <p style="font-size: 0.75rem; color: #28a745; margin-top: 5px;">
+            <i class="fa-solid fa-check-double"></i> Sistema saludable
+        </p>
+    @endif
+</div>
 
     </section>
 

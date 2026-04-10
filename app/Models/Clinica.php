@@ -43,4 +43,11 @@ class Clinica extends Model
     {
         return $this->hasMany(Paciente::class, 'id_clinica', 'id_clinica');
     }
+
+    public function citas()
+    {
+        // Esto le dice a Laravel: "Una clínica tiene muchas citas"
+        // 'id_clinica' es la llave foránea en la tabla 'citas'
+        return $this->hasMany(Cita::class, 'id_clinica', 'id_clinica');
+    }
 }

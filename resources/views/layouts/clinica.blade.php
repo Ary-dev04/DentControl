@@ -13,43 +13,53 @@
             <img src="{{ asset('images/logooo.png') }}" alt="DentControl">
             </div>
 
-            <nav class="menu">
+<nav class="menu">
+    {{-- Dashboard: se activa si la URL termina en /dashboard --}}
     <a href="/{{ auth()->user()->rol }}/dashboard" class="{{ Request::is('*/dashboard') ? 'active' : '' }}">
         <i class="fa-solid fa-house"></i> Dashboard
     </a>
 
     @if(auth()->user()->rol === 'dentista')
-        <a href="{{ route('dentista.agenda') }}">
+        {{-- Agenda: se activa si la ruta es dentista.agenda --}}
+        <a href="{{ route('dentista.agenda') }}" class="{{ request()->routeIs('dentista.agenda') ? 'active' : '' }}">
             <i class="fa-solid fa-calendar-day"></i> Agenda del día
         </a>
-        <a href="{{ route('dentista.tratamientos') }}">
+        
+        <a href="{{ route('dentista.tratamientos') }}" class="{{ request()->routeIs('dentista.tratamientos') ? 'active' : '' }}">
             <i class="fa-solid fa-notes-medical"></i> Tratamientos
         </a>
-        <a href="{{ route('asistente.historial') }}">
+        
+        <a href="{{ route('asistente.historial') }}" class="{{ request()->routeIs('asistente.historial') ? 'active' : '' }}">
             <i class="fa-solid fa-folder-open"></i> Expediente clínico
         </a>
-        <a href="{{ route('dentista.reportes') }}">
+        
+        <a href="{{ route('dentista.reportes') }}" class="{{ request()->routeIs('dentista.reportes') ? 'active' : '' }}">
             <i class="fa-solid fa-chart-pie"></i> Reportes
         </a>
+        
         <a href="{{ route('catalogos.index') }}" class="{{ Request::is('catalogos*') ? 'active' : '' }}">
             <i class="fa-solid fa-list-check"></i> Registrar catálogos
         </a>
     @endif
 
     @if(auth()->user()->rol === 'asistente')
-        <a href="{{ route('asistente.agenda') }}">
+        <a href="{{ route('asistente.agenda') }}" class="{{ request()->routeIs('asistente.agenda') ? 'active' : '' }}">
             <i class="fa-solid fa-calendar-day"></i> Agenda del día
         </a>
-        <a href="{{ route('pacientes.index') }}">
+        
+        <a href="{{ route('pacientes.index') }}" class="{{ request()->routeIs('pacientes.index') ? 'active' : '' }}">
             <i class="fa-solid fa-user"></i> Pacientes y Citas
         </a>
-        <a href="{{ route('asistente.historial') }}">
-            <i class="fa-solid fa-folder-open"></i>Expediente clínico
+        
+        <a href="{{ route('asistente.historial') }}" class="{{ request()->routeIs('asistente.historial') ? 'active' : '' }}">
+            <i class="fa-solid fa-folder-open"></i> Expediente clínico
         </a>
-        <a href="{{ route('acceso.index') }}">
-            <i class="fa-solid fa-mobile-screen-button"></i>Acceso App Móvil
+        
+        <a href="{{ route('acceso.index') }}" class="{{ request()->routeIs('acceso.index') ? 'active' : '' }}">
+            <i class="fa-solid fa-mobile-screen-button"></i> Acceso App Móvil
         </a>
-        <a href="{{ route('asistente.gestion-app') }}">
+        
+        <a href="{{ route('asistente.gestion-app') }}" class="{{ request()->routeIs('asistente.gestion-app') ? 'active' : '' }}">
             <i class="fa-solid fa-gear"></i> Gestión de App
         </a>
     @endif

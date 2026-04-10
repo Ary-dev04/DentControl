@@ -20,22 +20,26 @@
     </div>
 
     <nav class="menu">
-      <a href="{{ route('admin.dashboard') }}" class="{{ request()->routeIs('dashboard') ? 'active' : '' }}">
+    {{-- Dashboard: Se activa con el nombre exacto de la ruta --}}
+    <a href="{{ route('admin.dashboard') }}" class="{{ request()->routeIs('admin.dashboard') ? 'active' : '' }}">
         <i class="fa-solid fa-house"></i> Dashboard
-      </a>
+    </a>
 
-      <a href="{{ route('clinicas.index') }}">
+    {{-- Clínicas: Se activa en el index y también en crear/editar usando el comodín * --}}
+    <a href="{{ route('clinicas.index') }}" class="{{ request()->is('clinicas*') ? 'active' : '' }}">
         <i class="fa-solid fa-hospital"></i> Registrar clínica
-      </a>
+    </a>
 
-      <a href="{{ route('usuarios.index') }}">
+    {{-- Usuarios: Se activa en el index y subpáginas de usuarios --}}
+    <a href="{{ route('usuarios.index') }}" class="{{ request()->is('usuarios*') ? 'active' : '' }}">
         <i class="fa-solid fa-users"></i> Registrar usuarios
-      </a>
+    </a>
 
-      <a href="{{ route('admin.reportes') }}">
+    {{-- Reportes: Se activa con el nombre de la ruta de reportes --}}
+    <a href="{{ route('admin.reportes') }}" class="{{ request()->routeIs('admin.reportes') ? 'active' : '' }}">
         <i class="fa-solid fa-chart-column"></i> Reportes
-      </a>
-    </nav>
+    </a>
+</nav>
 
     <div class="logout">
       <form id="logout-form" action="{{ route('logout') }}" method="POST" style="display: none;">
