@@ -236,7 +236,7 @@ class PacienteController extends Controller
         ->exists();
 
     if ($citaDuplicada) {
-        return redirect()->back()
+        return redirect()->route('pacientes.index')//->back() Cambiado back() por route para evitar el JSON
             ->with('error', 'El paciente ya tiene una cita programada para el día seleccionado.')
             ->withInput();
     }
@@ -292,9 +292,13 @@ class PacienteController extends Controller
                 ]);
             });
 
-            return redirect()->back()->with('success', 'Cita para paciente existente programada correctamente.');
+            //return redirect()->back()->with('success', 'Cita para paciente existente programada correctamente.');
+            return redirect()->route('pacientes.index')
+            ->with('success', 'Cita para paciente existente programada correctamente.');
         } catch (\Exception $e) {
-            return redirect()->back()->with('error', 'Error al programar cita: ' . $e->getMessage());
+            //return redirect()->back()->with('error', 'Error al programar cita: ' . $e->getMessage());
+            return redirect()->route('pacientes.index')
+            ->with('error', 'Error al programar cita: ' . $e->getMessage());
         }
     }
 
