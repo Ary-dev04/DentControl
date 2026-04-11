@@ -5,6 +5,7 @@ namespace App\Providers;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Facades\Gate;
 use App\Models\Usuario;
+use Illuminate\Support\Facades\URL;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -34,6 +35,9 @@ class AppServiceProvider extends ServiceProvider
         Gate::define('asistente-only', function ($user) {
             return $user->rol === 'asistente';
         });
+        if (config('app.env') !== 'local') {
+        URL::forceScheme('https');
+    }
     
     }
 }
