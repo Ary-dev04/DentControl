@@ -16,17 +16,17 @@ class TratamientoController extends Controller
         return view('dentista.tratamientos.tratamientos');
     }
 
-   public function buscarPaciente(Request $request)
+public function buscarPaciente(Request $request)
 {
-    // Pasamos la búsqueda a minúsculas
-    $query = strtolower($request->get('q'));
+    // NO uses strtolower aquí, deja que llegue tal cual
+    $query = $request->get('q'); 
     
     $pacientes = Paciente::where('id_clinica', Auth::user()->id_clinica)
         ->where(function($q) use ($query) {
-            // Comparamos todo en minúsculas (LOWER)
-            $q->whereRaw('LOWER(nombre) LIKE ?', ["%{$query}%"])
-              ->orWhereRaw('LOWER(apellido_paterno) LIKE ?', ["%{$query}%"])
-              ->orWhereRaw('LOWER(curp) LIKE ?', ["%{$query}%"]);
+            // Usamos un LIKE simple que en la mayoría de servers ignora mayúsculas
+            $q->where('nombre', 'LIKE', "%{$query}%")
+              ->orWhere('apellido_paterno', 'LIKE', "%{$query}%")
+              ->orWhere('curp', 'LIKE', "%{$query}%");
         })
         ->limit(5)
         ->get();
