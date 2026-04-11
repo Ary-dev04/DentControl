@@ -17,19 +17,20 @@ class TratamientoController extends Controller
     }
 
     public function buscarPaciente(Request $request)
-    {
-        $query = $request->get('q');
-        $pacientes = Paciente::where('id_clinica', Auth::user()->id_clinica)
-            ->where(function($q) use ($query) {
-                $q->where('nombre', 'LIKE', "%$query%")
-                  ->orWhere('apellido_paterno', 'LIKE', "%$query%")
-                  ->orWhere('curp', 'LIKE', "%$query%");
-            })
-            ->limit(5)
-            ->get();
+{
+    $query = $request->get('q');
+    $pacientes = Paciente::where('id_clinica', Auth::user()->id_clinica)
+        ->where(function($q) use ($query) {
+            // Usamos la columna en minúsculas y el buscador en minúsculas
+            $q->whereRaw('LOWER(nombre) LIKE ?', ["%".strtolower($query)."%"])
+              ->orWhereRaw('LOWER(apellido_paterno) LIKE ?', ["%".strtolower($query)."%"])
+              ->orWhereRaw('LOWER(curp) LIKE ?', ["%".strtolower($query)."%"]);
+        })
+        ->limit(5)
+        ->get();
 
-        return response()->json($pacientes);
-    }
+    return response()->json($pacientes);
+}
 
     public function obtenerTratamientos($id_paciente)
     {
