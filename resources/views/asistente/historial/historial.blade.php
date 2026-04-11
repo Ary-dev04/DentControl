@@ -19,12 +19,36 @@
     </div>
 @endif
 
-<section class="card-section" style="margin-bottom: 20px;">
+<!--<section class="card-section" style="margin-bottom: 20px;">
     <div class="search-container" style="position: relative; max-width: 600px;">
         <i class="fa-solid fa-magnifying-glass" style="position: absolute; left: 15px; top: 12px; color: #94a3b8;"></i>
         <input type="text" id="inputBuscarPaciente" placeholder="Buscar otro paciente (Nombre o CURP)..." 
                style="width: 100%; padding: 10px 15px 10px 45px; border-radius: 8px; border: 1px solid #cbd5e1;">
         <div id="listaSugerencias" class="sugerencias-dropdown" style="display: none; position: absolute; width: 100%; background: white; z-index: 100; box-shadow: 0 4px 6px rgba(0,0,0,0.1); border-radius: 0 0 8px 8px;"></div>
+    </div>
+</section>-->
+
+<section class="card-section" style="margin-bottom: 20px;">
+    <div class="search-container" style="position: relative; max-width: 600px;">
+        <i class="fa-solid fa-magnifying-glass" style="position: absolute; left: 15px; top: 12px; color: #94a3b8;"></i>
+        <input type="text" id="inputBuscarPaciente" placeholder="Buscar otro paciente (Nombre o CURP)..." 
+               style="width: 100%; padding: 10px 15px 10px 45px; border-radius: 8px; border: 1px solid #cbd5e1;" autocomplete="off">
+        
+        <div id="listaSugerencias" class="sugerencias-dropdown" style="display: none; position: absolute; width: 100%; background: white; z-index: 1000; box-shadow: 0 4px 6px rgba(0,0,0,0.1); border-radius: 0 0 8px 8px; max-height: 300px; overflow-y: auto;">
+            @foreach($pacientesBusqueda as $p)
+                <div class="item-paciente-local" 
+                     style="padding: 12px 15px; cursor: pointer; border-bottom: 1px solid #f1f5f9;"
+                     data-nombre="{{ strtolower($p->nombre . ' ' . $p->apellido_paterno . ' ' . $p->apellido_materno) }}"
+                     data-curp="{{ strtolower($p->curp) }}"
+                     onclick="window.location.href='{{ url('/asistente/historial') }}/{{ $p->id_paciente }}'">
+                    <div style="font-weight: bold; color: #1e293b;">
+                        <i class="fa-solid fa-user" style="margin-right: 8px; color: #64748b;"></i>
+                        {{ $p->nombre }} {{ $p->apellido_paterno }}
+                    </div>
+                    <small style="color: #94a3b8; margin-left: 22px;">CURP: {{ $p->curp }}</small>
+                </div>
+            @endforeach
+        </div>
     </div>
 </section>
 
@@ -550,8 +574,8 @@
     </div>
 </div>
 
-    <script>
-        const btnEditar = document.getElementById('btnHabilitarEdicion');
+   <!-- <script>
+        /*const btnEditar = document.getElementById('btnHabilitarEdicion');
         const btnGuardar = document.getElementById('btnGuardar');
         const btnCancelar = document.getElementById('btnCancelarEdicion');
         const btnRegresar = document.getElementById('btnRegresar');
@@ -571,10 +595,10 @@
 
         btnCancelar.addEventListener('click', function() {
             if(confirm('¿Descartar cambios?')) window.location.reload();
-        });
+        });*/
 
         // Buscador AJAX
-        document.getElementById('inputBuscarPaciente').addEventListener('input', function() {
+        /*document.getElementById('inputBuscarPaciente').addEventListener('input', function() {
             let query = this.value;
             let lista = document.getElementById('listaSugerencias');
             if (query.length > 2) {
@@ -596,8 +620,8 @@
                         }
                     });
             } else { lista.style.display = "none"; }
-        });
-    </script>
+        });*/
+    </script>-->
 
 @else
     {{-- VISTA CUANDO NO HAY PACIENTE SELECCIONADO --}}
@@ -626,47 +650,72 @@
     </div>
 @endif
 <script>
-    document.getElementById('inputBuscarPaciente').addEventListener('input', function() {
-        let query = this.value;
-        let lista = document.getElementById('listaSugerencias');
 
-        if (query.length > 2) {
-            fetch("{{ route('pacientes.buscar_ajax') }}?q=" + query)
-                .then(response => response.json())
-                .then(data => {
-                    lista.innerHTML = "";
-                    if (data.length > 0) {
-                        lista.style.display = "block";
-                        data.forEach(p => {
-                            let div = document.createElement('div');
-                            div.style.padding = "12px 15px";
-                            div.style.cursor = "pointer";
-                            div.style.borderBottom = "1px solid #f1f5f9";
-                            div.innerHTML = `
-                                <div style="font-weight: bold; color: #1e293b;">
-                                    <i class="fa-solid fa-user" style="margin-right: 8px; color: #64748b;"></i>
-                                    ${p.nombre} ${p.apellido_paterno}
-                                </div>
-                                <small style="color: #94a3b8; margin-left: 22px;">CURP: ${p.curp}</small>
-                            `;
-                            div.onclick = () => {
-                                window.location.href = "{{ url('/asistente/historial') }}/" + p.id_paciente;
-                            };
-                            lista.appendChild(div);
-                        });
+    // 1. BUSCADOR LOCAL (Protegido para que siempre funcione)
+    const inputBuscar = document.getElementById('inputBuscarPaciente');
+    const listaSugerencias = document.getElementById('listaSugerencias');
+    const itemsPacientes = document.querySelectorAll('.item-paciente-local');
+
+    if (inputBuscar) {
+        inputBuscar.addEventListener('input', function() {
+            const filtro = this.value.toLowerCase().trim();
+            let encontrados = 0;
+
+            if (filtro.length > 1) {
+                listaSugerencias.style.display = 'block';
+                
+                // En lugar de fetch (AJAX), filtramos lo que ya está en el HTML
+                itemsPacientes.forEach(item => {
+                    const nombre = item.getAttribute('data-nombre');
+                    const curp = item.getAttribute('data-curp');
+
+                    if (nombre.includes(filtro) || curp.includes(filtro)) {
+                        item.style.display = 'block';
+                        encontrados++;
                     } else {
-                        lista.innerHTML = "<div style='padding:10px; color:#94a3b8;'>No se encontraron resultados</div>";
-                        lista.style.display = "block";
+                        item.style.display = 'none';
                     }
                 });
-        } else {
-            lista.style.display = "none";
-        }
-    });
 
+                if (encontrados === 0) {
+                    listaSugerencias.innerHTML = '<div style="padding:15px; color:#94a3b8; text-align:center;">No se encontraron resultados</div>';
+                }
+            } else {
+                listaSugerencias.style.display = 'none';
+            }
+        });
+    }
+
+    // 2. BOTONES DE EDICIÓN (Protegidos con un IF para evitar el error de la consola)
+    const btnEditar = document.getElementById('btnHabilitarEdicion');
+    
+    if (btnEditar) {
+        const btnGuardar = document.getElementById('btnGuardar');
+        const btnCancelar = document.getElementById('btnCancelarEdicion');
+        const btnRegresar = document.getElementById('btnRegresar');
+        const campos = document.querySelectorAll('.campo-editable');
+
+        btnEditar.addEventListener('click', function() {
+            campos.forEach(campo => {
+                campo.disabled = false;
+                campo.style.background = "white";
+                campo.style.border = "2px solid #2563eb";
+            });
+            btnGuardar.style.display = "inline-block";
+            btnCancelar.style.display = "inline-block";
+            if(btnRegresar) btnRegresar.style.display = "none";
+            this.style.display = "none";
+        });
+
+        btnCancelar.addEventListener('click', function() {
+            if(confirm('¿Descartar cambios?')) window.location.reload();
+        });
+    }
+
+    // Cerrar sugerencias si se hace clic fuera
     document.addEventListener('click', function(e) {
-        if (e.target.id !== 'inputBuscarPaciente') {
-            document.getElementById('listaSugerencias').style.display = "none";
+        if (listaSugerencias && e.target !== inputBuscar) {
+            listaSugerencias.style.display = "none";
         }
     });
 

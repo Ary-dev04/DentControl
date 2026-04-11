@@ -14,14 +14,17 @@ class HistorialController extends Controller
 {
     public function index()
     {
+        $pacientesBusqueda = Paciente::where('id_clinica', auth()->user()->id_clinica)->get();
         return view('asistente.historial.historial', [
             'paciente' => null,
-            'expediente' => null
+            'expediente' => null,
+            'pacientesBusqueda' => $pacientesBusqueda
         ]);
     }
 
     public function verHistorial($id)
 {
+    $pacientesBusqueda = Paciente::where('id_clinica', auth()->user()->id_clinica)->get();
     // Cargamos al paciente con todas sus relaciones necesarias para los modales
     $paciente = Paciente::with([
         'tratamientos.catalogoTratamiento', // Para el nombre del tratamiento
@@ -53,7 +56,7 @@ class HistorialController extends Controller
         $expediente = new ExpedienteClinico(['id_paciente' => $id]);
     }
 
-    return view('asistente.historial.historial', compact('paciente', 'expediente', 'versionesAnteriores', 'notas', 'citaActiva'));
+    return view('asistente.historial.historial', compact('paciente', 'expediente', 'versionesAnteriores', 'notas', 'citaActiva', 'pacientesBusqueda'));
 }
 
    public function guardar(Request $request, $id_paciente)
