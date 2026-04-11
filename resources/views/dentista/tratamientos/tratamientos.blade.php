@@ -61,8 +61,21 @@
         <div class="form-row">
             <div class="form-group full-width" style="position: relative;">
                 <label>Nombre del paciente</label>
-                <input type="text" id="inputBuscarPaciente" placeholder="Escriba nombre o CURP..." autocomplete="off" value="{{ old('nombre_paciente_hidden') }}">
-                <div id="listaResultados" class="search-results"></div>
+                <input type="text" id="inputBuscarPaciente" 
+       placeholder="Buscar paciente con tratamiento activo..." 
+       autocomplete="off" 
+       value="{{ old('nombre_paciente_hidden') }}">
+                
+                <div id="listaResultados" class="search-results">
+                    @foreach($pacientes as $p)
+                        <div class="result-item" 
+                             data-search="{{ strtolower($p->nombre . ' ' . $p->apellido_paterno . ' ' . $p->curp) }}"
+                             onclick='seleccionarPacienteLocal(@json($p))'>
+                            <i class="fa-solid fa-user"></i> {{ $p->nombre }} {{ $p->apellido_paterno }}
+                            <br><small style="color: #666; margin-left: 20px;">CURP: {{ $p->curp }}</small>
+                        </div>
+                    @endforeach
+                </div>
             </div>
         </div>
     </section>
@@ -227,7 +240,7 @@ btnDescartar.addEventListener('click', function() {
 
 // --- AJAX ---
 
-inputBuscar.addEventListener('input', function() {
+/*inputBuscar.addEventListener('input', function() {
     let query = this.value;
     if(query.length > 2) {
         fetch("{{ url('/buscar-paciente') }}?q=" + encodeURIComponent(query))
@@ -247,7 +260,49 @@ inputBuscar.addEventListener('input', function() {
                 });
             });
     }
+});*/
+
+
+// --- FILTRADO EN TIEMPO REAL (ESTILO CLÍNICAS) ---
+inputBuscar.addEventListener('input', function() {
+    const filter = this.value.toLowerCase();
+    const items = document.querySelectorAll('.result-item');
+    let encontradas = 0;
+
+    if (filter.length > 0) {
+        lista.style.display = 'block';
+        items.forEach(item => {
+            const searchData = item.getAttribute('data-search');
+            if (searchData.includes(filter)) {
+                item.style.display = "";
+                encontradas++;
+            } else {
+                item.style.display = "none";
+            }
+        });
+        
+        // Si no hay nada que coincida, ocultamos la lista
+        if(encontradas === 0) lista.style.display = 'none';
+    } else {
+        lista.style.display = 'none';
+    }
 });
+
+// Cerrar lista si hacen clic fuera
+document.addEventListener('click', function(e) {
+    if (e.target !== inputBuscar) lista.style.display = 'none';
+});
+
+// Función cuando seleccionan un paciente del filtro
+function seleccionarPacienteLocal(p) {
+    const nombreCompleto = p.apellido_paterno ? `${p.nombre} ${p.apellido_paterno}` : p.nombre;
+    inputBuscar.value = nombreCompleto;
+    nombreHidden.value = nombreCompleto;
+    lista.style.display = 'none';
+
+    // Llamamos a la carga de tratamientos (esto sí requiere fetch al servidor)
+    seleccionarPaciente(p);
+}
 
 function seleccionarPaciente(p, autoIdTratamiento = null) {
     inputBuscar.value = p.apellido_paterno ? `${p.nombre} ${p.apellido_paterno}` : p.nombre;

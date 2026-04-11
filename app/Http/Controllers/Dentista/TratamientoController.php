@@ -13,7 +13,10 @@ class TratamientoController extends Controller
 {
     public function index()
     {
-        return view('dentista.tratamientos.tratamientos');
+        $pacientes = Paciente::where('id_clinica', Auth::user()->id_clinica)
+        ->has('tratamientos') // Esta es la clave: filtra por relación
+        ->get();
+        return view('dentista.tratamientos.tratamientos', compact('pacientes'));
     }
 
 public function buscarPaciente(Request $request)
