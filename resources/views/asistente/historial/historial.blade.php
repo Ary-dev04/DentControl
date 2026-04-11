@@ -712,6 +712,147 @@
         });
     }
 
+    function validarFormatoClinico(el) {
+        // 1. LIMPIEZA DE ESPACIOS MÚLTIPLES (Agregado aquí)
+        // Reemplaza 2 o más espacios por uno solo en tiempo real
+        el.value = el.value.replace(/\s{2,}/g, ' ');
+
+        const regex = /^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s\-\(\)\.,]*$/;
+        if (el && el.value !== "" && !regex.test(el.value)) {
+            el.setCustomValidity("Caracteres no permitidos (solo letras, espacios, paréntesis, guiones, puntos y comas).");
+            return false;
+        } else {
+            el.setCustomValidity(""); 
+            return true;
+        }
+    }
+
+    // IDs de todos los campos que queremos validar
+    const idsAValidar = ['hereditarios', 'patologicos', 'observaciones', 'alergias'];
+
+    // Validación en tiempo real para limpiar la burbuja y ESPACIOS mientras escriben
+    idsAValidar.forEach(id => {
+        const elemento = document.getElementById(id);
+        if (elemento) {
+            elemento.addEventListener('input', function() {
+                validarFormatoClinico(this); // Aquí se ejecuta la limpieza y la validación
+            });
+        }
+    });
+
+    // 4. ENVÍO DEL FORMULARIO (Protegido con IF)
+    const formHistorial = document.getElementById('formHistorial');
+    if (formHistorial) {
+        formHistorial.addEventListener('submit', function(e) {
+            let hayError = false;
+            const pesoInput = this.querySelector('input[name="peso"]');
+            if (pesoInput && !pesoInput.checkValidity()) {
+                pesoInput.reportValidity();
+                hayError = true;
+            }
+            if (!hayError) {
+                for (let id of idsAValidar) {
+                    const el = document.getElementById(id);
+                    if (el) {
+                        if (!validarFormatoClinico(el) || !el.checkValidity()) {
+                            el.reportValidity(); 
+                            hayError = true;
+                            break; 
+                        }
+                    }
+                }
+            }
+            if (hayError) e.preventDefault(); 
+        });
+    }
+
+    // 5. GESTIÓN DE PRESUPUESTO
+    function gestionarPresupuesto(idTratamiento) {
+    const btn = document.getElementById('btnPresupuesto');
+    const input = document.getElementById('inputPrecioEstimado');
+    
+    // PROTECCIÓN: Si los elementos no existen (porque no hay paciente), salimos de la función
+    if (!btn || !input) return;
+
+    const textoBtn = document.getElementById('textoBotonPresupuesto');
+    const icono = btn.querySelector('i');
+    const estado = btn.getAttribute('data-estado');
+
+    // MODO: PASAR A EDICIÓN
+    if (estado === 'lectura') {
+        input.disabled = false;
+        input.style.background = "white";
+        input.style.border = "2px solid #0ea5e9";
+        input.focus();
+        
+        btn.setAttribute('data-estado', 'edicion');
+        btn.style.background = "#f59e0b"; // Naranja
+        textoBtn.innerText = " Guardar";
+        icono.className = "fa-solid fa-floppy-disk";
+    } 
+    // MODO: GUARDAR CAMBIOS
+    else {
+        const precio = input.value;
+
+        if(!precio || precio <= 0) {
+            alert("Por favor ingrese un monto válido.");
+            return;
+        }
+
+        btn.disabled = true;
+        textoBtn.innerText = " Guardando...";
+
+        fetch(`/historial/actualizar-precio/${idTratamiento}`, { 
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': '{{ csrf_token() }}'
+            },
+            body: JSON.stringify({ precio_estimado: precio })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if(data.success) {
+                // Bloquear campo nuevamente
+                input.disabled = true;
+                input.style.background = "#f8fafc";
+                input.style.border = "1px solid #cbd5e1";
+                
+                btn.disabled = false;
+                btn.setAttribute('data-estado', 'lectura');
+                btn.style.background = "#16a34a"; // Verde éxito
+                textoBtn.innerText = " ¡Actualizado!";
+                icono.className = "fa-solid fa-check";
+                
+                // Quitar aviso de pendiente si existe
+                const aviso = document.getElementById('avisoPendiente');
+                if(aviso) aviso.style.display = 'none';
+
+                // Esperamos 1.5 segundos para que el dentista vea el éxito antes de recargar
+                setTimeout(() => {
+                    btn.style.background = "#64748b"; // Volver al color neutro
+                    textoBtn.innerText = " Editar";
+                    icono.className = "fa-solid fa-pen-to-square";
+                    
+                    // Recargar para actualizar saldos
+                    location.reload(); 
+                }, 1500);
+            } else {
+                alert("Error: " + data.message);
+                btn.disabled = false;
+                textoBtn.innerText = " Guardar";
+                btn.style.background = "#f59e0b";
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert("Ocurrió un error en la conexión.");
+            btn.disabled = false;
+            textoBtn.innerText = " Guardar";
+        });
+    }
+}
+
     // Cerrar sugerencias si se hace clic fuera
     document.addEventListener('click', function(e) {
         if (listaSugerencias && e.target !== inputBuscar) {
@@ -720,7 +861,7 @@
     });
 
 
-  function validarFormatoClinico(el) {
+  /*function validarFormatoClinico(el) {
         // 1. LIMPIEZA DE ESPACIOS MÚLTIPLES (Agregado aquí)
         // Reemplaza 2 o más espacios por uno solo en tiempo real
         el.value = el.value.replace(/\s{2,}/g, ' ');
@@ -853,6 +994,6 @@
             btn.disabled = false;
         });
     }
-}
+}*/
 </script>
 @endsection
