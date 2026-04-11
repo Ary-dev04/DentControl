@@ -23,7 +23,8 @@ return new class extends Migration
             $table->date('fecha_nacimiento')->nullable();
             $table->enum('sexo', ['hombre', 'mujer'])->nullable();
             
-            $table->string('email')->unique();
+            //$table->string('email')->unique();
+            $table->string('email')->unique()->nullable();
             $table->string('telefono')->nullable();
             $table->string('curp')->nullable()->unique();
             $table->string('ocupacion')->nullable();

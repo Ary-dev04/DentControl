@@ -230,8 +230,11 @@ btnDescartar.addEventListener('click', function() {
 inputBuscar.addEventListener('input', function() {
     let query = this.value;
     if(query.length > 2) {
-        fetch(`/buscar-paciente?q=${query}`)
-            .then(res => res.json())
+        fetch("{{ url('/buscar-paciente') }}?q=" + encodeURIComponent(query))
+            .then(res => {
+                if (!res.ok) throw new Error('Error en la respuesta del servidor');
+                return res.json();
+            })
             .then(data => {
                 lista.innerHTML = '';
                 lista.style.display = 'block';
