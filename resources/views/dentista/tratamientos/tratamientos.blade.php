@@ -254,7 +254,7 @@ function seleccionarPaciente(p, autoIdTratamiento = null) {
     nombreHidden.value = inputBuscar.value;
     lista.style.display = 'none';
 
-    fetch(`/obtener-tratamientos/${p.id_paciente}`)
+    fetch("{{ url('obtener-tratamientos') }}/" + p.id_paciente)
         .then(res => res.json())
         .then(tratamientos => {
             selectT.disabled = false;
@@ -268,7 +268,7 @@ function seleccionarPaciente(p, autoIdTratamiento = null) {
 }
 
 function cargarDetalle(id) {
-    fetch(`/detalle-tratamiento/${id}`)
+    fetch("{{ url('detalle-tratamiento') }}/" + id)
         .then(res => res.json())
         .then(data => {
             const t = data.tratamiento;
