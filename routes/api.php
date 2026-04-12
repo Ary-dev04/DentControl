@@ -2,24 +2,58 @@
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
-// 1. Importa tu controlador
 use App\Http\Controllers\Api\AuthController;
+use App\Http\Controllers\Api\V1\AuthApiController;
+use App\Http\Controllers\Api\V1\CodigoPostalController;
+use App\Http\Controllers\Api\V1\MobileAuthController;
+use App\Http\Controllers\Api\V1\MobilePacienteController;
 
-// 2. Ruta pública para loguearse
 Route::post('/login-movil', [AuthController::class, 'login']);
 
-// 3. Rutas protegidas (Solo accesibles con el Token de Postman)
 Route::middleware('auth:sanctum')->group(function () {
-    
-    // Ruta para obtener los datos del paciente logueado
     Route::get('/perfil', function (Request $request) {
         return response()->json([
             'res' => true,
-            'datos' => $request->user()->load('paciente') 
+            'datos' => $request->user()->load('paciente')
         ]);
     });
 
-    // Ruta para cerrar sesión
     Route::post('/logout-movil', [AuthController::class, 'logout']);
+});
+
+Route::prefix('v1')->group(function () {
     
+    // Grupo Auth
+    Route::prefix('auth')->group(function () {
+        Route::post('/login', [AuthApiController::class, 'login']);
+
+        Route::middleware(['api.token', 'api.actor:usuario'])->group(function () {
+            Route::get('/me', [AuthApiController::class, 'me']);
+            Route::post('/logout', [AuthApiController::class, 'logout']);
+        });
+    });
+
+    // Grupo Mobile
+    Route::prefix('mobile')->group(function () {
+        Route::post('/auth/login', [MobileAuthController::class, 'login']);
+
+        Route::middleware(['api.token', 'api.actor:acceso_movil'])->group(function () {
+            Route::get('/auth/me',                [MobileAuthController::class, 'me']);
+            Route::post('/auth/logout',           [MobileAuthController::class, 'logout']);
+            Route::post('/auth/cambiar-password', [MobileAuthController::class, 'cambiarPassword']);
+            
+            // Ruta para guardar el token de Firebase
+            Route::post('/auth/fcm-token',        [MobilePacienteController::class, 'guardarFcmToken']);
+            
+            Route::get('/paciente/tratamientos',  [MobilePacienteController::class, 'tratamientos']);
+            Route::get('/paciente/citas',         [MobilePacienteController::class, 'citas']);
+        });
+    });
+
+    // Grupo Catalogos
+    Route::prefix('catalogos')->group(function () {
+        Route::get('/codigos-postales', [CodigoPostalController::class, 'index']);
+        Route::get('/codigos-postales/{codigoPostal}', [CodigoPostalController::class, 'show']);
+    });
+
 });

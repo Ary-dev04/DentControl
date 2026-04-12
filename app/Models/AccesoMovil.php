@@ -3,6 +3,7 @@
 namespace App\Models;
 
 // 1. Cambiamos el uso de Model por Authenticatable
+use Illuminate\Database\Eloquent\Relations\MorphMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
@@ -25,7 +26,8 @@ class AccesoMovil extends Authenticatable
         'password',
         'token', // Este puedes dejarlo o usar el de Sanctum
         'fecha_expiracion',
-        'estatus'
+        'estatus',
+        'fcm_token' // <--- AGREGASTE ESTO AQUÍ
     ];
 
     protected $hidden = [
@@ -34,9 +36,19 @@ class AccesoMovil extends Authenticatable
         'remember_token', // Añadido por seguridad
     ];
 
+    protected $casts = [
+        'password' => 'hashed',
+        'fecha_expiracion' => 'datetime',
+    ];
+
     // Relación: Pertenece a un paciente
     public function paciente()
     {
         return $this->belongsTo(Paciente::class, 'id_paciente', 'id_paciente');
+    }
+
+    public function apiTokens(): MorphMany
+    {
+        return $this->morphMany(ApiToken::class, 'tokenable');
     }
 }

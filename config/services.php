@@ -35,4 +35,20 @@ return [
         ],
     ],
 
+    'copomex' => [
+        'token' => env('COPOMEX_TOKEN'),
+        'base_url' => env('COPOMEX_BASE_URL', 'https://api.copomex.com'),
+        'timeout' => env('COPOMEX_TIMEOUT', 8),
+    ],
+
+    'sepomex' => [
+        'file_path' => env('SEPOMEX_FILE_PATH'),
+        'delimiter' => env('SEPOMEX_FILE_DELIMITER'),
+    ],
+
+    // Agrega esto:
+    'firebase' => [
+    'credentials' => env('FIREBASE_CREDENTIALS', storage_path('app/firebase-credentials.json')),
+    'project_id'  => env('FIREBASE_PROJECT_ID'),
+    ],
 ];
