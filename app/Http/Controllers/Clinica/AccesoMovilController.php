@@ -15,15 +15,24 @@ class AccesoMovilController extends Controller
 {
     public function index(Request $request)
     {
-        $paciente = null;
-    if ($request->has('id_paciente')) {
-        // Cargamos al paciente y sus tratamientos CON su respectivo catálogo
-        $paciente = Paciente::with(['tratamientos.catalogoTratamiento', 'accesoMovil'])
-                            ->find($request->id_paciente);
-    }
+       // 1. CARGA PARA EL BUSCADOR LOCAL
+        // Obtenemos todos los pacientes de la clínica logueada que tengan tratamientos en curso
+        $pacientesAptos = Paciente::where('id_clinica', auth()->user()->id_clinica)
+            ->whereHas('tratamientos', function($query) {
+                $query->where('estatus', 'curso');
+            })
+            ->select('id_paciente', 'nombre', 'apellido_paterno', 'curp') // Solo campos necesarios para el JS
+            ->get();
 
-        // Esta es la ruta de tu vista: asistente/app/acceso.blade.php
-        return view('asistente.app.acceso', compact('paciente'));
+        // 2. LÓGICA DEL PACIENTE SELECCIONADO
+        $paciente = null;
+        if ($request->has('id_paciente')) {
+            $paciente = Paciente::with(['tratamientos.catalogoTratamiento', 'accesoMovil'])
+                                ->find($request->id_paciente);
+        }
+
+        // Enviamos ambas variables a la vista
+        return view('asistente.app.acceso', compact('paciente', 'pacientesAptos'));
     }
 
     public function habilitarAcceso(Request $request)
@@ -74,7 +83,7 @@ class AccesoMovilController extends Controller
 }
 
 
-    public function buscarPacientesAcceso(Request $request)
+   /* public function buscarPacientesAcceso(Request $request)
 {
     $q = $request->get('q');
 
@@ -92,5 +101,5 @@ class AccesoMovilController extends Controller
         ->get();
 
     return response()->json($pacientes);
-}
+}*/
 }

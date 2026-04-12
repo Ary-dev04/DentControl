@@ -26,15 +26,30 @@
         </section>
 
         <section class="card">
-            <h3>Buscar paciente apto para acceso</h3>
-            <div class="form-row" style="position: relative;">
-                <div class="form-group full-width">
-                    <label>Nombre del paciente o CURP</label>
-                    <input type="text" id="inputBusqueda" placeholder="Escribe para buscar..." autocomplete="off">
-                    <div id="sugerencias" style="display:none; position:absolute; width:100%; background:white; z-index:1000; box-shadow:0 4px 6px rgba(0,0,0,0.1); border-radius:8px; border:1px solid #e2e8f0; margin-top:5px;"></div>
-                </div>
+    <h3>Buscar paciente apto para acceso</h3>
+    <div class="form-row" style="position: relative;">
+        <div class="form-group full-width">
+            <label>Nombre del paciente o CURP</label>
+            <input type="text" id="inputBusqueda" placeholder="Escribe para buscar..." autocomplete="off">
+            
+            <div id="sugerencias" style="display:none; position:absolute; width:100%; background:white; z-index:1000; box-shadow:0 4px 6px rgba(0,0,0,0.1); border-radius:8px; border:1px solid #e2e8f0; margin-top:5px; max-height: 250px; overflow-y: auto;">
+                @foreach($pacientesAptos as $p)
+                    <div class="item-paciente-acceso" 
+                         style="padding: 12px 15px; cursor: pointer; border-bottom: 1px solid #f1f5f9;"
+                         data-nombre="{{ strtolower($p->nombre . ' ' . $p->apellido_paterno) }}"
+                         data-curp="{{ strtolower($p->curp) }}"
+                         onclick="window.location.href='{{ route('acceso.index') }}?id_paciente={{ $p->id_paciente }}'">
+                        
+                        <div style="font-weight: bold; color: #1e293b;">{{ $p->nombre }} {{ $p->apellido_paterno }}</div>
+                        <div style="font-size: 0.8rem; color: #64748b;">
+                            CURP: {{ $p->curp }} | <span style="color:#2563eb;">Tratamiento Activo</span>
+                        </div>
+                    </div>
+                @endforeach
             </div>
-        </section>
+        </div>
+    </div>
+</section>
 
         @if($paciente)
         <section class="card">
@@ -150,45 +165,46 @@
 </div>
 
 <script>
-document.getElementById('inputBusqueda').addEventListener('input', function() {
-    let q = this.value;
-    let lista = document.getElementById('sugerencias');
-    
-    if (q.length > 2) {
-        // IMPORTANTE: Cambiamos a la ruta específica que filtra por tratamiento
-        fetch("{{ route('pacientes.buscar_acceso_ajax') }}?q=" + q)
-            .then(res => res.json())
-            .then(data => {
-                lista.innerHTML = "";
-                if (data.length > 0) {
-                    lista.style.display = "block";
-                    data.forEach(p => {
-                        let div = document.createElement('div');
-                        div.style.padding = "12px 15px";
-                        div.style.cursor = "pointer";
-                        div.style.borderBottom = "1px solid #f1f5f9";
-                        div.innerHTML = `
-                            <div style="font-weight: bold; color: #1e293b;">${p.nombre} ${p.apellido_paterno}</div>
-                            <div style="font-size: 0.8rem; color: #64748b;">CURP: ${p.curp} | <span style="color:#2563eb;">Tratamiento Activo</span></div>
-                        `;
-                        div.onclick = () => {
-                            window.location.href = "{{ route('acceso.index') }}?id_paciente=" + p.id_paciente;
-                        };
-                        div.onmouseover = () => div.style.background = "#f8fafc";
-                        div.onmouseout = () => div.style.background = "white";
-                        lista.appendChild(div);
-                    });
-                } else {
-                    lista.style.display = "none";
-                }
-            });
-    } else {
-        lista.style.display = "none";
-    }
-});
+document.addEventListener('DOMContentLoaded', function() {
+    const inputBusqueda = document.getElementById('inputBusqueda');
+    const listaSugerencias = document.getElementById('sugerencias');
+    const items = document.querySelectorAll('.item-paciente-acceso');
 
-document.addEventListener('click', (e) => {
-    if (e.target.id !== 'inputBusqueda') document.getElementById('sugerencias').style.display = "none";
+    if (inputBusqueda) {
+        inputBusqueda.addEventListener('input', function() {
+            const filtro = this.value.toLowerCase().trim();
+            let encontrados = 0;
+
+            if (filtro.length > 1) {
+                listaSugerencias.style.display = 'block';
+
+                items.forEach(item => {
+                    const nombre = item.getAttribute('data-nombre');
+                    const curp = item.getAttribute('data-curp');
+
+                    if (nombre.includes(filtro) || curp.includes(filtro)) {
+                        item.style.display = 'block';
+                        encontrados++;
+                    } else {
+                        item.style.display = 'none';
+                    }
+                });
+
+                if (encontrados === 0) {
+                    listaSugerencias.innerHTML = '<div style="padding:15px; color:#94a3b8; text-align:center;">No se encontraron pacientes aptos</div>';
+                }
+            } else {
+                listaSugerencias.style.display = 'none';
+            }
+        });
+    }
+
+    // Cerrar sugerencias al hacer clic fuera
+    document.addEventListener('click', function(e) {
+        if (e.target !== inputBusqueda) {
+            listaSugerencias.style.display = "none";
+        }
+    });
 });
 </script>
 @endsection
