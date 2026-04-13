@@ -395,7 +395,7 @@
     // Lógica de Copomex
     document.getElementById('codigo_postal').addEventListener('blur', function() {
         const cp = this.value;
-        const token = "d1730311-71cf-4809-99d5-e6b2bdb2b08c";
+        const token = "280ef45e-c09a-43d0-88d6-44cef4c1d1d5";
 
         if (cp.length === 5) {
             const estadoInput = document.getElementById('estado');
